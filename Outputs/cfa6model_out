@@ -1,0 +1,146 @@
+> cfa.model<-'antagonism=~T_Detachment + MPS_scT+ T_Mistrust+T_Manipulativeness+MPS_alT+T_Aggression+MPS_agT
++   neuroticism=~zstai+zk10+MPS_srT+T_Dependency+T_LowSelfEsteem
++   constraint=~ T_Propriety+T_Impulsivity+MPS_clT+MPS_tdT
++   extroversion=~ T_Exhibitionism+ T_Entitlement+MPS_spT+MPS_wbT
++   achievement=~MPS_acT+T_Workaholism+ATQ_ECTotal
++   openness=~MPS_abT+T_EccentricPerceptions'
+> fit <- cfa(cfa.model, data=df)
+Warning messages:
+1: In lavaan::lavaan(model = cfa.model, data = df, model.type = "cfa",  :
+  lavaan WARNING: some estimated variances are negative
+2: In lavaan::lavaan(model = cfa.model, data = df, model.type = "cfa",  :
+  lavaan WARNING: observed variable error term matrix (theta) is not positive definite; use inspect(fit,"theta") to investigate.
+> summary(fit, fit.measures=TRUE)
+lavaan (0.5-17) converged normally after 377 iterations
+
+  Number of observations                           105
+
+  Estimator                                         ML
+  Minimum Function Test Statistic              814.679
+  Degrees of freedom                               260
+  P-value (Chi-square)                           0.000
+
+Model test baseline model:
+
+  Minimum Function Test Statistic             1822.997
+  Degrees of freedom                               300
+  P-value                                        0.000
+
+User model versus baseline model:
+
+  Comparative Fit Index (CFI)                    0.636
+  Tucker-Lewis Index (TLI)                       0.580
+
+Loglikelihood and Information Criteria:
+
+  Loglikelihood user model (H0)              -8860.605
+  Loglikelihood unrestricted model (H1)      -8453.266
+
+  Number of free parameters                         65
+  Akaike (AIC)                               17851.210
+  Bayesian (BIC)                             18023.718
+  Sample-size adjusted Bayesian (BIC)        17818.371
+
+Root Mean Square Error of Approximation:
+
+  RMSEA                                          0.143
+  90 Percent Confidence Interval          0.132  0.154
+  P-value RMSEA <= 0.05                          0.000
+
+Standardized Root Mean Square Residual:
+
+  SRMR                                           0.145
+
+Parameter estimates:
+
+  Information                                 Expected
+  Standard Errors                             Standard
+
+                   Estimate  Std.err  Z-value  P(>|z|)
+Latent variables:
+  antagonism =~
+    T_Detachment      1.000
+    MPS_scT          -0.769    0.170   -4.531    0.000
+    T_Mistrust        1.650    0.286    5.763    0.000
+    T_Manipltvnss     1.394    0.280    4.979    0.000
+    MPS_alT           1.280    0.230    5.562    0.000
+    T_Aggression      1.262    0.263    4.801    0.000
+    MPS_agT           1.158    0.233    4.963    0.000
+  neuroticism =~
+    zstai             1.000
+    zk10              1.127    0.137    8.227    0.000
+    MPS_srT          11.244    1.467    7.665    0.000
+    T_Dependency      6.770    1.715    3.948    0.000
+    T_LowSelfEstm    10.978    1.733    6.336    0.000
+  constraint =~
+    T_Propriety       1.000
+    T_Impulsivity    -1.626    0.256   -6.345    0.000
+    MPS_clT           1.715    0.270    6.348    0.000
+    MPS_tdT           0.554    0.155    3.584    0.000
+  extroversion =~
+    T_Exhibitinsm     1.000
+    T_Entitlement     0.636    0.143    4.447    0.000
+    MPS_spT           0.768    0.113    6.782    0.000
+    MPS_wbT           0.589    0.124    4.735    0.000
+  achievement =~
+    MPS_acT           1.000
+    T_Workaholism     0.837    0.102    8.188    0.000
+    ATQ_ECTotal       1.247    0.238    5.242    0.000
+  openness =~
+    MPS_abT           1.000
+    T_EccntrcPrcp     1.615    0.293    5.504    0.000
+
+Covariances:
+  antagonism ~~
+    neuroticism       2.618    0.693    3.779    0.000
+    constraint       -3.904    3.359   -1.162    0.245
+    extroversion      3.511    5.439    0.646    0.519
+    achievement      -2.983    5.742   -0.519    0.603
+    openness         16.898    5.601    3.017    0.003
+  neuroticism ~~
+    constraint       -0.349    0.434   -0.804    0.421
+    extroversion     -0.410    0.716   -0.572    0.567
+    achievement      -0.302    0.757   -0.399    0.690
+    openness          1.823    0.621    2.936    0.003
+  constraint ~~
+    extroversion    -12.040    5.669   -2.124    0.034
+    achievement      20.766    6.535    3.178    0.001
+    openness         -5.700    3.656   -1.559    0.119
+  extroversion ~~
+    achievement      18.400    9.473    1.942    0.052
+    openness         14.141    6.441    2.195    0.028
+  achievement ~~
+    openness          5.250    6.043    0.869    0.385
+
+Variances:
+    T_Detachment     68.966   10.087
+    MPS_scT          38.676    5.675
+    T_Mistrust       33.691    6.831
+    T_Manipltvnss    81.452   12.398
+    MPS_alT          31.348    5.461
+    T_Aggression     80.355   12.019
+    MPS_agT          57.170    8.687
+    zstai             0.445    0.074
+    zk10              0.237    0.055
+    MPS_srT          40.351    7.316
+    T_Dependency    119.484   16.961
+    T_LowSelfEstm    85.505   13.167
+    T_Propriety      52.120    7.742
+    T_Impulsivity    22.516    6.522
+    MPS_clT          24.310    7.203
+    MPS_tdT          46.200    6.534
+    T_Exhibitinsm    42.819   10.358
+    T_Entitlement    99.580   14.704
+    MPS_spT          21.759    5.813
+    MPS_wbT          72.455   10.837
+    MPS_acT          -3.931    9.631
+    T_Workaholism    49.736    9.586
+    ATQ_ECTotal     475.191   66.903
+    MPS_abT          40.692    8.011
+    T_EccntrcPrcp    -1.704   14.901
+    antagonism       30.081   10.364
+    neuroticism       0.523    0.125
+    constraint       28.211    8.909
+    extroversion     71.866   16.969
+    achievement     103.889   16.807
+    openness         37.860   10.892

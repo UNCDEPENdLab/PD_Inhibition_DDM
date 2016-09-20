@@ -31,3 +31,9 @@ vignettes/*.pdf
 # Temporary files created by R markdown
 *.utf8.md
 *.knit.md
+
+#Notes from previous analysis not relevant for commit
+Chahal\ Notes/
+Chahal\ WPIC\ Poster\ 2014/
+
+.DS_Store

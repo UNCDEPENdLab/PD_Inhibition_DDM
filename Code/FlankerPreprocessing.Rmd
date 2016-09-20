@@ -1,0 +1,101 @@
+---
+title: "Screening and Cleaning Flanker Task"
+author: "DEPENd Lab"
+date: "September 19, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#by default, echo the code for chunks
+knitr::opts_chunk$set(echo = TRUE)
+
+#specify that chunks should run relative to the root working directory (may need to be changed per user)
+knitr::opts_knit$set(root.dir = "~/Box_Sync/DEPENd/Projects/PD_Inhibition_DDM")
+
+#load necessary packages
+if (!require(easypackages)) { install.packages("easypackages"); library(easypackages) }
+packages("ggplot2", "dplyr", "tidyr", "sas7bdat")
+```
+
+## Overview
+
+This R Markdown script is intended to be developed for preprocessing data from the Flanker task collected as part of the PD Executive Inhibition dataset. Click Knit HTML in Rstudio to build the document.
+
+Some code coding practices:
+
+* For data-related decisions, put your initials and the date
+* Abstract large chunks of code to separate function files (e.g., `rt_functions.R`)
+* Make use of Github to track milestones (this folder is already a [repository](https://github.com/PennStateDEPENdLab/PD_Inhibition_DDM)
+* Organize document into sections using headers
+
+## Description of task
+
+These are data from an Eriksen-style flanker task, in which participants must push a button denoting the facing of a central arrow (left or right) while ignoring flanking arrows. Incongruent trials have a mismatch between the central and flanking stimuli, whereas congruent trials match. This version was adapted from Casey et al. 2000, where there were mostly incongruent (70%) blocks and mostly congruent (70%) blocks.
+
+Participants completed 160 trials of the flanker in four blocks of forty trials in ABBA order, where A is mostly congruent and B is mostly incongruent. Flanker stimuli were displayed for 1000ms with a 500ms ITI. Across all blocks the frequency of incongruent stimuli was 50%.
+
+## Details of screening and cleaning data
+
+Original data are stored in Data/SAS Originals/flanker.sas7bdat. Data can be loaded into R using the sas7bdat package, but are imported into a `.RData` object called `flanker`. This is loaded here before proceeding.
+
+```{r loaddata, echo=FALSE}
+if (!file.exists("Data/R_Originals/flanker_raw.RData")) {
+  flanker <- dplyr::tbl_df(read.sas7bdat("Data/SAS Originals/flanker.sas7bdat"))
+  save(file="Data/R_Originals/flanker_raw.RData", flanker)
+} else {
+  load("Data/R_Originals/flanker_raw.RData")
+}
+```
+
+The basic structure of the raw data is as follows:
+
+```{r}
+str(flanker, give.attr=FALSE)
+```
+
+Briefly, the important fields are
+
+* Subject: The participant ID.
+* TrialSlide_ACC: Whether the response on a trial was correct (0/1)
+* TrialSlide_RT: The reaction time in milliseconds
+* Incongruent: whether the trial was incongruent (1) or congruent (0)
+* CongruentBlock: Whether the trial falls in a mostly congruent block (1) or mostly incongruent (0) block.
+
+There are also many ancillary fields that should be sanity checked, then dropped:
+
+* Central: facing of central stimulus (L/R)
+* Flanker: facing of flanking stimuli (L/R). The combination of Central and Flanker should align with Incongruent.
+* Procedure: Whether the trial falls in a mostly congruent or mostly incongruent block: CongruentProc versus IncongruentProc. (cf. CongruentBlock)
+
+[Fill in more here]
+
+## Basic data handling
+
+This is where basic data manipulation should occur. Are there unneeded columns?
+If so, use `flanker <- flanker %>% select(-X, -Y, -Z)` syntax to drop.
+
+## Basic data cleaning pipeline
+
+1. Verify the expected number of trials and blocks per subject: 160 total, 4 blocks, 70/30 within block
+2. Screen for excessively low accuracies (50% or lower), especially on incongruent trials. After discussion as a lab, potentially drop participants.
+3. Compute and display (as table) summary statistics for accuracy by subject and block.
+4. Compute and display (as table) summary statistics for RT by subject and block. May need to leverage harmonic mean (Ratcliff) or ex-Gaussian fitted statistics to get a sense of averages (given positive skew of RTs).
+5. Identify unbelievably fast RTs < 100ms. Recode both RT and accuracy to NA.
+6. Screen for excessively long RTs. Divide dataset by subject and use distribution of RTs within subject as benchmark for "long" (e.g., 1.5 * IQR above 75th %ile). Recode to NA or potentially Winsorize.
+7. Screen for unlikely RT means between subjects, separating incongruent and congruent trials. For example, if the congruent sample average is ~250ms and one subject has a mean ~750ms, is this plausible? If not, discuss and potentially drop.
+
+## Basic multilevel modeling of flanker data
+
+Once these steps are complete, use `lme4::lmer` and `lme4::glmer` to model RTs and accuracies, respectively. The model will contain a random intercept per subject `(1 | Subject)` reflecting trials nested within subject. There may be fixed or random linear effects of trial, which would reflect gradual speeding or slowing of RTs or improvement/degradation of accuracy. Residual covariance structures such as AR(1) or compound symmetry may also be considered using the `nlme::lme` function. Something like:
+
+```{r tidy=FALSE, eval=FALSE}
+lme(RT ~ trial + Incongruent*CongruentBlock, random = ~ 1 | Subject,
+            correlation=corCompSymm(form=~trial|person), na.action = na.exclude, 
+            data = flanker,method='REML'))
+```
+
+Use likelihood ratio tests (typically `anova` on `lmer` objects) to adjudicate best fit.
+
+## HDDM
+
+Once the MLMs and GLMMs are understood, move onto HDDM. :)

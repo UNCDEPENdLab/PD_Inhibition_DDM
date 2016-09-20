@@ -1,0 +1,234 @@
+lm(formula = T_NegativeTemperament ~ Sad_I_PctInaccurate, data = alldate)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-17.5947  -7.2174  -0.8021   5.9849  20.5761 
+
+Coefficients:
+                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)           49.733      1.285  38.710  < 2e-16 ***
+Sad_I_PctInaccurate   24.717      9.296   2.659  0.00915 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+#Significant correlation between pct inacc on sad incong and neg temperament
+
+lm(formula = T_NegativeTemperament ~ I_Sad, data = alldate)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-15.734  -7.973  -0.859   6.697  21.260 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept) 40.96992    7.06524   5.799 7.68e-08 ***
+I_Sad        0.01751    0.01107   1.582    0.117    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 9.471 on 101 degrees of freedom
+  (1 observation deleted due to missingness)
+Multiple R-squared:  0.02417,	Adjusted R-squared:  0.01451 
+F-statistic: 2.502 on 1 and 101 DF,  p-value: 0.1169
+
+#No Sig between RT on sad incong and neg temp
+
+
+
+#* Sig between sad RT and entitlement
+Call:
+lm(formula = T_Entitlement ~ I_Sad, data = alldate)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-26.512  -8.405   1.448   7.588  22.990 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept) 66.19072    8.40958   7.871 4.09e-12 ***
+I_Sad       -0.02648    0.01317  -2.010   0.0471 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 11.27 on 101 degrees of freedom
+  (1 observation deleted due to missingness)
+Multiple R-squared:  0.03845,	Adjusted R-squared:  0.02893 
+F-statistic: 4.039 on 1 and 101 DF,  p-value: 0.04712
+
+
+#**Sig between sad ACC AND RT and mistrust
+
+Call:
+lm(formula = T_Mistrust ~ Sad_I_PctInaccurate, data = alldate)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-14.718  -8.085  -0.768   4.110  30.354 
+
+Coefficients:
+                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)           51.159      1.433  35.709   <2e-16 ***
+Sad_I_PctInaccurate   21.059     10.366   2.031   0.0449 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 10.27 on 99 degrees of freedom
+  (3 observations deleted due to missingness)
+Multiple R-squared:  0.04002,	Adjusted R-squared:  0.03032 
+F-statistic: 4.127 on 1 and 99 DF,  p-value: 0.04489
+
+> gm1<-lm(T_Mistrust~ I_Sad, alldate)
+> summary(gm1)
+
+Call:
+lm(formula = T_Mistrust ~ I_Sad, data = alldate)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-16.6435  -7.6104  -0.8406   5.4508  30.2894 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept) 37.65980    7.67127   4.909 3.52e-06 ***
+I_Sad        0.02471    0.01202   2.056   0.0423 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 10.28 on 101 degrees of freedom
+  (1 observation deleted due to missingness)
+Multiple R-squared:  0.04018,	Adjusted R-squared:  0.03068 
+F-statistic: 4.228 on 1 and 101 DF,  p-value: 0.04233
+
+
+#*Signifcant Sad ACC on manipulative
+
+Call:
+lm(formula = T_Manipulativeness ~ Sad_I_PctInaccurate, data = alldate)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-23.284  -8.450   0.912   7.188  32.953 
+
+Coefficients:
+                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)           54.560      1.572  34.698   <2e-16 ***
+Sad_I_PctInaccurate   28.009     11.378   2.462   0.0156 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 11.28 on 99 degrees of freedom
+  (3 observations deleted due to missingness)
+Multiple R-squared:  0.05768,	Adjusted R-squared:  0.04816 
+F-statistic:  6.06 on 1 and 99 DF,  p-value: 0.01556
+
+
+
+#SIG Sad Acc on MPQ Neg Emo
+Call:
+lm(formula = MPS_NET ~ Sad_I_PctInaccurate, data = alldate)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-27.727  -8.395   1.274   7.621  21.273 
+
+Coefficients:
+                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)            49.73       1.44  34.533  < 2e-16 ***
+Sad_I_PctInaccurate    33.92      10.42   3.255  0.00155 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 10.33 on 99 degrees of freedom
+  (3 observations deleted due to missingness)
+Multiple R-squared:  0.09668,	Adjusted R-squared:  0.08755 
+F-statistic:  10.6 on 1 and 99 DF,  p-value: 0.001552
+
+
+#Sig sad acc on MPQ aggression, barely
+Call:
+lm(formula = MPS_agT ~ Sad_I_PctInaccurate, data = alldate)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-17.540  -7.067   0.438   6.438  25.922 
+
+Coefficients:
+                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)           52.078      1.313  39.651   <2e-16 ***
+Sad_I_PctInaccurate   17.805      9.504   1.873    0.064 .  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 9.42 on 99 degrees of freedom
+  (3 observations deleted due to missingness)
+Multiple R-squared:  0.03424,	Adjusted R-squared:  0.02448 
+F-statistic:  3.51 on 1 and 99 DF,  p-value: 0.06396
+
+
+#Very significant**** Sad pct inacc and MPQ Stresss reaction
+Call:
+lm(formula = MPS_srT ~ Sad_I_PctInaccurate, data = alldate)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-18.4181  -6.8708  -0.8708   5.9028  24.6765 
+
+Coefficients:
+                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)           46.324      1.388  33.372  < 2e-16 ***
+Sad_I_PctInaccurate   27.851     10.044   2.773  0.00664 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 9.955 on 99 degrees of freedom
+  (3 observations deleted due to missingness)
+Multiple R-squared:  0.07207,	Adjusted R-squared:  0.0627 
+F-statistic: 7.689 on 1 and 99 DF,  p-value: 0.006639
+
+#**Significant sad pct inacc and ATQ-EC
+m(formula = ATQ_ECTotal ~ Sad_I_PctInaccurate, data = alldate)
+
+Residuals:
+   Min     1Q Median     3Q    Max 
+-64.85 -12.22  -1.32  15.02  80.27 
+
+Coefficients:
+                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)           159.98       3.19  50.143   <2e-16 ***
+Sad_I_PctInaccurate   -55.14      23.08  -2.388   0.0188 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 22.9 on 100 degrees of freedom
+  (2 observations deleted due to missingness)
+Multiple R-squared:  0.05397,	Adjusted R-squared:  0.04451 
+F-statistic: 5.705 on 1 and 100 DF,  p-value: 0.0188
+
+
+##*Very SIG sad pct in acc and MPQ-alienation
+Call:
+lm(formula = MPS_alT ~ Sad_I_PctInaccurate, data = alldate)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-15.3215  -6.3215   0.6585   6.6585  24.8935 
+
+Coefficients:
+                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)           53.107      1.174  45.243  < 2e-16 ***
+Sad_I_PctInaccurate   26.820      8.494   3.158  0.00211 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 8.419 on 99 degrees of freedom
+  (3 observations deleted due to missingness)
+Multiple R-squared:  0.0915,	Adjusted R-squared:  0.08232 
+F-statistic: 9.971 on 1 and 99 DF,  p-value: 0.002108
+
+
+
+
+
+
+

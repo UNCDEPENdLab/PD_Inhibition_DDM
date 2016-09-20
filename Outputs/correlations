@@ -1,0 +1,231 @@
+Flanker Control self report correlations
+#Detachment and incong error
+	lm(formula = T_Detachment ~ I_Error, data = alldat)
+
+	Residuals:
+	    Min      1Q  Median      3Q     Max 
+	-17.812  -7.149  -2.258   4.188  27.782 
+
+	Coefficients:
+		    Estimate Std. Error t value Pr(>|t|)    
+	(Intercept)  45.3394     1.3606  33.322  < 2e-16 ***
+	I_Error       0.8212     0.3004   2.734  0.00744 ** 
+	---
+	Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+	Residual standard error: 10.09 on 97 degrees of freedom
+	  (9 observations deleted due to missingness)
+	Multiple R-squared:  0.07153,	Adjusted R-squared:  0.06196 
+	F-statistic: 7.473 on 1 and 97 DF,  p-value: 0.007444
+#Self Harm and Incong Error
+	
+	Call:
+	lm(formula = T_SelfHarm ~ I_Error, data = alldat)
+
+	Residuals:
+	    Min      1Q  Median      3Q     Max 
+	-14.041  -8.209  -4.363   4.238  41.143 
+
+	Coefficients:
+		    Estimate Std. Error t value Pr(>|t|)    
+	(Intercept)  50.2534     1.6391  30.658   <2e-16 ***
+	I_Error       0.6480     0.3619   1.791   0.0765 .  
+	---
+	Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+	Residual standard error: 12.15 on 97 degrees of freedom
+	  (9 observations deleted due to missingness)
+	Multiple R-squared:  0.032,	Adjusted R-squared:  0.02202 
+	F-statistic: 3.207 on 1 and 97 DF,  p-value: 0.07646
+#Aggression and incong error. very significant
+	Call:
+	lm(formula = T_Aggression ~ I_Error, data = alldat)
+
+	Residuals:
+	    Min      1Q  Median      3Q     Max 
+	-13.241  -7.980  -3.015   4.651  37.734 
+
+	Coefficients:
+		    Estimate Std. Error t value Pr(>|t|)    
+	(Intercept)  49.0045     1.4520   33.75  < 2e-16 ***
+	I_Error       1.2021     0.3206    3.75 0.000301 ***
+	---
+	Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+	Residual standard error: 10.77 on 97 degrees of freedom
+	  (9 observations deleted due to missingness)
+	Multiple R-squared:  0.1266,	Adjusted R-squared:  0.1176 
+	F-statistic: 14.06 on 1 and 97 DF,  p-value: 0.0003012
+
+#Dependency and error
+		Call:
+	lm(formula = T_Dependency ~ I_Error, data = alldat)
+
+	Residuals:
+	    Min      1Q  Median      3Q     Max 
+	-20.504  -9.892  -1.149   6.689  33.189 
+
+	Coefficients:
+		    Estimate Std. Error t value Pr(>|t|)    
+	(Intercept)  57.6005     1.6124  35.724   <2e-16 ***
+	I_Error      -0.6933     0.3560  -1.948   0.0544 .  
+	---
+	Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+	Residual standard error: 11.96 on 97 degrees of freedom
+	  (9 observations deleted due to missingness)
+	Multiple R-squared:  0.03763,	Adjusted R-squared:  0.02771 
+	F-statistic: 3.793 on 1 and 97 DF,  p-value: 0.05437
+
+#Very sig Mistrust and Error
+	lm(formula = T_Mistrust ~ I_Error, data = alldat)
+
+	Residuals:
+	    Min      1Q  Median      3Q     Max 
+	-16.824  -8.475  -0.127   4.877  32.863 
+
+	Coefficients:
+		    Estimate Std. Error t value Pr(>|t|)    
+	(Intercept)   49.946      1.382  36.151  < 2e-16 ***
+	I_Error        1.157      0.305   3.792 0.000259 ***
+	---
+	Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+	Residual standard error: 10.24 on 97 degrees of freedom
+	  (9 observations deleted due to missingness)
+	Multiple R-squared:  0.1291,	Adjusted R-squared:  0.1202 
+	F-statistic: 14.38 on 1 and 97 DF,  p-value: 0.0002594
+
+#Very sig Manipulativeness and Error
+	Call:
+	lm(formula = T_Manipulativeness ~ I_Error, data = alldat)
+
+	Residuals:
+	    Min      1Q  Median      3Q     Max 
+	-21.320  -8.931   1.046   8.502  23.636 
+
+	Coefficients:
+		    Estimate Std. Error t value Pr(>|t|)    
+	(Intercept)  53.9981     1.4938  36.149  < 2e-16 ***
+	I_Error       1.2055     0.3298   3.655 0.000417 ***
+	---
+	Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+	Residual standard error: 11.08 on 97 degrees of freedom
+	  (9 observations deleted due to missingness)
+	Multiple R-squared:  0.1211,	Adjusted R-squared:  0.112 
+	F-statistic: 13.36 on 1 and 97 DF,  p-value: 0.0004173
+#Barely sig MPQ Neg Emotionality and Error
+	Call:
+	lm(formula = MPS_NET ~ I_Error, data = alldat)
+
+	Residuals:
+	    Min      1Q  Median      3Q     Max 
+	-32.302  -7.082   0.511   8.825  23.698 
+
+	Coefficients:
+		    Estimate Std. Error t value Pr(>|t|)    
+	(Intercept)  51.0471     1.4426  35.384   <2e-16 ***
+	I_Error       0.8138     0.3185   2.555   0.0122 *  
+	---
+	Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+	Residual standard error: 10.7 on 97 degrees of freedom
+	  (9 observations deleted due to missingness)
+	Multiple R-squared:  0.06306,	Adjusted R-squared:  0.05341 
+	F-statistic: 6.529 on 1 and 97 DF,  p-value: 0.01217
+
+#Barely sig MPQ Alienation and ERror
+	lm(formula = MPS_alT ~ I_Error, data = alldat)
+
+	Residuals:
+	     Min       1Q   Median       3Q      Max 
+	-16.0361  -5.0361   0.2815   7.2294  22.2815 
+
+	Coefficients:
+		    Estimate Std. Error t value Pr(>|t|)    
+	(Intercept)  54.7706     1.2133  45.143   <2e-16 ***
+	I_Error       0.4739     0.2679   1.769     0.08 .  
+	---
+	Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+	Residual standard error: 8.996 on 97 degrees of freedom
+	  (9 observations deleted due to missingness)
+	Multiple R-squared:  0.03127,	Adjusted R-squared:  0.02128 
+	F-statistic: 3.131 on 1 and 97 DF,  p-value: 0.07998
+
+#Very sig MPQ aggression and error
+	lm(formula = MPS_agT ~ I_Error, data = alldat)
+
+	Residuals:
+	     Min       1Q   Median       3Q      Max 
+	-20.0752  -6.2207  -0.1722   6.4490  22.8520 
+
+	Coefficients:
+		    Estimate Std. Error t value Pr(>|t|)    
+	(Intercept)  51.2449     1.2439  41.199  < 2e-16 ***
+	I_Error       0.9758     0.2746   3.553  0.00059 ***
+	---
+	Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+	Residual standard error: 9.223 on 97 degrees of freedom
+	  (9 observations deleted due to missingness)
+	Multiple R-squared:  0.1152,	Adjusted R-squared:  0.106 
+	F-statistic: 12.62 on 1 and 97 DF,  p-value: 0.0005899
+	
+#Barely sig MPQ alienation and error
+	lm(formula = MPS_alT ~ I_Error, data = alldat)
+
+	Residuals:
+	     Min       1Q   Median       3Q      Max 
+	-16.0361  -5.0361   0.2815   7.2294  22.2815 
+
+	Coefficients:
+		    Estimate Std. Error t value Pr(>|t|)    
+	(Intercept)  54.7706     1.2133  45.143   <2e-16 ***
+	I_Error       0.4739     0.2679   1.769     0.08 .  
+	---
+	Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+	Residual standard error: 8.996 on 97 degrees of freedom
+	  (9 observations deleted due to missingness)
+	Multiple R-squared:  0.03127,	Adjusted R-squared:  0.02128 
+	F-statistic: 3.131 on 1 and 97 DF,  p-value: 0.07998
+
+#Sig ATQ-EC and RT
+	lm(formula = ATQ_ECTotal ~ I_MeanRT, data = alldat)
+
+	Residuals:
+	    Min      1Q  Median      3Q     Max 
+	-65.939 -15.758  -2.035  17.114  53.364 
+
+	Coefficients:
+		     Estimate Std. Error t value Pr(>|t|)    
+	(Intercept) 195.35408   20.15427   9.693 6.17e-16 ***
+	I_MeanRT     -0.10278    0.05123  -2.006   0.0476 *  
+	---
+	Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+	Residual standard error: 24.28 on 97 degrees of freedom
+	  (9 observations deleted due to missingness)
+	Multiple R-squared:  0.03983,	Adjusted R-squared:  0.02993 
+	F-statistic: 4.024 on 1 and 97 DF,  p-value: 0.04764
+
+#Barely sig ATQ att control and RT
+	lm(formula = ATQ_AttControl ~ I_MeanRT, data = alldat)
+
+	Residuals:
+	     Min       1Q   Median       3Q      Max 
+	-24.3433  -6.4792   0.3936   6.7596  25.6602 
+
+	Coefficients:
+		    Estimate Std. Error t value Pr(>|t|)    
+	(Intercept) 70.23410    8.52751   8.236 8.43e-13 ***
+	I_MeanRT    -0.05466    0.02168  -2.522   0.0133 *  
+	---
+	Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+	Residual standard error: 10.27 on 97 degrees of freedom
+	  (9 observations deleted due to missingness)
+	Multiple R-squared:  0.06152,	Adjusted R-squared:  0.05185 
+	F-statistic: 6.359 on 1 and 97 DF,  p-value: 0.01331

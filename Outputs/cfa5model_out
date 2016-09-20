@@ -1,0 +1,146 @@
+
+> cfa.model2<-'antagonism=~T_Detachment + MPS_scT+ T_Mistrust+T_Manipulativeness+MPS_alT+T_Aggression+MPS_agT
++   neuroticism=~zstai+zk10+MPS_srT+T_Dependency+T_LowSelfEsteem
++   constraint=~ T_Propriety+T_Impulsivity+MPS_clT+MPS_tdT
++   extroversion/openness=~ T_Exhibitionism+ T_Entitlement+MPS_spT+MPS_wbT+MPS_abT+T_EccentricPerceptions
++   achievement=~MPS_acT+T_Workaholism+ATQ_ECTotal'
+> fit <- cfa(cfa.model2, data=df)
+Error in lav_syntax_parse_rhs(rhs = lhs.formula[[2L]]) : 
+  lavaan ERROR: I'm confused parsing this line: /extroversionopenness
+> cfa.model2<-'antagonism=~T_Detachment + MPS_scT+ T_Mistrust+T_Manipulativeness+MPS_alT+T_Aggression+MPS_agT
++   neuroticism=~zstai+zk10+MPS_srT+T_Dependency+T_LowSelfEsteem
++   constraint=~ T_Propriety+T_Impulsivity+MPS_clT+MPS_tdT
++   extro_open=~ T_Exhibitionism+ T_Entitlement+MPS_spT+MPS_wbT+MPS_abT+T_EccentricPerceptions
++   achievement=~MPS_acT+T_Workaholism+ATQ_ECTotal'
+> fit <- cfa(cfa.model2, data=df)
+Warning messages:
+1: In lavaan::lavaan(model = cfa.model2, data = df, model.type = "cfa",  :
+  lavaan WARNING: some estimated variances are negative
+2: In lavaan::lavaan(model = cfa.model2, data = df, model.type = "cfa",  :
+  lavaan WARNING: observed variable error term matrix (theta) is not positive definite; use inspect(fit,"theta") to investigate.
+> summary(fit, fit.measures=TRUE)
+lavaan (0.5-17) converged normally after 272 iterations
+
+  Number of observations                           105
+
+  Estimator                                         ML
+  Minimum Function Test Statistic              919.602
+  Degrees of freedom                               265
+  P-value (Chi-square)                           0.000
+
+Model test baseline model:
+
+  Minimum Function Test Statistic             1822.997
+  Degrees of freedom                               300
+  P-value                                        0.000
+
+User model versus baseline model:
+
+  Comparative Fit Index (CFI)                    0.570
+  Tucker-Lewis Index (TLI)                       0.513
+
+Loglikelihood and Information Criteria:
+
+  Loglikelihood user model (H0)              -8913.067
+  Loglikelihood unrestricted model (H1)      -8453.266
+
+  Number of free parameters                         60
+  Akaike (AIC)                               17946.133
+  Bayesian (BIC)                             18105.371
+  Sample-size adjusted Bayesian (BIC)        17915.820
+
+Root Mean Square Error of Approximation:
+
+  RMSEA                                          0.153
+  90 Percent Confidence Interval          0.143  0.164
+  P-value RMSEA <= 0.05                          0.000
+
+Standardized Root Mean Square Residual:
+
+  SRMR                                           0.165
+
+Parameter estimates:
+
+  Information                                 Expected
+  Standard Errors                             Standard
+
+                   Estimate  Std.err  Z-value  P(>|z|)
+Latent variables:
+  antagonism =~
+    T_Detachment      1.000
+    MPS_scT          -0.770    0.166   -4.634    0.000
+    T_Mistrust        1.661    0.280    5.925    0.000
+    T_Manipltvnss     1.333    0.269    4.947    0.000
+    MPS_alT           1.277    0.224    5.694    0.000
+    T_Aggression      1.213    0.254    4.778    0.000
+    MPS_agT           1.100    0.224    4.910    0.000
+  neuroticism =~
+    zstai             1.000
+    zk10              1.140    0.139    8.227    0.000
+    MPS_srT          11.399    1.482    7.694    0.000
+    T_Dependency      6.720    1.725    3.895    0.000
+    T_LowSelfEstm    10.796    1.747    6.178    0.000
+  constraint =~
+    T_Propriety       1.000
+    T_Impulsivity    -1.525    0.229   -6.672    0.000
+    MPS_clT           1.610    0.241    6.679    0.000
+    MPS_tdT           0.572    0.146    3.920    0.000
+  extro_open =~
+    T_Exhibitinsm     1.000
+    T_Entitlement     0.674    0.349    1.931    0.054
+    MPS_spT           0.738    0.284    2.602    0.009
+    MPS_wbT           0.658    0.313    2.104    0.035
+    MPS_abT           1.777    0.508    3.496    0.000
+    T_EccntrcPrcp     2.109    0.603    3.500    0.000
+  achievement =~
+    MPS_acT           1.000
+    T_Workaholism     1.566    0.216    7.236    0.000
+    ATQ_ECTotal       0.897    0.310    2.895    0.004
+
+Covariances:
+  antagonism ~~
+    neuroticism       2.640    0.694    3.805    0.000
+    constraint       -3.562    3.549   -1.004    0.315
+    extro_open       10.179    4.132    2.463    0.014
+    achievement      12.947    5.102    2.538    0.011
+  neuroticism ~~
+    constraint       -0.342    0.454   -0.752    0.452
+    extro_open        1.005    0.445    2.261    0.024
+    achievement       1.714    0.636    2.695    0.007
+  constraint ~~
+    extro_open       -4.281    2.873   -1.490    0.136
+    achievement      16.923    5.590    3.027    0.002
+  extro_open ~~
+    achievement       6.500    3.656    1.778    0.075
+
+Variances:
+    T_Detachment     68.161    9.972
+    MPS_scT          38.148    5.601
+    T_Mistrust       30.374    6.518
+    T_Manipltvnss    85.010   12.768
+    MPS_alT          30.263    5.316
+    T_Aggression     82.823   12.274
+    MPS_agT          60.111    8.999
+    zstai             0.451    0.074
+    zk10              0.228    0.054
+    MPS_srT          39.264    7.197
+    T_Dependency    120.095   17.025
+    T_LowSelfEstm    88.251   13.451
+    T_Propriety      49.113    7.445
+    T_Impulsivity    24.479    6.520
+    MPS_clT          26.358    7.194
+    MPS_tdT          44.629    6.360
+    T_Exhibitinsm    98.940   14.106
+    T_Entitlement   121.549   16.974
+    MPS_spT          55.571    7.915
+    MPS_wbT          90.593   12.693
+    MPS_abT          28.985    7.135
+    T_EccntrcPrcp    27.238    9.034
+    MPS_acT          44.643    8.554
+    T_Workaholism   -13.240   14.777
+    ATQ_ECTotal     592.188   81.298
+    antagonism       30.894   10.457
+    neuroticism       0.517    0.125
+    constraint       31.240    9.301
+    extro_open       15.692    8.739
+    achievement      55.313   13.695

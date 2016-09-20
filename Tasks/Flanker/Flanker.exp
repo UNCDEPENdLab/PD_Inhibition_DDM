@@ -1,0 +1,122 @@
+<defaults>
+/ screencolor = (0, 0, 0)
+/ fontstyle = ("Arial", 20pt)
+</defaults>
+
+<picture lefttarget>
+/ items = ("leftarrow.jpg")
+/ position = (50, 50)
+</picture>
+
+<picture righttarget>
+/ items = ("rightarrow.jpg")
+/ position = (50, 50)
+</picture>
+
+<picture left1>
+/ items = ("leftarrow.jpg")
+/ position = (34, 50)
+</picture>
+
+<picture left2>
+/ items = ("leftarrow.jpg")
+/ position = (42, 50)
+</picture>
+
+<picture left4>
+/ items = ("leftarrow.jpg")
+/ position = (58, 50)
+</picture>
+
+<picture left5>
+/ items = ("leftarrow.jpg")
+/ position = (66, 50)
+</picture>
+
+<picture right1>
+/ items = ("rightarrow.jpg")
+/ position = (34, 50)
+</picture>
+
+<picture right2>
+/ items = ("rightarrow.jpg")
+/ position = (42, 50)
+</picture>
+
+<picture right4>
+/ items = ("rightarrow.jpg")
+/ position = (58, 50)
+</picture>
+
+<picture right5>
+/ items = ("rightarrow.jpg")
+/ position = (66, 50)
+</picture>
+
+<text fixation>
+/ items = ("+")
+/ color = (255, 255, 255)
+/ txbgcolor = (0,0,0)
+/ fontstyle = ("Arial", 30pt)
+/ erase = false
+</text>
+
+
+<page finish>
+^^Thank you for participating. The demo is now finished. 
+</page>
+
+<trial congruentleft>
+/ stimulustimes = [0=fixation; 500=left1, left2, lefttarget, left4, left5]
+/ correctresponse = ("e")
+/ validresponse = ("i", "e")
+/ responsetime = 500
+/ timeout = 1500
+</trial>
+
+<trial incongruentleft>
+/ stimulustimes = [0=fixation; 500=right1, right2, lefttarget, right4, right5]
+/ correctresponse = ("e")
+/ validresponse = ("i", "e")
+/ responsetime = 500
+/ timeout = 1500
+</trial>
+
+<trial congruentright>
+/ stimulustimes = [0=fixation; 500=right1, right2, righttarget, right4, right5]
+/ correctresponse = ("i")
+/ validresponse = ("i", "e")
+/ responsetime = 500
+/ timeout = 1500
+</trial>
+
+<trial incongruentright>
+/ stimulustimes = [0=fixation; 500=left1, left2, righttarget, left4, left5]
+/ correctresponse = ("i")
+/ validresponse = ("i", "e")
+/ responsetime = 500
+/ timeout = 1500
+</trial>
+
+<block congruent>
+/ trials = [1-40 = noreplace(congruentright, congruentright, congruentright, congruentright, congruentright, congruentright, congruentright,
+		incongruentright, incongruentright, incongruentright, congruentleft, congruentleft, congruentleft, congruentleft, congruentleft,
+		congruentleft, congruentleft, incongruentleft, incongruentleft, incongruentleft)]
+</block>
+
+<block incongruent>
+/ trials = [1-40 = noreplace(incongruentright, incongruentright, incongruentright, incongruentright, incongruentright, incongruentright, incongruentright,
+		congruentright, congruentright, congruentright, congruentleft, congruentleft, congruentleft, congruentleft, congruentleft,
+		congruentleft, congruentleft, incongruentleft, incongruentleft, incongruentleft)]
+</block>
+
+*; 3=incongruent; 4=congruent
+
+<expt>
+/ blocks = [1=congruent; 2=incongruent]
+/ postinstructions = (finish)
+</expt>
+
+<data>
+/ format = tab
+</data>

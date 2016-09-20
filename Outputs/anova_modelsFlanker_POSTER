@@ -1,0 +1,52 @@
+Flanker RT
+	fm1<-lmer(TrialSlide_RT~Trial*Block+(1|Subject), data=conflank)
+
+	Analysis of Variance Table
+		    Df  Sum Sq Mean Sq F value
+	Trial        1 1868055 1868055 336.965
+	Block        1  408632  408632  73.710
+	Trial:Block  1  150266  150266  27.105
+	> fm1<-lmer(TrialSlide_RT~Trial*Block+(1|Subject), data=conflank)
+	> cm<-lmerCellMeans(fm1)
+	> print(cm)
+		Trial       Block TrialSlide_RT       se      plo      phi      tlo      thi
+	1   congruent   Congruent      388.0033 5.409132 377.1850 398.8216 275.2687 500.7379
+	2 incongruent   Congruent      419.2044 5.520084 408.1642 430.2445 306.4482 531.9605
+	3   congruent Incongruent      383.8423 5.518101 372.8061 394.8785 271.0866 496.5980
+	4 incongruent Incongruent      402.2947 5.409198 391.4763 413.1131 289.5601 515.0294
+
+	Analysis of Deviance Table (Type II Wald chisquare tests)
+
+	Response: TrialSlide_RT
+		      Chisq Df Pr(>Chisq)    
+	Trial       410.413  1  < 2.2e-16 ***
+	Block        73.710  1  < 2.2e-16 ***
+	Trial:Block  27.105  1  1.927e-07 ***
+
+Flanker ACC
+	> fm1<-lmer(TrialSlide_ACC~Trial*Block+(1|Subject), data=conflank)
+	> anova(fm1)
+	Analysis of Variance Table
+		    Df  Sum Sq Mean Sq  F value
+	Trial        1 16.1401 16.1401 415.9354
+	Block        1  0.0587  0.0587   1.5116
+	Trial:Block  1  0.0010  0.0010   0.0264
+
+
+	    Trial       Block TrialSlide_ACC          se       plo       phi       tlo      thi
+	1   congruent   Congruent      0.9771892 0.009183576 0.9588220 0.9955563 0.7901278 1.164251
+	2 incongruent   Congruent      0.9155912 0.009634621 0.8963219 0.9348604 0.7284391 1.102743
+	3   congruent Incongruent      0.9816961 0.009626670 0.9624427 1.0009494 0.7945457 1.168847
+	4 incongruent Incongruent      0.9190455 0.009183849 0.9006778 0.9374132 0.7319842 1.106107
+
+	Analysis of Deviance Table (Type II Wald chisquare tests)
+
+	Response: TrialSlide_ACC
+		       Chisq Df Pr(>Chisq)    
+	Trial       367.8235  1     <2e-16 ***
+	Block         1.5116  1     0.2189    
+	Trial:Block   0.0264  1     0.8709    
+	---
+	Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+

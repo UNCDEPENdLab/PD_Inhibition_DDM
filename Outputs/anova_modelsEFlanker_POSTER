@@ -1,0 +1,187 @@
+Eflanker Anova Models:
+	Linear mixed model fit by REML ['lmerMod']
+	Formula: FlankerDisplay_RT_Trim ~ emotion * emotion/EmotionPairs * congruent +  
+	    (1 | Subject) + SubTrial + (1 + SubTrial | Subject)
+	   Data: eflank
+
+	REML criterion at convergence: 370363.7
+
+	Scaled residuals: 
+	    Min      1Q  Median      3Q     Max 
+	-3.7728 -0.6541 -0.1718  0.4634  4.7106 
+
+	Random effects:
+	 Groups    Name        Variance  Std.Dev. Corr 
+	 Subject   (Intercept)  3507.177  59.221       
+	 Subject.1 (Intercept)  2200.878  46.914       
+		   SubTrial        1.237   1.112  -0.12
+	 Residual              28865.624 169.899       
+	Number of obs: 28223, groups: Subject, 108
+
+	Fixed effects:
+		                                             Estimate Std. Error t value
+	(Intercept)                                          706.5141     9.2142   76.68
+	emotionAng                                             9.9994     7.2985    1.37
+	emotionHappy                                        -116.5651     7.1581  -16.28
+	emotionNeut                                          -73.0849     7.1075  -10.28
+	congruentcongruent                                   -10.5526     7.2662   -1.45
+	SubTrial                                               0.8875     0.1296    6.85
+	emotionSad:EmotionPairsHap-Sad                      -106.8660     7.1119  -15.03
+	emotionHappy:EmotionPairsHap-Sad                       3.6842     7.0018    0.53
+	emotionSad:EmotionPairsNeut-Sad                      -94.6986     7.1086  -13.32
+	emotionNeut:EmotionPairsNeut-Sad                      -8.3166     6.9340   -1.20
+	emotionAng:EmotionPairsAng-Neut                     -112.4989     7.1867  -15.65
+	emotionNeut:EmotionPairsAng-Neut                     -18.2486     6.9579   -2.62
+	emotionAng:EmotionPairsAng-Hap                      -102.1072     7.1783  -14.22
+	emotionHappy:EmotionPairsAng-Hap                      16.0174     7.0336    2.28
+	emotionAng:congruentcongruent                         -9.6410    10.2919   -0.94
+	emotionHappy:congruentcongruent                       13.4155    10.1012    1.33
+	emotionNeut:congruentcongruent                         0.1822    10.0358    0.02
+	emotionSad:EmotionPairsHap-Sad:congruentcongruent     12.4177    10.0614    1.23
+	emotionHappy:EmotionPairsHap-Sad:congruentcongruent   -8.9417     9.8951   -0.90
+	emotionSad:EmotionPairsNeut-Sad:congruentcongruent    17.4249    10.0685    1.73
+	emotionNeut:EmotionPairsNeut-Sad:congruentcongruent   13.2902     9.7756    1.36
+	emotionAng:EmotionPairsAng-Neut:congruentcongruent    11.6612    10.1055    1.15
+	emotionNeut:EmotionPairsAng-Neut:congruentcongruent    1.8062     9.8129    0.18
+	emotionAng:EmotionPairsAng-Hap:congruentcongruent     14.1540    10.1072    1.40
+	emotionHappy:EmotionPairsAng-Hap:congruentcongruent  -11.7380     9.8916   -1.19
+
+	Correlation matrix not shown by default, as p = 25 > 20.
+	Use print(...., correlation=TRUE)  or
+
+ANOVA
+	> Anova(fm1)
+	Analysis of Deviance Table (Type II Wald chisquare tests)
+
+	Response: FlankerDisplay_RT_Trim
+		                           Chisq Df Pr(>Chisq)    
+	emotion                         297.5190  3  < 2.2e-16 ***
+	congruent                         6.7105  1   0.009584 ** 
+	SubTrial                         46.8784  1  7.553e-12 ***
+	emotion:EmotionPairs           1011.9486  8  < 2.2e-16 ***
+	emotion:congruent                 3.7677  3   0.287669    
+	emotion:EmotionPairs:congruent    9.0654  8   0.336806    
+	---
+	Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+LMER Cell MEan
+
+		emotion   congruent EmotionPairs FlankerDisplay_RT_Trim       se      plo      phi      tlo
+	1      Sad incongruent      Ang-Sad               735.3565 9.523581 716.3094 754.4037 615.3882
+	2      Sad incongruent      Hap-Sad               628.4906 9.403724 609.6831 647.2980 508.5600
+	3      Sad incongruent     Neut-Sad               640.6580 9.401723 621.8545 659.4614 520.7279
+	4      Sad   congruent      Ang-Sad               724.8040 9.519602 705.7648 743.8432 604.8370
+	5      Sad   congruent      Hap-Sad               630.3557 9.409710 611.5363 649.1751 510.4232
+	6      Sad   congruent     Neut-Sad               647.5303 9.419992 628.6903 666.3703 527.5946
+	7      Ang incongruent      Ang-Sad               745.3559 9.546224 726.2635 764.4484 625.3804
+	8      Ang incongruent     Ang-Neut               632.8570 9.436423 613.9842 651.7299 512.9162
+	9      Ang incongruent      Ang-Hap               643.2488 9.430708 624.3873 662.1102 523.3097
+	10     Ang   congruent      Ang-Sad               725.1623 9.514682 706.1330 744.1917 605.1968
+	11     Ang   congruent     Ang-Neut               624.3246 9.404904 605.5148 643.1345 504.3937
+	12     Ang   congruent      Ang-Hap               637.2091 9.412853 618.3834 656.0348 517.2757
+	13   Happy incongruent      Hap-Sad               622.4757 9.407127 603.6614 641.2899 502.5440
+	14   Happy incongruent      Ang-Hap               634.8089 9.431099 615.9467 653.6711 514.8697
+	15   Happy incongruent     Hap-Neut               618.7914 9.437999 599.9154 637.6674 498.8501
+	16   Happy   congruent      Hap-Sad               616.3969 9.419287 597.5583 635.2355 496.4615
+	17   Happy   congruent      Ang-Hap               625.9338 9.391242 607.1513 644.7163 506.0072
+	18   Happy   congruent     Hap-Neut               621.6544 9.416200 602.8220 640.4868 501.7198
+	19    Neut incongruent     Neut-Sad               653.9550 9.395993 635.1631 672.7470 534.0269
+	20    Neut incongruent     Ang-Neut               644.0230 9.413640 625.1957 662.8503 524.0893
+	21    Neut incongruent     Hap-Neut               662.2716 9.398926 643.4738 681.0695 542.3426
+	22    Neut   congruent     Neut-Sad               656.8749 9.374189 638.1265 675.6233 536.9535
+	23    Neut   congruent     Ang-Neut               635.4589 9.394645 616.6696 654.2482 515.5312
+	24    Neut   congruent     Hap-Neut               651.9013 9.387041 633.1272 670.6753 531.9759
+		thi EmoEmoPair
+	1  855.3249         NA
+	2  748.4212         NA
+	3  760.5880         NA
+	4  844.7710         NA
+	5  750.2882         NA
+	6  767.4659         NA
+	7  865.3314         NA
+	8  752.7979         NA
+	9  763.1878         NA
+	10 845.1279         NA
+	11 744.2556         NA
+	12 757.1425         NA
+	13 742.4073         NA
+	14 754.7481         NA
+	15 738.7328         NA
+	16 736.3323         NA
+	17 745.8605         NA
+	18 741.5890         NA
+	19 773.8832         NA
+	20 763.9567         NA
+	21 782.2007         NA
+	22 776.7962         NA
+	23 755.3866         NA
+	24 771.8266         NA
+
+
+ACC E flanker model
+	Generalized linear mixed model fit by maximum likelihood (Laplace Approximation) ['glmerMod']
+	 Family: binomial ( logit )
+	Formula: FlankerDisplay_ACC ~ emotion * emotion/EmotionPairs * congruent +  
+	    SubTrial + (1 + SubTrial | Subject)
+	   Data: eflank
+
+	     AIC      BIC   logLik deviance df.resid 
+	 17245.7  17479.3  -8594.8  17189.7    31076 
+
+	Scaled residuals: 
+	     Min       1Q   Median       3Q      Max 
+	-10.2205   0.1854   0.2512   0.3354   1.1811 
+
+	Random effects:
+	 Groups  Name        Variance  Std.Dev. Corr
+	 Subject (Intercept) 4.592e-01 0.677642     
+		 SubTrial    7.358e-05 0.008578 0.21
+	Number of obs: 31104, groups: Subject, 108
+
+	Fixed effects:
+		                                              Estimate Std. Error z value Pr(>|z|)    
+	(Intercept)                                          1.9673162  0.1191668  16.509  < 2e-16 ***
+	emotionAng                                          -0.0984801  0.1130525  -0.871   0.3837    
+	emotionHappy                                         0.5180195  0.1262210   4.104 4.06e-05 ***
+	emotionNeut                                          0.8613968  0.1369281   6.291 3.16e-10 ***
+	congruentcongruent                                   0.0472426  0.1156377   0.409   0.6829    
+	SubTrial                                             0.0001874  0.0019535   0.096   0.9236    
+	emotionSad:EmotionPairsHap-Sad                       0.7735465  0.1339826   5.773 7.76e-09 ***
+	emotionHappy:EmotionPairsHap-Sad                     0.2870962  0.1447213   1.984   0.0473 *  
+	emotionSad:EmotionPairsNeut-Sad                      0.8212824  0.1356219   6.056 1.40e-09 ***
+	emotionNeut:EmotionPairsNeut-Sad                     0.0905315  0.1587403   0.570   0.5685    
+	emotionAng:EmotionPairsAng-Neut                      0.6323061  0.1251564   5.052 4.37e-07 ***
+	emotionNeut:EmotionPairsAng-Neut                    -0.1364849  0.1518237  -0.899   0.3687    
+	emotionAng:EmotionPairsAng-Hap                       0.6549491  0.1257084   5.210 1.89e-07 ***
+	emotionHappy:EmotionPairsAng-Hap                     0.0067023  0.1369281   0.049   0.9610    
+	emotionAng:congruentcongruent                        0.1172126  0.1625679   0.721   0.4709    
+	emotionHappy:congruentcongruent                      0.1080065  0.1823549   0.592   0.5537    
+	emotionNeut:congruentcongruent                       0.2650508  0.2029027   1.306   0.1915    
+	emotionSad:EmotionPairsHap-Sad:congruentcongruent   -0.0325655  0.1902601  -0.171   0.8641    
+	emotionHappy:EmotionPairsHap-Sad:congruentcongruent -0.3002059  0.2045849  -1.467   0.1423    
+	emotionSad:EmotionPairsNeut-Sad:congruentcongruent  -0.2220724  0.1883007  -1.179   0.2383    
+	emotionNeut:EmotionPairsNeut-Sad:congruentcongruent -0.0771729  0.2380205  -0.324   0.7458    
+	emotionAng:EmotionPairsAng-Neut:congruentcongruent   0.1651881  0.1862012   0.887   0.3750    
+	emotionNeut:EmotionPairsAng-Neut:congruentcongruent -0.1399090  0.2262974  -0.618   0.5364    
+	emotionAng:EmotionPairsAng-Hap:congruentcongruent   -0.0102256  0.1829118  -0.056   0.9554    
+	emotionHappy:EmotionPairsAng-Hap:congruentcongruent  0.2605693  0.2054863   1.268   0.2048    
+	---
+	Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+ANOVA
+
+		> Anova(gm1)
+	Analysis of Deviance Table (Type II Wald chisquare tests)
+
+	Response: FlankerDisplay_ACC
+		                          Chisq Df Pr(>Chisq)    
+	emotion                        117.3602  3  < 2.2e-16 ***
+	congruent                       10.3866  1   0.001269 ** 
+	SubTrial                         0.0092  1   0.923569    
+	emotion:EmotionPairs           173.4554  8  < 2.2e-16 ***
+	emotion:congruent                6.1110  3   0.106333    
+	emotion:EmotionPairs:congruent   9.9372  8   0.269461    
+	---
+	Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+

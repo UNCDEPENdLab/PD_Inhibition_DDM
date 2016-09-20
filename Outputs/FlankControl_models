@@ -1,0 +1,114 @@
+Flanker Control Models
+
+fm1<-lmer(RT~Target*Block+(1|Subject), data=flank)
+#Using new lmerCellMeans update:
+cm<-lmerCellMeans(fm1)
+d <- ggplot(cm, aes(x=Target, y=RT, 
+                    color=Block, 
+                    ymin=RT-se, ymax=RT+se)) +
+  geom_pointrange(size=1.5, position=position_dodge(width=.5)) +
+  scale_color_brewer("Block", palette="Set2")+
+  theme(axis.title.x=element_text(face="bold",colour="#990000", size=18),
+        axis.text.x=element_text(angle=90, vjust=.5,size=16, colour="black"))+
+  theme(axis.title.y=element_text(face="bold",colour="#990000", size=18),
+        axis.text.y=element_text(angle=90, vjust=.5,size=16, colour="black"))+
+  theme(panel.grid.minor=element_blank())
+print(d)
+
+
+RT Model summary
+	Linear mixed model fit by REML ['lmerMod']
+	Formula: RT ~ Target * Block + (1 | Subject)
+	   Data: flank
+
+	REML criterion at convergence: 3600
+
+	Scaled residuals: 
+	    Min      1Q  Median      3Q     Max 
+	-2.5284 -0.5231  0.0259  0.5018  5.9246 
+
+	Random effects:
+	 Groups   Name        Variance Std.Dev.
+	 Subject  (Intercept) 2174.1   46.63   
+	 Residual              214.2   14.64   
+	Number of obs: 396, groups: Subject, 99
+
+	Fixed effects:
+		                           Estimate Std. Error t value
+	(Intercept)                         374.124      4.912   76.17
+	TargetIncongruent                    24.668      2.080   11.86
+	BlockIncongruent                     -2.619      2.080   -1.26
+	TargetIncongruent:BlockIncongruent   -8.692      2.942   -2.95
+
+	Correlation of Fixed Effects:
+		    (Intr) TrgtIn BlckIn
+	TrgtIncngrn -0.212              
+	BlckIncngrn -0.212  0.500       
+	TrgtIncn:BI  0.150 -0.707 -0.707
+
+RT Cell Means
+	      Target       Block       RT       se      plo      phi      tlo      thi
+	1   Congruent   Congruent 374.1242 4.911675 364.3008 383.9475 280.3533 467.8950
+	2 Incongruent   Congruent 398.7917 4.911675 388.9683 408.6150 305.0208 492.5625
+	3   Congruent Incongruent 371.5054 4.911675 361.6821 381.3288 277.7346 465.2763
+	4 Incongruent Incongruent 387.4811 4.911675 377.6578 397.3045 293.7103 481.2520
+
+
+
+ACC Model
+	fm1<-lmer(Error~Target*Block+(1|Subject), data=flank)
+	#Using new lmerCellMeans update:
+	cm<-lmerCellMeans(fm1)
+	d <- ggplot(cm, aes(x=Target, y=Error, 
+		            color=Block, 
+		            ymin=Error-se, ymax=Error+se)) +
+	  geom_pointrange(size=1.5, position=position_dodge(width=.5)) +
+	  scale_color_brewer("Block", palette="Set2")+
+	  theme(axis.title.x=element_text(face="bold",colour="#990000", size=18),
+		axis.text.x=element_text(angle=90, vjust=.5,size=16, colour="black"))+
+	  theme(axis.title.y=element_text(face="bold",colour="#990000", size=18),
+		axis.text.y=element_text(angle=90, vjust=.5,size=16, colour="black"))+
+	  theme(panel.grid.minor=element_blank())
+	print(d)
+
+
+Acc Model summary
+	Linear mixed model fit by REML ['lmerMod']
+	Formula: Error ~ Target * Block + (1 | Subject)
+	   Data: flank
+
+	REML criterion at convergence: 1437.6
+
+	Scaled residuals: 
+	    Min      1Q  Median      3Q     Max 
+	-3.0934 -0.5200 -0.1999  0.3513  5.8581 
+
+	Random effects:
+	 Groups   Name        Variance Std.Dev.
+	 Subject  (Intercept) 0.9475   0.9734  
+	 Residual             1.6173   1.2717  
+	Number of obs: 396, groups: Subject, 99
+
+	Fixed effects:
+		                           Estimate Std. Error t value
+	(Intercept)                          1.0505     0.1610   6.527
+	TargetIncongruent                    0.0303     0.1808   0.168
+	BlockIncongruent                    -0.7273     0.1808  -4.024
+	TargetIncongruent:BlockIncongruent   1.5859     0.2556   6.204
+
+	Correlation of Fixed Effects:
+		    (Intr) TrgtIn BlckIn
+	TrgtIncngrn -0.562              
+	BlckIncngrn -0.562  0.500       
+	TrgtIncn:BI  0.397 -0.707 -0.707
+
+Acc model means
+	 Target       Block     Error        se         plo       phi         tlo      thi
+	1   Congruent   Congruent 1.0505051 0.1609561 0.728592806 1.3724173 -0.92270748 3.023718
+	2 Incongruent   Congruent 1.0808081 0.1609561 0.758895836 1.4027203 -0.89240445 3.054021
+	3   Congruent Incongruent 0.3232323 0.1609561 0.001320079 0.6451446 -1.64998021 2.296445
+	4 Incongruent Incongruent 1.9393939 0.1609561 1.617481695 2.2613062 -0.03381859 3.912606
+	>
+
+
+

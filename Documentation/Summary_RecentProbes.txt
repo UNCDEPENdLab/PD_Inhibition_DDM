@@ -1,0 +1,23 @@
+For neg trials- four types of single letter probes possible:
+1) NEgative, Unfamiliar probes- not present in either of the two preceding trials
+2) Neg, Familiar prrobes- present on preceding trial, but not two trial priors
+3) Negative Highly Familiar Probes- present on both ofthe two preceding trials
+4) Negative, Response Conflict Probes were positive probes from previous trial
+
+Highly familiar and familiar- associated with lower accuracy on fam judgement, and longer RT (Nelson, 2003 found that these probes were focally activating the IFG)
+Response conflict negative probes were also associated with lower accuracy and longer RT (but no IFG, only ACC activated)
+
+Participants completed 72 trials in two blocks
+Three excluded due to acc in range of 53-59%
+109 ppts included
+GLMM to check effect of trial type on negative trial response accuracy
+Average acc levels across trial types:
+GLMM: sig main effect of trial type- proactive interference.
+Errors: Fam, high Fam, Resp Int > Unfamiliar Trials
+Tuker-Kramer post hoc: Err sig higher for Resp Int trials than highly familiar trials. no nother pairwise comparisons among trial types were sig
+
+GLMM: mean RT across trial types- GLMM  revealed a sig effect of trial type on RT. participants responded significantly moreo quickly to unfamiliar probes than familiar, highly familiar, and resp int probes. No sig differences found among the other trial types.
+
+Executive Inhibition on RP measured by two scores:
+1) Frequency of errors on familar and highly familar neg probe trials, controlling for errors on unfamiliar trials
+2) Mean RT for familiar and highly familiar negative probe trials,s controlling for mean unfamiliar RT. 
