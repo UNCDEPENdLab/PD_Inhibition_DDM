@@ -333,4 +333,165 @@ plot_grid(by_sub_harm,  by_sub_con_harm, by_sub_con_art, by_sub_art,by_sub_incon
 flank_acc_trim <- data.frame(flank_acc_trim)
 ggplot(data = flank_acc_trim, aes(x = con_SD3AHmean_rt_high)) + geom_histogram()
 
+sink("~/PD_Inhibition_DDM/Outputs/")
+out_list <- list()
+for(dim in names(select(flank_use, contains("Z_")))){
+  print(dim)
+  #specify candidate models
+  f1 <- formula(paste0("rt ~ CongruentBlock*Incongruent + trial_block + ",dim ," + (1|Subject)"))
+  f2 <- formula(paste0("rt ~ CongruentBlock*Incongruent*",dim, " + trial_block + (1|Subject)"))
+  f3 <- formula(paste0("rt ~ CongruentBlock*Incongruent + ",dim, "*Incongruent + trial_block + (1|Subject)"))
+  f4 <- formula(paste0("rt ~ CongruentBlock*Incongruent + ",dim, "*CongruentBlock + trial_block + (1|Subject)"))
+  
+  
+  #run candidate models
+  mod_lists <- list()
+  mod_lists[["m10"]] <- lmer(formula = f1, data = flank_use)
+  mod_lists[["m11"]] <- lmer(formula = f2, data = flank_use)
+  mod_lists[["m12"]] <- lmer(formula = f3, data = flank_use)
+  mod_lists[["m13"]] <- lmer(formula = f4, data = flank_use)
+  
+  
+  #perform model comparison
+  aics <- MuMIn::AICc(m5, mod_lists[["m10"]], mod_lists[["m11"]], mod_lists[["m12"]], mod_lists[["m13"]])%>% rownames_to_column() %>% arrange(AICc)
+  aics[,1] <- do.call(rbind,lapply(aics$rowname, function(x)paste0("m",gsub("[^0-9.-]", "", x))))
+  
+  print(aics)
+  
+  winmod <- aics[1,"rowname"]
+  
+  m5aic <- MuMIn::AICc(m5)
+  print(paste0("delta AICc between m5 and ", aics[1,"rowname"], ": ", aics[1,"AICc"] - m5aic))
+  print(paste0("delta AICc between ,", aics[2,"rowname"], " and ", aics[1,"rowname"], ": ", aics[1,"AICc"] - aics[2,"AICc"]))
+  
+
+  #check for multicolinnearty 
+
+  vif.lme(mod_lists[[winmod]])
+  
+  
+  out_list[[dim]] <-  summ(mod_lists[[winmod]])
+  print(out_list[[dim]])
+  
+}
+
+
+dim <- "Z_Entitlement"
+
+
+test <- mod_lists[[winmod]]
+
+install.packages("interactions")
+
+plot_summs(test)
+
+interact_plot(test, pred = Z_Entitlement, modx = CongruentBlock)
+
+summ(test)
+
+test <- lmer(rt ~ CongruentBlock*Incongruent*Z_Entitlement + trial_block + (1|Subject), data = flank_use)
+summ
+
+
+
+
+for(dim in names(select(flank_use, contains("Z_")))){
+  print(dim)
+  #specify candidate models
+  f1 <- formula(paste0("TrialSlide_ACC ~ Incongruent + prev_stim + ",dim ," + (1|Subject)"))
+  f2 <- formula(paste0("TrialSlide_ACC ~ Incongruent + prev_stim *",dim, "+ (1|Subject)"))
+  f2 <- formula(paste0("TrialSlide_ACC ~ Incongruent  *",dim, "+ prev_stim + (1|Subject)"))
+  # f4 <- formula(paste0("TrialSlide_ACC ~ CongruentBlock*Incongruent + ",dim, "*CongruentBlock + trial_block + (1|Subject)"))
+  
+  
+  #run candidate models
+  mod_lists <- list()
+  mod_lists[["m10"]] <- lmer(formula = f1, data = flank_use)
+  mod_lists[["m11"]] <- lmer(formula = f2, data = flank_use)
+  mod_lists[["m12"]] <- lmer(formula = f3, data = flank_use)
+  # mod_lists[["m13"]] <- lmer(formula = f4, data = flank_use)
+  
+  
+  #perform model comparison
+  aics <- MuMIn::AICc(m5, mod_lists[["m10"]], mod_lists[["m11"]], mod_lists[["m12"]])%>% rownames_to_column() %>% arrange(AICc)
+  aics[,1] <- do.call(rbind,lapply(aics$rowname, function(x)paste0("m",gsub("[^0-9.-]", "", x))))
+  
+  print(aics)
+  
+  winmod <- aics[1,"rowname"]
+  
+  m5aic <- MuMIn::AICc(m5)
+  print(paste0("delta AICc between m5 and ", aics[1,"rowname"], ": ", aics[1,"AICc"] - m5aic))
+  print(paste0("delta AICc between ,", aics[2,"rowname"], " and ", aics[1,"rowname"], ": ", aics[1,"AICc"] - aics[2,"AICc"]))
+  
+  out_list[[dim]] <-  summ(mod_lists[[winmod]])
+  print(out_list[[dim]])
+}
+
+
+
+out_list <- list()
+for(dim in names(select(flank_use, contains("Z_")))){
+  print(dim)
+  #specify candidate models
+  f1 <- formula(paste0("TrialSlide_ACC ~ Incongruent + prev_stim + ",dim ," + (1|Subject)"))
+  f2 <- formula(paste0("TrialSlide_ACC ~ Incongruent + prev_stim *",dim, "+ (1|Subject)"))
+  f3 <- formula(paste0("TrialSlide_ACC ~ Incongruent  *",dim, "+ prev_stim + (1|Subject)"))
+  # f4 <- formula(paste0("TrialSlide_ACC ~ CongruentBlock*Incongruent + ",dim, "*CongruentBlock + trial_block + (1|Subject)"))
+  
+  
+  #run candidate models
+  mod_lists <- list()
+  mod_lists[["m10"]] <- lmer(formula = f1, data = flank_use)
+  mod_lists[["m11"]] <- lmer(formula = f2, data = flank_use)
+  mod_lists[["m12"]] <- lmer(formula = f3, data = flank_use)
+  # mod_lists[["m13"]] <- lmer(formula = f4, data = flank_use)
+  
+  
+  #perform model comparison
+  # aics <- MuMIn::AICc( mod_lists[["m10"]], mod_lists[["m11"]], mod_lists[["m12"]])%>% rownames_to_column() %>% arrange(AICc)
+  # aics[,1] <- do.call(rbind,lapply(aics$rowname, function(x)paste0("m",gsub("[^0-9.-]", "", x))))
+  # 
+  # print(aics)
+  
+  winmod <- aics[1,"rowname"]
+  
+  # m5aic <- MuMIn::AICc(m5)
+  # print(paste0("delta AICc between m5 and ", aics[1,"rowname"], ": ", aics[1,"AICc"] - m5aic))
+  # print(paste0("delta AICc between ,", aics[2,"rowname"], " and ", aics[1,"rowname"], ": ", aics[1,"AICc"] - aics[2,"AICc"]))
+  # 
+  out_list[[dim]] <-  summ(mod_lists[[winmod]])
+  # print(summ(mod_lists[["m10"]]))
+  # print(summ(mod_lists[["m11"]]))
+  print(summ(mod_lists[["m12"]]))
+}
+
+
+m1 <- lmer(rt ~ Incongruent + (1|Subject), data = flank_use)
+m2 <- lmer(rt ~ CongruentBlock + (1|Subject), data = flank_use)
+m3 <- lmer(rt ~ CongruentBlock*Incongruent + (1|Subject), data = flank_use)
+
+MuMIn::AICc(m1,m2,m3)
+vif.lme(m3) #looks good, no concerns around collinearity
+summ(m3)
+
+m4 <- lmer(rt ~ CongruentBlock*Incongruent + prev_stim + (1|Subject), data = flank_use)
+m5 <- lmer(rt ~ CongruentBlock*Incongruent + trial_block + (1|Subject), data = flank_use)
+m6 <- lmer(rt ~ CongruentBlock*Incongruent + trial_sub + (1|Subject), data = flank_use)
+MuMIn::AICc(m3,m4,m5,m6)
+vif.lme(m5) #still good
+summ(m5)
+
+m7 <- lmer(rt ~ CongruentBlock*Incongruent * prev_stim + (1|Subject), data = flank_use)
+m8 <- lmer(rt ~ CongruentBlock*Incongruent * trial_block + (1|Subject), data = flank_use)
+m9 <- lmer(rt ~ CongruentBlock*Incongruent * trial_sub + (1|Subject), data = flank_use)
+MuMIn::AICc(m5,m7,m8, m9)
+vif.lme(m8) # this is more concerning, probabaly best to fall back on the simpler m5.
+summ(m8)
+
+out_list
+
+
+x <- summary(mod_lists[[winmod]])$coefficients %>% data.frame()
+x <- x %>% rownames_to_column() %>% rename(`coef` = `rowname`, `est` = `Estimate`, `se` = `Std..Error`, `p` = `Pr...t..`) %>% mutate
 

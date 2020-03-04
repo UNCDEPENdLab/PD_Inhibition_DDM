@@ -1,6 +1,6 @@
 ---
 title: "Screening and Cleaning Flanker Task"
-author: "DEPENd Lab"
+author: "Nate Hall & Michael Hallquist"
 date: "`r Sys.Date()`"
 output:
   rmdformats::readthedown:
@@ -9,8 +9,6 @@ output:
     lightbox: true
     gallery: false
     
-  
-
 ---
 
 ```{r setup, include=FALSE}
@@ -62,6 +60,7 @@ alldat <- read.csv("Data/alldat.csv")
 # names(alldat)
 
 SNAPz <- alldat %>% select(matches("Subject"), contains("Z_")) %>% select(-Z_VRIN, -Z_TRIN, -Z_DRIN, -Z_RareVirtues, -Z_Deviance, -Z_InvalidityIndex, -Z_BackDeviance)
+SNAPt <- alldat %>% select(matches("Subject"), starts_with("T_")) %>% select(-T_VRIN, -T_TRIN, -T_DRIN, -T_RareVirtues, -T_Deviance, -T_InvalidityIndex, -T_BackDeviance, -T_MeanGoRT_5, -T_MeanGoRT_1, -T_MeanGoRT_7,-T_MeanGoRT_3, -T_MeanGoRT)
 ```
 
 The basic structure of the raw data is as follows:
@@ -576,150 +575,6 @@ summaries_rt %>% filter(Subject %in% c(92,36))
 str(flank_cleaned)
 flank_use <- flank_cleaned %>% select(Subject, TrialSlide_ACC, rt, Incongruent, CongruentBlock, ABBA) %>% group_by(Subject, ABBA) %>% mutate(prev_stim = lag(Incongruent,n = 1, default = 0), trial_block = seq(1,length(Subject), 1)) %>% group_by(Subject) %>% mutate(trial_sub = seq(1,length(Subject),1))%>% ungroup() %>% left_join(SNAPz, by = "Subject") 
 
-
+save(flank_use, file = "Data/preprocessed/flank_use.RData")
 ```
 
-
-## Basic multilevel modeling of flanker data
-
-Once these steps are complete, use `lme4::lmer` and `lme4::glmer` to model RTs and accuracies, respectively. The model will contain a random intercept per subject `(1 | Subject)` reflecting trials nested within subject. There may be fixed or random linear effects of trial, which would reflect gradual speeding or slowing of RTs or improvement/degradation of accuracy. Residual covariance structures such as AR(1) or compound symmetry may also be considered using the `nlme::lme` function. Something like:
-
-```{r tidy=FALSE, eval=FALSE}
-lme(RT ~ trial + Incongruent*CongruentBlock, random = ~ 1 | Subject,
-    correlation=corCompSymm(form=~trial|person), na.action = na.exclude, 
-    data = flanker,method='REML'))
-```
-
-Use likelihood ratio tests (typically `anova` on `lmer` objects) to adjudicate best fit.
-
-Start NH simple RT modelling in lmer
-
-```{r NH MLM}
-
-m1 <- lmer(rt ~ Incongruent + (1|Subject), data = flank_use)
-m2 <- lmer(rt ~ CongruentBlock + (1|Subject), data = flank_use)
-m3 <- lmer(rt ~ CongruentBlock*Incongruent + (1|Subject), data = flank_use)
-
-MuMIn::AICc(m1,m2,m3)
-vif.lme(m3) #looks good, no concerns around collinearity
-summ(m3)
-
-m4 <- lmer(rt ~ CongruentBlock*Incongruent + prev_stim + (1|Subject), data = flank_use)
-m5 <- lmer(rt ~ CongruentBlock*Incongruent + trial_block + (1|Subject), data = flank_use)
-m6 <- lmer(rt ~ CongruentBlock*Incongruent + trial_sub + (1|Subject), data = flank_use)
-MuMIn::AICc(m3,m4,m5,m6)
-vif.lme(m5) #still good
-summ(m5)
-
-m7 <- lmer(rt ~ CongruentBlock*Incongruent * prev_stim + (1|Subject), data = flank_use)
-m8 <- lmer(rt ~ CongruentBlock*Incongruent * trial_block + (1|Subject), data = flank_use)
-m9 <- lmer(rt ~ CongruentBlock*Incongruent * trial_sub + (1|Subject), data = flank_use)
-MuMIn::AICc(m5,m7,m8, m9)
-vif.lme(m8) # this is more concerning, probabaly best to fall back on the simpler m5.
-summ(m8)
-
-```
-```{r add SNAP dims}
-cor_heatmap(flank_use)
-
-for(dim in names(select(flank_use, contains("Z_")))){
-  print(dim)
-  #specify candidate models
-  f1 <- formula(paste0("rt ~ CongruentBlock*Incongruent + trial_block + ",dim ," + (1|Subject)"))
-  f2 <- formula(paste0("rt ~ CongruentBlock*Incongruent*",dim, " + trial_block + (1|Subject)"))
-  f3 <- formula(paste0("rt ~ CongruentBlock*Incongruent + ",dim, "*Incongruent + trial_block + (1|Subject)"))
-  f4 <- formula(paste0("rt ~ CongruentBlock*Incongruent + ",dim, "*CongruentBlock + trial_block + (1|Subject)"))
-  
-  
-  #run candidate models
-  mod_lists <- list()
-  mod_lists[["m10"]] <- lmer(formula = f1, data = flank_use)
-  mod_lists[["m11"]] <- lmer(formula = f2, data = flank_use)
-  mod_lists[["m12"]] <- lmer(formula = f3, data = flank_use)
-  mod_lists[["m13"]] <- lmer(formula = f4, data = flank_use)
-  
-  
-  #perform model comparison
-  aics <- MuMIn::AICc(m5, mod_lists[["m10"]], mod_lists[["m11"]], mod_lists[["m12"]], mod_lists[["m13"]])%>% rownames_to_column() %>% arrange(AICc)
-  aics[,1] <- do.call(rbind,lapply(aics$rowname, function(x)paste0("m",gsub("[^0-9.-]", "", x))))
-  
-  print(aics)
-  
-  winmod <- aics[1,"rowname"]
-  
-  m5aic <- MuMIn::AICc(m5)
-  print(paste0("delta AICc between m5 and ", aics[1,"rowname"], ": ", aics[1,"AICc"] - m5aic))
-  print(paste0("delta AICc between ,", aics[2,"rowname"], " and ", aics[1,"rowname"], ": ", aics[1,"AICc"] - aics[2,"AICc"]))
-  
-  out_list[[dim]] <-  summ(mod_lists[[winmod]])
-  print(out_list[[dim]])
-}
-
-
-
-```
-
-
-Accuracy
-```{r Acc model fitting}
-m1 <- lmer(TrialSlide_ACC ~ Incongruent + (1|Subject), data = flank_use)
-m2 <- lmer(TrialSlide_ACC ~ CongruentBlock + (1|Subject), data = flank_use)
-m3 <- lmer(TrialSlide_ACC ~ CongruentBlock*Incongruent + (1|Subject), data = flank_use)
-m4 <- lmer(TrialSlide_ACC ~ Incongruent + CongruentBlock + (1|Subject), data = flank_use)
-m5 <- lmer(TrialSlide_ACC ~ Incongruent + prev_stim + (1|Subject), data = flank_use)
-m6 <- lmer(TrialSlide_ACC ~ Incongruent * prev_stim + (1|Subject), data = flank_use)
-m7 <- lmer(TrialSlide_ACC ~ Incongruent + prev_stim + CongruentBlock + (1|Subject), data = flank_use)
-
-MuMIn::AICc(m1,m2,m3, m4,m5, m6,m7)
-vif.lme(m5) #looks good, no concerns around collinearity
-summ(m4)
-
-m8 <- lmer(TrialSlide_ACC ~ Incongruent + prev_stim + trial_block + (1|Subject), data = flank_use)
-m9 <- lmer(TrialSlide_ACC ~ Incongruent + prev_stim + trial_sub + (1|Subject), data = flank_use)
-MuMIn::AICc(m5, m8,m9)
-
-```
-Accuracy + SNAP dims
-```{r}
-out_list <- list()
-for(dim in names(select(flank_use, contains("Z_")))){
-  print(dim)
-  #specify candidate models
-  f1 <- formula(paste0("TrialSlide_ACC ~ Incongruent + prev_stim + ",dim ," + (1|Subject)"))
-  f2 <- formula(paste0("TrialSlide_ACC ~ Incongruent + prev_stim *",dim, "+ (1|Subject)"))
-  f2 <- formula(paste0("TrialSlide_ACC ~ Incongruent  *",dim, "+ prev_stim + (1|Subject)"))
-  # f4 <- formula(paste0("TrialSlide_ACC ~ CongruentBlock*Incongruent + ",dim, "*CongruentBlock + trial_block + (1|Subject)"))
-  
-  
-  #run candidate models
-  mod_lists <- list()
-  mod_lists[["m10"]] <- lmer(formula = f1, data = flank_use)
-  mod_lists[["m11"]] <- lmer(formula = f2, data = flank_use)
-  mod_lists[["m12"]] <- lmer(formula = f3, data = flank_use)
-  # mod_lists[["m13"]] <- lmer(formula = f4, data = flank_use)
-  
-  
-  #perform model comparison
-  aics <- MuMIn::AICc( mod_lists[["m10"]], mod_lists[["m11"]], mod_lists[["m12"]])%>% rownames_to_column() %>% arrange(AICc)
-  aics[,1] <- do.call(rbind,lapply(aics$rowname, function(x)paste0("m",gsub("[^0-9.-]", "", x))))
-  
-  print(aics)
-  
-  winmod <- aics[1,"rowname"]
-  
-  m5aic <- MuMIn::AICc(m5)
-  print(paste0("delta AICc between m5 and ", aics[1,"rowname"], ": ", aics[1,"AICc"] - m5aic))
-  print(paste0("delta AICc between ,", aics[2,"rowname"], " and ", aics[1,"rowname"], ": ", aics[1,"AICc"] - aics[2,"AICc"]))
-  
-  out_list[[dim]] <-  summ(mod_lists[[winmod]])
-  print(out_list[["m10"]])
-  print(out_list[["m11"]])
-  print(out_list[["m12"]])
-}
-```
-
-
-
-## HDDM
-
-Once the MLMs and GLMMs are understood, move onto HDDM. :)
