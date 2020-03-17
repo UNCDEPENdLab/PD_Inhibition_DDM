@@ -245,7 +245,7 @@ summaries_tot$Subject_ACC[which(is.na(summaries_tot$Subject_ACC))] <- 1
 
 hist(summaries_con$Subject_ACC_con)
 
-problem_accs <- summaries_con %>% filter(Subject_ACC_con <= .6) %>% arrange(Subject_ACC_con) %>% print()
+problem_accs <- summaries_con %>% filter(Subject_ACC_con <= .8) %>% arrange(Subject_ACC_con) %>% print()
 
 
 badsubs_cong <- unique(problem_accs$Subject)
@@ -505,7 +505,7 @@ cor(summaries_rt$amean, summaries_rt$hmean)
 
 ```{r}
 summaries_rt <- summaries_rt %>% group_by(Incongruent, CongruentBlock) %>% mutate(g_mean = mean(hmean), g_sd = sd(hmean), g_meansd = g_mean + 3*g_sd)
-
+summaries_rt
 p <- ggplot(summaries_rt, aes(x = hmean)) + geom_histogram()   + facet_grid(Incongruent ~ CongruentBlock) #+ geom_vline(xintercept = summaries_rt$g_mean, color = "red")
 plot(p)
 
@@ -573,8 +573,21 @@ summaries_rt %>% filter(Subject %in% c(92,36))
 
 ```{r}
 str(flank_cleaned)
-flank_use <- flank_cleaned %>% select(Subject, TrialSlide_ACC, rt, Incongruent, CongruentBlock, ABBA) %>% group_by(Subject, ABBA) %>% mutate(prev_stim = lag(Incongruent,n = 1, default = 0), trial_block = seq(1,length(Subject), 1)) %>% group_by(Subject) %>% mutate(trial_sub = seq(1,length(Subject),1))%>% ungroup() %>% left_join(SNAPz, by = "Subject") 
+
+### N.B. for stimulus coding my assumption is that the Z that we calculate will bias subject towards choosing congruent or incongruent rather than L or R. I think this makes more conceptual sense,
+
+flank_cleaned <- flank_cleaned %>% mutate(response = ifelse(.$Incongruent == 0,
+                                           ifelse(.$TrialSlide_ACC == 1, 0, #incongruent, participant correctly responded incongruent
+                                                  1 #incongruent, participant incorrectly responded congruent
+                                                  ), ifelse(.$TrialSlide_ACC == 1, 1, #congruent, participant correctly responded congruent
+                                                            0))) #congruent, participant incorrectly responded incongruent
+
+flank_use <- flank_cleaned %>% select(Subject, TrialSlide_ACC, rt, Incongruent, CongruentBlock, ABBA, response) %>% group_by(Subject, ABBA) %>% mutate(prev_stim = lag(Incongruent,n = 1, default = 0), trial_block = seq(1,length(Subject), 1)) %>% group_by(Subject) %>%# mutate(trial_sub = seq(1,length(Subject),1))%>% ungroup() %>%
+  left_join(SNAPz, by = "Subject") %>% na.omit() %>% rename(`stim` = `Incongruent`, `subj_idx` = `Subject`) %>% select(-ABBA, -prev_stim)
+
+flank_use$rt <- flank_use$rt/1000
 
 save(flank_use, file = "Data/preprocessed/flank_use.RData")
+write.csv(flank_use, file = "Data/preprocessed/flank_use.csv", row.names = FALSE)
 ```
 
