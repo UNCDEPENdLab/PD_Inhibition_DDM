@@ -22,7 +22,7 @@ knitr::opts_chunk$set(echo = TRUE)
 if (!require(easypackages)) { install.packages("easypackages"); library(easypackages) }
 packages("ggplot2", "dplyr", "tidyr", "sas7bdat", "psych", "cowplot", "beepr", "retimes", "lme4", "MuMIn", "jtools", "lmerTest", "interactions", "plyr")
 
-create_plots <- TRUE
+create_plots <- FALSE
 
 basedir <- "~/github_repos/PD_Inhibition_DDM/"
 datadir <- paste0(basedir, "Data/")
@@ -83,7 +83,7 @@ Briefly, the important fields are
   * Nfam2 = negative highly familiar (probe displayed at 1 and 2 back)
   * Nfam1RI = negative response conflict (probe displayed at 1 back and was correct)
 * Letter(2-4): letters in response set
-* ProbeLetter: the prober letter (lol)
+* ProbeLetter: the probe letter (lol)
 
 
 ## Basic data cleaning pipeline
@@ -93,12 +93,13 @@ Briefly, the important fields are
 acc_validation <- ifelse(rp$ProbeDisplay_CRESP == rp$ProbeDisplay_RESP, 1,0) 
 all(rp$ProbeDisplay_ACC == acc_validation)
 
-rp[which(rp$ProbeDisplay_ACC != acc_validation),]
+rp[which(rp$ProbeDisplay_ACC != acc_validation),] %>% select(Subject, Condition, ProbeDisplay_RT, ProbeDisplay_ACC)
 ```
 Accuracies what they should be (minus trials with NaN RTs, probably time-out errors?)
 
 ```{r}
 table(rp$Subject)
+length(table(rp$Subject))
 table(rp$Trial) #should jsut denote trial counters. For some reason for 4 subjects the counter starts at 9 rather than 11, but this doesnt seem that it should cause concern.
 table(rp$Subject, rp$Condition)
 ```
@@ -109,10 +110,12 @@ All generally looks fine...
 
 ```{r}
 summaries_tot <- rp %>% group_by(Subject) %>% dplyr::summarise(Subject_ACC = as.numeric(table(ProbeDisplay_ACC)[2])/(as.numeric(table(ProbeDisplay_ACC)[2])+as.numeric(table(ProbeDisplay_ACC)[1]))) 
+
+# better to look by condition, there should be an acceptable amount of correct responses in each condition to accurately estimate drift rates (e.g. if someone gets less than 50% in on of the negative conditions they may only have 3-4 correct response for that condition... this seems bad)
 summaries_con <- rp %>% group_by(Subject, Condition)%>% dplyr::summarise(Subject_ACC_con = as.numeric(table(ProbeDisplay_ACC)[2])/(as.numeric(table(ProbeDisplay_ACC)[2])+as.numeric(table(ProbeDisplay_ACC)[1]))) 
 
 summaries_con$Subject_ACC_con <- ifelse(is.na(summaries_con$Subject_ACC_con),1,summaries_con$Subject_ACC_con) #recode NaNs to 1, these are perfect
-which(is.na(summaries_con$Subject_ACC_con))
+# which(is.na(summaries_con$Subject_ACC_con))
 hist(summaries_con$Subject_ACC_con)
 
 problem_accs <- summaries_con %>% filter(Subject_ACC_con <= .5) %>% arrange(Subject_ACC_con) %>% print()
@@ -154,8 +157,6 @@ Seems to be a bit more skewed towards pathology in the probes data. E.g. subject
 ```{r}
 rp_acc_trim <- rp %>% filter(!Subject %in% badsubs) %>% arrange(Subject, Trial)
 length(unique(rp_acc_trim$Subject))
-
-#we lose 5 folks for being highly inaccurate on certain conditions
 ```
 
 
@@ -171,6 +172,8 @@ rp_acc_trim$Condition <- recode(rp_acc_trim$Condition, Y = "positive",
        Nfam2 = "n_hfam",
        Nfam1RI = "n_rc")
   
+# alot of this is vestigial from the flanker code, which was way more complicated than it needs to be
+
 rp_acc_trim <- rp_acc_trim %>% mutate(group_Amean_rt = mean(rt, na.rm = TRUE),
                                             group_Hmean_rt = harmonic.mean(rt, na.rm = TRUE),
                                             group_SD_rt = sd(rt, na.rm = TRUE)) %>% mutate(group_SD3Amean_rt_high = group_Amean_rt + 3*group_SD_rt,
@@ -196,8 +199,8 @@ rp_acc_trim <- rp_acc_trim %>% mutate(group_Amean_rt = mean(rt, na.rm = TRUE),
                                                                                           con_SD3AHmean_rt_high = con_Hmean_rt + 3*con_SD_rt,
                                                                                           con_SD3AHmean_rt_low = con_Hmean_rt - 3*con_SD_rt)
 
-if(create_plots){
-  pdf(paste0(figuredir,"subject_rt_dists_raw_rp.pdf"), width = 11, height = 8)
+# if(create_plots){
+  # pdf(paste0(figuredir,"subject_rt_dists_raw_rp.pdf"), width = 11, height = 8)
 
   #plot group first
   x <- ggplot(rp_acc_trim, aes(x = rt)) + geom_histogram() +
@@ -232,90 +235,9 @@ if(create_plots){
    geom_point(shape = 21, size = 3, fill = "black") +
    geom_errorbar(width = 0, aes(ymin = rt-ci, ymax=rt+ci))
  
-  # for(s in unique(rp_acc_trim$Subject)){
-  #   df <- rp_acc_trim %>% filter(Subject == s)
-  #   dff <- filter(df, Condition == "familiar")
-  #   dfnu <- filter(df, Condition == "n_unfam")
-  #   dfnf <- filter(df, Condition == "n_fam")
-  #   dfnhf <- filter(df, Condition == "n_hfam")
-  #   dfnrc <- filter(df, Condition == "n_rc")
-  # 
-  # 
-  #   x_low <- max(0,min((unique(df$SD3AHmean_rt_low)-50), (unique(df$SD3Amean_rt_low) -50), (range(df$rt, na.rm = TRUE)[1]) - 50))
-  #   x_high <- min(3200,max((unique(df$SD3AHmean_rt_high)+50), (unique(df$SD3Amean_rt_high) +50), (range(df$rt, na.rm = TRUE)[2]) + 50))
-  # 
-  # 
-  #   by_sub <- ggplot(df, aes(x = rt)) + geom_histogram(bins = 40) +
-  #     geom_vline(xintercept = unique(df$group_Hmean_rt), color = "black", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(df$group_SD3AHmean_rt_low), color = "black", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(df$group_SD3AHmean_rt_high), color = "black", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(df$Hmean_rt), color = "red") +
-  #     geom_vline(xintercept = unique(df$SD3AHmean_rt_low), color = "red") +
-  #     geom_vline(xintercept = unique(df$SD3AHmean_rt_high), color = "red") + xlim(x_low, x_high) +
-  #     labs(title = paste0("Subject ",s),subtitle = "Harmonic mean and 3 SD over/under, per subject")
-  # 
-  # 
-  #   by_sub_fam <- ggplot(dff, aes(x = rt)) + geom_histogram(bins = 40) +
-  #     # geom_vline(xintercept = unique(dff$Hmean_rt), color = "gray", linetype = "dotted") +
-  #     # geom_vline(xintercept = unique(df$SD3AHmean_rt_low), color = "gray", linetype = "dotted") +
-  #     # geom_vline(xintercept = unique(df$SD3AHmean_rt_high), color = "gray", linetype = "dotted") +
-  #     # geom_vline(xintercept = unique(dfc$group_Amean_rt), color = "black", linetype = "dotted") +
-  #     # geom_vline(xintercept = unique(df$group_SD3Amean_rt_low), color = "black", linetype = "dotted") +
-  #     # geom_vline(xintercept = unique(df$group_SD3Amean_rt_high), color = "black", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(dff$con_Hmean_rt), color = "red") +
-  #     geom_vline(xintercept = unique(dff$con_SD3AHmean_rt_low), color = "red") +
-  #     geom_vline(xintercept = unique(dff$con_SD3AHmean_rt_high), color = "red") + xlim(x_low, x_high) +
-  #     labs(title = paste0("Subject ",s, " familiar trials"),subtitle = "Harmonic mean and 3 SD over/under, per subjectfor ONLY familiar trials")
-  # 
-  #   by_sub_incon_art <- ggplot(dfi, aes(x = rt)) + geom_histogram(bins = 40) +
-  #     geom_vline(xintercept = unique(dfi$Amean_rt), color = "gray", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(df$SD3Amean_rt_low), color = "gray", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(df$SD3Amean_rt_high), color = "gray", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(dfc$group_Amean_rt), color = "black", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(df$group_SD3Amean_rt_low), color = "black", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(df$group_SD3Amean_rt_high), color = "black", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(dfi$con_Amean_rt), color = "red") +
-  #     geom_vline(xintercept = unique(dfi$con_SD3Amean_rt_low), color = "red") +
-  #     geom_vline(xintercept = unique(dfi$con_SD3Amean_rt_high), color = "red") + xlim(x_low, x_high) +
-  #     labs(title = paste0("Subject ",s, " incongruent trials"),subtitle = "Arithmetic mean and 3 SD over/under, per subject for ONLY incongruent trials")
-  # 
-  # 
-  #   by_sub_con_harm <- ggplot(dfc, aes(x = rt)) + geom_histogram(bins = 40) +
-  #     geom_vline(xintercept = unique(dfc$Hmean_rt), color = "gray", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(df$SD3AHmean_rt_low), color = "gray", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(df$SD3AHmean_rt_high), color = "gray", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(dfc$group_Amean_rt), color = "black", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(df$group_SD3Amean_rt_low), color = "black", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(df$group_SD3Amean_rt_high), color = "black", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(dfc$con_Hmean_rt), color = "red") +
-  #     geom_vline(xintercept = unique(dfc$con_SD3AHmean_rt_low), color = "red") +
-  #     geom_vline(xintercept = unique(dfc$con_SD3AHmean_rt_high), color = "red") + xlim(x_low, x_high) +
-  #     labs(title = paste0("Subject ",s, " congruent trials"),subtitle = "Harmonic mean and 3 SD over/under, per subject for ONLY congruent trials")
-  # 
-  #   by_sub_con_art <- ggplot(dfc, aes(x = rt)) + geom_histogram(bins = 40) +
-  #     geom_vline(xintercept = unique(dfc$Amean_rt), color = "gray", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(df$SD3Amean_rt_low), color = "gray", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(df$SD3Amean_rt_high), color = "gray", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(dfc$group_Amean_rt), color = "black", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(df$group_SD3Amean_rt_low), color = "black", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(df$group_SD3Amean_rt_high), color = "black", linetype = "dotted") +
-  #     geom_vline(xintercept = unique(dfc$con_Amean_rt), color = "red") +
-  #     geom_vline(xintercept = unique(dfc$con_SD3Amean_rt_low), color = "red") +
-  #     geom_vline(xintercept = unique(dfc$con_SD3Amean_rt_high), color = "red") + xlim(x_low, x_high) +
-  #     labs(title = paste0("Subject ",s, " congruent trials"),subtitle = "Arithmetic mean and 3 SD over/under, per subject for ONLY congruent trials")
-  # 
-  # 
-  #   x <- plot_grid(by_sub_harm,  by_sub_con_harm, by_sub_incon_harm,by_sub_art,by_sub_con_art,  by_sub_incon_art)
-  #   plot(x)
-  # 
-  # }
-
-  dev.off()
-}
-
-# different papers use different cutoff values e.g:
-# Dillon et al (2015): 150 or if the log-transformed RT exceeded the participant’s mean ± 3S.D., computed separately for congruent and incongruent stimuli
-# Grange & Rydon-Grange (preprint): 250 and 1500
+ plot(point_plot)
+ 
+  
 
 range(rp_acc_trim$rt,na.rm = TRUE) # my hunch is that NA trials are timeouts 
 quantile(rp_acc_trim$rt, na.rm = TRUE, probs = c(0,.05,.1, .9, .95,.99,1))
@@ -329,26 +251,18 @@ length(which(rp_acc_trim$rt <= 350));length(which(rp_acc_trim$rt <= 350))/length
 length(which(rp_acc_trim$rt <= 400));length(which(rp_acc_trim$rt <= 400))/length(rp_acc_trim$rt) 
 ```
 
-I think a principled manner of dealing with outliers in this data is to exclude (set to NA) trials that are below 400 ms. 
+I think a principled manner of dealing with outliers in this data is to exclude (set to NA) trials that are below 350 ms. I tried 400 ms and down the line one subject gets hammered bc many of their RTs are within the 350-400 range and still got a number of them correct.
 
 
-```{r cong incong 3SD Hmean dists}
-rp_acc_trim <- data.frame(rp_acc_trim)
-subject_sd3 <- rp_acc_trim %>% group_by(Subject, Condition) %>% dplyr::summarise(winsorize = unique(con_SD3AHmean_rt_high))
-
-x <- ggplot(data = subject_sd3, aes(x = winsorize)) + geom_histogram() + facet_wrap(~Condition)
-plot(x)
-```
-Okay, so on second thought, this may not be a good idea, since there are a significant number of folks that have values that are 3SDs above the harmonic mean that are less than 500-600ish. This seems pretty severe. Rather, let's see if we can use the whole group harmonic mean + 3SD as a marker. This would leave subjects alone that are reliably responding in a sane range.
 
 ```{r}
 # perc.rank(rp_acc_trim$rt, 700)
-table(rp_acc_trim$group_SD3AHmean_rt_high)
+# table(rp_acc_trim$group_SD3AHmean_rt_high)
 table(rp_acc_trim$group_conSD3AHmean_rt_high)
-length(which(rp_acc_trim$rt >= rp_acc_trim$group_SD3AHmean_rt_high)); length(which(rp_acc_trim$rt >= rp_acc_trim$group_SD3AHmean_rt_high))/length(rp_acc_trim$Subject)
+# length(which(rp_acc_trim$rt >= rp_acc_trim$group_SD3AHmean_rt_high)); length(which(rp_acc_trim$rt >= rp_acc_trim$group_SD3AHmean_rt_high))/length(rp_acc_trim$Subject)
 length(which(rp_acc_trim$rt >= rp_acc_trim$group_conSD3AHmean_rt_high)); length(which(rp_acc_trim$rt >= rp_acc_trim$group_conSD3AHmean_rt_high))/length(rp_acc_trim$Subject)
 ```
-This seems much more sane theoretically, but is also data-driven. We will winsorize long rts based on group-level estimates for what value is 3SDs above the harmonic mean for all congruent and all inconruent trials for all subjects, estimated separately. This leaves us winsorizing 328 (2% of total trials across subjects). I like this.
+This seems sane theoretically, but is also data-driven. We will winsorize long rts based on group-level estimates for what value is 3SDs above the harmonic mean for each condition across subjects, estimated separately per condition. 
 
 ```{r perform RT cleaning}
 str(rp_acc_trim)
