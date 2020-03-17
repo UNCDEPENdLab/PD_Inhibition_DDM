@@ -1,0 +1,438 @@
+---
+title: "Screening and Cleaning Recent Probes Task"
+author: "Nate Hall & Michael Hallquist"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    self_contained: true
+    thumbnails: true
+    lightbox: true
+    gallery: false
+    
+---
+
+```{r setup, include=FALSE}
+#by default, echo the code for chunks
+knitr::opts_chunk$set(echo = TRUE)
+
+#specify that chunks should run relative to the root working directory (may need to be changed per user)
+# knitr::opts_knit$set(root.dir = "/Users/nth7/github_repos/PD_Inhibition_DDM")
+
+#load necessary packages
+if (!require(easypackages)) { install.packages("easypackages"); library(easypackages) }
+packages("ggplot2", "dplyr", "tidyr", "sas7bdat", "psych", "cowplot", "beepr", "retimes", "lme4", "MuMIn", "jtools", "lmerTest", "interactions", "plyr")
+
+create_plots <- TRUE
+
+basedir <- "~/github_repos/PD_Inhibition_DDM/"
+datadir <- paste0(basedir, "Data/")
+figuredir <- paste0(basedir,"Figures/")
+
+source(paste0(basedir,"Code/Nate/summarySEwithin_helpers.R"))
+```
+
+## Overview
+
+This R Markdown script is intended to be developed for preprocessing data from the Recent Probes task collected as part of the PD Executive Inhibition dataset. Click Knit HTML in Rstudio to build the document.
+
+
+## Description of task
+
+from MH dissertation MS:  (Nelson, Reuter-Lorenz, Sylvester, Jonides, & Smith, 2003). This task measured participants’ ability to inhibit the effects of proactive interference (i.e., difficulty remembering a set of information because of information learned previously) as well as interference due to making particular responses on previous trials. For each trial, participants viewed a set of four lower case letters for 1500ms, which they were to remember. A 3,000ms retention interval followed, then a 1500ms single letter probe was presented, followed by a 2000ms interval before the next trial. The probe letter matched one of the four letters to be remembered on 50% of the trials (positive trials) and did not match any of the letters on 50% of the trials (negative trials). Participants were asked to indicate as quickly as possible whether the probe letter was or was not part of the to-be-remembered letters. For negative trials, however, four types of single-letter probes were possible, each comprising 12.5% (one- fourth of 50%). Negative, unfamiliar probe letters were not present on either of the two preceding trials. Negative, familiar probes were present on the preceding trial, but not two trials prior. Negative, highly familiar probes were present on both of the two preceding trials. Negative, response-conflict probes were positive probes from the previous trial. The following is an example of a response-conflict trial: 1) the letters “l d s f” are presented in the preceding trial, 2) “d” is presented as the probe (requiring a positive response), 3) the letters “k m p o” are presented in the current trial, and 4) “d” is presented as the probe (requiring a negative response).Nelson and colleagues (2003) demonstrated that familiar and highly familiar negative probes were associated with lower accuracy on familiarity judgments and longer reaction times, and such probes were focally activated the inferior frontal gyrus (IFG). In contrast, although response-conflict negative probes were also associated with lower accuracy and longer reaction times, ACC, but not IFG, was activated during such trials. In the present implementation, participants completed 72 trials in two blocks. One 60- second break occurred between the blocks. Reaction times and response errors were the dependent variables of interest for this task.
+
+
+## Details of screening and cleaning data
+
+Original data are stored in Data/SAS Originals/rper.sas7bdat. Data can be loaded into R using the sas7bdat package, but are imported into a `.RData` object called `rper`. This is loaded here before proceeding.
+
+```{r loaddata, echo=FALSE}
+if (!file.exists(paste0(datadir,"R_Originals/recentprobes_raw.RData"))) {
+  rp <- dplyr::tbl_df(read.sas7bdat(paste0(datadir, "SAS\ Originals/recentprobes.sas7bdat")))
+  save(file=paste0(datadir,"R_Originals/recentprobes_raw.RData"))
+} else {
+  load(paste0(datadir,"R_Originals/recentprobes_raw.RData"))
+}
+
+alldat <- read.csv(paste0(datadir, "alldat.csv"))
+# names(alldat)
+
+SNAPz <- alldat %>% select(matches("Subject"), contains("Z_")) %>% select(-Z_VRIN, -Z_TRIN, -Z_DRIN, -Z_RareVirtues, -Z_Deviance, -Z_InvalidityIndex, -Z_BackDeviance)
+SNAPt <- alldat %>% select(matches("Subject"), starts_with("T_")) %>% select(-T_VRIN, -T_TRIN, -T_DRIN, -T_RareVirtues, -T_Deviance, -T_InvalidityIndex, -T_BackDeviance, -T_MeanGoRT_5, -T_MeanGoRT_1, -T_MeanGoRT_7,-T_MeanGoRT_3, -T_MeanGoRT)
+```
+
+The basic structure of the raw data is as follows:
+
+```{r}
+#
+# sample_sub <- rp %>% filter(Subject == 1) %>% select(Subject, Trial, Condition, CorrectAns, DisplayBlock1,Letter, Letter2,Letter3,Letter4,LetterDisplay_DurationError, ProbeDisplay_RT, ProbeDisplay_ACC, ProbeDisplay_CRESP, ProbeDisplay_RESP, ProbeLetter) %>% arrange(Trial)
+# View(sample_sub)
+
+rp <- rp %>% select(Subject, Trial, Condition, CorrectAns, DisplayBlock1,Letter, Letter2,Letter3,Letter4,LetterDisplay_DurationError, ProbeDisplay_RT, ProbeDisplay_ACC, ProbeDisplay_CRESP, ProbeDisplay_RESP, ProbeLetter) %>% arrange(Trial)
+str(rp, give.attr=FALSE)
+```
+
+Briefly, the important fields are
+
+* Subject: The participant ID.
+* ProbeDisplay_ACC: Whether the response on a trial was correct (0/1)
+* ProbeDisplay_RT: The reaction time in milliseconds
+* Condition: 
+  * Y = familiar
+  * Nfam0 = negative unfamiliar
+  * Nfam1 = negative familiar (probe displayed at 1-back)
+  * Nfam2 = negative highly familiar (probe displayed at 1 and 2 back)
+  * Nfam1RI = negative response conflict (probe displayed at 1 back and was correct)
+* Letter(2-4): letters in response set
+* ProbeLetter: the prober letter (lol)
+
+
+## Basic data cleaning pipeline
+
+1. Verify the expected number of trials and conditions
+```{r}
+acc_validation <- ifelse(rp$ProbeDisplay_CRESP == rp$ProbeDisplay_RESP, 1,0) 
+all(rp$ProbeDisplay_ACC == acc_validation)
+
+rp[which(rp$ProbeDisplay_ACC != acc_validation),]
+```
+Accuracies what they should be (minus trials with NaN RTs, probably time-out errors?)
+
+```{r}
+table(rp$Subject)
+table(rp$Trial) #should jsut denote trial counters. For some reason for 4 subjects the counter starts at 9 rather than 11, but this doesnt seem that it should cause concern.
+table(rp$Subject, rp$Condition)
+```
+
+All generally looks fine...
+
+2 Screen for excessively low accuracies, especially on negative trials. After discussion as a lab, potentially drop participants.
+
+```{r}
+summaries_tot <- rp %>% group_by(Subject) %>% dplyr::summarise(Subject_ACC = as.numeric(table(ProbeDisplay_ACC)[2])/(as.numeric(table(ProbeDisplay_ACC)[2])+as.numeric(table(ProbeDisplay_ACC)[1]))) 
+summaries_con <- rp %>% group_by(Subject, Condition)%>% dplyr::summarise(Subject_ACC_con = as.numeric(table(ProbeDisplay_ACC)[2])/(as.numeric(table(ProbeDisplay_ACC)[2])+as.numeric(table(ProbeDisplay_ACC)[1]))) 
+
+summaries_con$Subject_ACC_con <- ifelse(is.na(summaries_con$Subject_ACC_con),1,summaries_con$Subject_ACC_con) #recode NaNs to 1, these are perfect
+which(is.na(summaries_con$Subject_ACC_con))
+hist(summaries_con$Subject_ACC_con)
+
+problem_accs <- summaries_con %>% filter(Subject_ACC_con <= .5) %>% arrange(Subject_ACC_con) %>% print()
+
+
+badsubs <- unique(problem_accs$Subject)
+
+
+
+```
+
+five subjects have very bad accuracy for one or more condition. These folks should get dropped.
+
+
+3.1 Are the bad subjects elevated on certain personality traits? If they are more trait impulsive, if they're on the borderline there may be an argument for keeping them.
+
+```{r}
+if(create_plots){
+  # png("Figures/bad_subject_SNAP_histograms.png")#, width = 11, height = 8)
+  pdf(paste0(figuredir,"/bad_subject_SNAP_histograms_rp.pdf"), width = 11, height = 8)
+  for(s in names(SNAPz)[-1]){
+    x <- SNAPz %>% filter(Subject %in% badsubs) %>% na.omit()%>% select(s, "Subject")#%>% mutate(clr = letters[1:nrow(.)]) #%>% as.matrix() # 38 doesnt have SNAP
+    x$Subject <- as.factor(x$Subject)
+    x[,s] <- jitter(x[,s])
+    p <- ggplot(SNAPz, aes_string(x = s)) + geom_histogram() + geom_vline(data = x, aes_string(xintercept = s, color = "Subject"), linetype = "dotted", size = 1)
+    plot(p)
+  }
+  dev.off()
+}
+```
+<!-- # ```{r, out.width = "85%"} -->
+<!-- # knitr::include_graphics(path.expand("/Users/nth7/PD_Inhibition_DDM/Figures/bad_subject_SNAP_histograms.png")) ### this causes the knit to bomb, which is driving me mad. -->
+<!-- # # exists("/Users/nth7/PD_Inhibition_DDM/Figures/bad_subject_SNAP_histograms.pdf") ## FALSE... -___- -->
+<!-- # # list.files("/Users/nth7/PD_Inhibition_DDM/Figures") -->
+<!-- # ``` -->
+
+Seems to be a bit more skewed towards pathology in the probes data. E.g. subject 100 is consistently elevated on externalizing measures, but what are we gonna do about it? Unfortunately, these are different folks than we dropped for flanker.
+
+```{r}
+rp_acc_trim <- rp %>% filter(!Subject %in% badsubs) %>% arrange(Subject, Trial)
+length(unique(rp_acc_trim$Subject))
+
+#we lose 5 folks for being highly inaccurate on certain conditions
+```
+
+
+4. Identify unbelievably fast RTs < 100ms. Recode both RT and accuracy to NA. Consider different options for long outliers (e.g. censoring vs winsorizing)
+
+```{r}
+# str(rp_acc_trim)
+detach("package:plyr", unload=TRUE);
+rp_acc_trim <- rp_acc_trim %>% rename(`rt` = `ProbeDisplay_RT`) 
+rp_acc_trim$Condition <- recode(rp_acc_trim$Condition, Y = "positive", 
+       Nfam0 = "n_unfam", 
+       Nfam1= "n_fam", 
+       Nfam2 = "n_hfam",
+       Nfam1RI = "n_rc")
+  
+rp_acc_trim <- rp_acc_trim %>% mutate(group_Amean_rt = mean(rt, na.rm = TRUE),
+                                            group_Hmean_rt = harmonic.mean(rt, na.rm = TRUE),
+                                            group_SD_rt = sd(rt, na.rm = TRUE)) %>% mutate(group_SD3Amean_rt_high = group_Amean_rt + 3*group_SD_rt,
+                                                                                            group_SD3Amean_rt_low = group_Amean_rt - 3*group_SD_rt,
+                                                                                            group_SD3AHmean_rt_high = group_Hmean_rt + 3*group_SD_rt,
+                                                                                            group_SD3AHmean_rt_low = group_Hmean_rt - 3*group_SD_rt) %>%
+  group_by(Condition) %>% mutate(group_conAmean_rt = mean(rt, na.rm = TRUE),
+                                            group_conHmean_rt = harmonic.mean(rt, na.rm = TRUE),
+                                            group_conSD_rt = sd(rt, na.rm = TRUE)) %>% mutate(group_conSD3Amean_rt_high = group_conAmean_rt + 3*group_conSD_rt,
+                                                                                            group_conSD3Amean_rt_low = group_conAmean_rt - 3*group_conSD_rt,
+                                                                                            group_conSD3AHmean_rt_high = group_conHmean_rt + 3*group_conSD_rt,
+                                                                                            group_conSD3AHmean_rt_low = group_conHmean_rt - 3*group_conSD_rt) %>%  ungroup() %>%
+  group_by(Subject) %>% mutate(Amean_rt = mean(rt, na.rm = TRUE),
+                               Hmean_rt = harmonic.mean(rt, na.rm = TRUE),
+                               SD_rt = sd(rt, na.rm = TRUE)) %>% mutate(SD3Amean_rt_high = Amean_rt + 3*SD_rt,
+                                                                         SD3Amean_rt_low = Amean_rt - 3*SD_rt,
+                                                                         SD3AHmean_rt_high = Hmean_rt + 3*SD_rt,
+                                                                         SD3AHmean_rt_low = Hmean_rt - 3*SD_rt) %>% 
+  group_by(Subject, Condition) %>% mutate(con_Amean_rt = mean(rt, na.rm = TRUE),
+                                            con_Hmean_rt = harmonic.mean(rt, na.rm = TRUE),
+                                            con_SD_rt = sd(rt, na.rm = TRUE)) %>% mutate(con_SD3Amean_rt_high = con_Amean_rt + 3*con_SD_rt,
+                                                                                          con_SD3Amean_rt_low = con_Amean_rt - 3*con_SD_rt,
+                                                                                          con_SD3AHmean_rt_high = con_Hmean_rt + 3*con_SD_rt,
+                                                                                          con_SD3AHmean_rt_low = con_Hmean_rt - 3*con_SD_rt)
+
+if(create_plots){
+  pdf(paste0(figuredir,"subject_rt_dists_raw_rp.pdf"), width = 11, height = 8)
+
+  #plot group first
+  x <- ggplot(rp_acc_trim, aes(x = rt)) + geom_histogram() +
+    geom_vline(xintercept = unique(rp_acc_trim$group_Hmean_rt)) +
+    geom_vline(xintercept = unique(rp_acc_trim$group_SD3AHmean_rt_low), color = "red") +
+    geom_vline(xintercept = unique(rp_acc_trim$group_SD3AHmean_rt_high), color = "red") + xlim(0,3200) +
+    labs(title = "Harmonic mean and 3 SD over/under, whole group")
+
+  y <- ggplot(rp_acc_trim, aes(x = rt)) + geom_histogram() +
+    geom_vline(xintercept = unique(rp_acc_trim$group_Amean_rt)) +
+    geom_vline(xintercept = unique(rp_acc_trim$group_SD3Amean_rt_low), color = "red") +
+    geom_vline(xintercept = unique(rp_acc_trim$group_SD3Amean_rt_high), color = "red") + xlim(0,3200) +
+    labs(title = "Arithmetic mean and 3 SD over/under, whole group")
+
+  cowplot::plot_grid(x,y, ncol = 1)
+  
+  x <- ggplot(rp_acc_trim, aes(x = rt)) + geom_histogram() +
+    geom_vline(xintercept = unique(rp_acc_trim$group_Hmean_rt)) +
+    geom_vline(xintercept = unique(rp_acc_trim$group_SD3AHmean_rt_low), color = "red") +
+    geom_vline(xintercept = unique(rp_acc_trim$group_SD3AHmean_rt_high), color = "red") + xlim(0,3200) +
+    labs(title = "Harmonic mean and 3 SD over/under, whole group by condition") + facet_wrap(~Condition, scales = "free")
+  plot(x)
+  
+ mean_sd_condition <-  rp_acc_trim %>% group_by(Condition) %>% summarise(harmonic_mean = harmonic.mean(rt, na.rm = TRUE), sd = sd(rt, na.rm = TRUE)) 
+ 
+ 
+ mean_ci_conditions <- summarySEwithin(data = rp_acc_trim, measurevar = "rt", withinvars = "Condition", idvar = "Subject", na.rm = TRUE)
+ 
+ detach("package:plyr", unload=TRUE); detach("package:dplyr", unload=TRUE); library(dplyr); library(plyr)
+ 
+ point_plot <- ggplot(mean_ci_conditions, aes(x = Condition, y = rt, group = 1)) +
+   geom_point(shape = 21, size = 3, fill = "black") +
+   geom_errorbar(width = 0, aes(ymin = rt-ci, ymax=rt+ci))
+ 
+  # for(s in unique(rp_acc_trim$Subject)){
+  #   df <- rp_acc_trim %>% filter(Subject == s)
+  #   dff <- filter(df, Condition == "familiar")
+  #   dfnu <- filter(df, Condition == "n_unfam")
+  #   dfnf <- filter(df, Condition == "n_fam")
+  #   dfnhf <- filter(df, Condition == "n_hfam")
+  #   dfnrc <- filter(df, Condition == "n_rc")
+  # 
+  # 
+  #   x_low <- max(0,min((unique(df$SD3AHmean_rt_low)-50), (unique(df$SD3Amean_rt_low) -50), (range(df$rt, na.rm = TRUE)[1]) - 50))
+  #   x_high <- min(3200,max((unique(df$SD3AHmean_rt_high)+50), (unique(df$SD3Amean_rt_high) +50), (range(df$rt, na.rm = TRUE)[2]) + 50))
+  # 
+  # 
+  #   by_sub <- ggplot(df, aes(x = rt)) + geom_histogram(bins = 40) +
+  #     geom_vline(xintercept = unique(df$group_Hmean_rt), color = "black", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(df$group_SD3AHmean_rt_low), color = "black", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(df$group_SD3AHmean_rt_high), color = "black", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(df$Hmean_rt), color = "red") +
+  #     geom_vline(xintercept = unique(df$SD3AHmean_rt_low), color = "red") +
+  #     geom_vline(xintercept = unique(df$SD3AHmean_rt_high), color = "red") + xlim(x_low, x_high) +
+  #     labs(title = paste0("Subject ",s),subtitle = "Harmonic mean and 3 SD over/under, per subject")
+  # 
+  # 
+  #   by_sub_fam <- ggplot(dff, aes(x = rt)) + geom_histogram(bins = 40) +
+  #     # geom_vline(xintercept = unique(dff$Hmean_rt), color = "gray", linetype = "dotted") +
+  #     # geom_vline(xintercept = unique(df$SD3AHmean_rt_low), color = "gray", linetype = "dotted") +
+  #     # geom_vline(xintercept = unique(df$SD3AHmean_rt_high), color = "gray", linetype = "dotted") +
+  #     # geom_vline(xintercept = unique(dfc$group_Amean_rt), color = "black", linetype = "dotted") +
+  #     # geom_vline(xintercept = unique(df$group_SD3Amean_rt_low), color = "black", linetype = "dotted") +
+  #     # geom_vline(xintercept = unique(df$group_SD3Amean_rt_high), color = "black", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(dff$con_Hmean_rt), color = "red") +
+  #     geom_vline(xintercept = unique(dff$con_SD3AHmean_rt_low), color = "red") +
+  #     geom_vline(xintercept = unique(dff$con_SD3AHmean_rt_high), color = "red") + xlim(x_low, x_high) +
+  #     labs(title = paste0("Subject ",s, " familiar trials"),subtitle = "Harmonic mean and 3 SD over/under, per subjectfor ONLY familiar trials")
+  # 
+  #   by_sub_incon_art <- ggplot(dfi, aes(x = rt)) + geom_histogram(bins = 40) +
+  #     geom_vline(xintercept = unique(dfi$Amean_rt), color = "gray", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(df$SD3Amean_rt_low), color = "gray", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(df$SD3Amean_rt_high), color = "gray", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(dfc$group_Amean_rt), color = "black", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(df$group_SD3Amean_rt_low), color = "black", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(df$group_SD3Amean_rt_high), color = "black", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(dfi$con_Amean_rt), color = "red") +
+  #     geom_vline(xintercept = unique(dfi$con_SD3Amean_rt_low), color = "red") +
+  #     geom_vline(xintercept = unique(dfi$con_SD3Amean_rt_high), color = "red") + xlim(x_low, x_high) +
+  #     labs(title = paste0("Subject ",s, " incongruent trials"),subtitle = "Arithmetic mean and 3 SD over/under, per subject for ONLY incongruent trials")
+  # 
+  # 
+  #   by_sub_con_harm <- ggplot(dfc, aes(x = rt)) + geom_histogram(bins = 40) +
+  #     geom_vline(xintercept = unique(dfc$Hmean_rt), color = "gray", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(df$SD3AHmean_rt_low), color = "gray", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(df$SD3AHmean_rt_high), color = "gray", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(dfc$group_Amean_rt), color = "black", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(df$group_SD3Amean_rt_low), color = "black", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(df$group_SD3Amean_rt_high), color = "black", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(dfc$con_Hmean_rt), color = "red") +
+  #     geom_vline(xintercept = unique(dfc$con_SD3AHmean_rt_low), color = "red") +
+  #     geom_vline(xintercept = unique(dfc$con_SD3AHmean_rt_high), color = "red") + xlim(x_low, x_high) +
+  #     labs(title = paste0("Subject ",s, " congruent trials"),subtitle = "Harmonic mean and 3 SD over/under, per subject for ONLY congruent trials")
+  # 
+  #   by_sub_con_art <- ggplot(dfc, aes(x = rt)) + geom_histogram(bins = 40) +
+  #     geom_vline(xintercept = unique(dfc$Amean_rt), color = "gray", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(df$SD3Amean_rt_low), color = "gray", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(df$SD3Amean_rt_high), color = "gray", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(dfc$group_Amean_rt), color = "black", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(df$group_SD3Amean_rt_low), color = "black", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(df$group_SD3Amean_rt_high), color = "black", linetype = "dotted") +
+  #     geom_vline(xintercept = unique(dfc$con_Amean_rt), color = "red") +
+  #     geom_vline(xintercept = unique(dfc$con_SD3Amean_rt_low), color = "red") +
+  #     geom_vline(xintercept = unique(dfc$con_SD3Amean_rt_high), color = "red") + xlim(x_low, x_high) +
+  #     labs(title = paste0("Subject ",s, " congruent trials"),subtitle = "Arithmetic mean and 3 SD over/under, per subject for ONLY congruent trials")
+  # 
+  # 
+  #   x <- plot_grid(by_sub_harm,  by_sub_con_harm, by_sub_incon_harm,by_sub_art,by_sub_con_art,  by_sub_incon_art)
+  #   plot(x)
+  # 
+  # }
+
+  dev.off()
+}
+
+# different papers use different cutoff values e.g:
+# Dillon et al (2015): 150 or if the log-transformed RT exceeded the participant’s mean ± 3S.D., computed separately for congruent and incongruent stimuli
+# Grange & Rydon-Grange (preprint): 250 and 1500
+
+range(rp_acc_trim$rt,na.rm = TRUE) # my hunch is that NA trials are timeouts 
+quantile(rp_acc_trim$rt, na.rm = TRUE, probs = c(0,.05,.1, .9, .95,.99,1))
+
+perc.rank <- function(x, xo)  length(x[x <= xo])/length(x)*100
+
+perc.rank(rp_acc_trim$rt, 350); #length(rp_acc_trim$Subject) * perc.rank(rp_acc_trim$rt, 150)/100
+perc.rank(rp_acc_trim$rt, 400); #length(rp_acc_trim$Subject) * perc.rank(rp_acc_trim$rt, 250)/100
+
+length(which(rp_acc_trim$rt <= 350));length(which(rp_acc_trim$rt <= 350))/length(rp_acc_trim$rt)
+length(which(rp_acc_trim$rt <= 400));length(which(rp_acc_trim$rt <= 400))/length(rp_acc_trim$rt) 
+```
+
+I think a principled manner of dealing with outliers in this data is to exclude (set to NA) trials that are below 400 ms. 
+
+
+```{r cong incong 3SD Hmean dists}
+rp_acc_trim <- data.frame(rp_acc_trim)
+subject_sd3 <- rp_acc_trim %>% group_by(Subject, Condition) %>% dplyr::summarise(winsorize = unique(con_SD3AHmean_rt_high))
+
+x <- ggplot(data = subject_sd3, aes(x = winsorize)) + geom_histogram() + facet_wrap(~Condition)
+plot(x)
+```
+Okay, so on second thought, this may not be a good idea, since there are a significant number of folks that have values that are 3SDs above the harmonic mean that are less than 500-600ish. This seems pretty severe. Rather, let's see if we can use the whole group harmonic mean + 3SD as a marker. This would leave subjects alone that are reliably responding in a sane range.
+
+```{r}
+# perc.rank(rp_acc_trim$rt, 700)
+table(rp_acc_trim$group_SD3AHmean_rt_high)
+table(rp_acc_trim$group_conSD3AHmean_rt_high)
+length(which(rp_acc_trim$rt >= rp_acc_trim$group_SD3AHmean_rt_high)); length(which(rp_acc_trim$rt >= rp_acc_trim$group_SD3AHmean_rt_high))/length(rp_acc_trim$Subject)
+length(which(rp_acc_trim$rt >= rp_acc_trim$group_conSD3AHmean_rt_high)); length(which(rp_acc_trim$rt >= rp_acc_trim$group_conSD3AHmean_rt_high))/length(rp_acc_trim$Subject)
+```
+This seems much more sane theoretically, but is also data-driven. We will winsorize long rts based on group-level estimates for what value is 3SDs above the harmonic mean for all congruent and all inconruent trials for all subjects, estimated separately. This leaves us winsorizing 328 (2% of total trials across subjects). I like this.
+
+```{r perform RT cleaning}
+str(rp_acc_trim)
+rp_cleaned <- rp_acc_trim  
+rp_cleaned$rt <- ifelse(rp_cleaned$rt <= 350, NA, rp_cleaned$rt) # drop short RTs
+rp_cleaned$rt <- ifelse(rp_cleaned$rt >= rp_cleaned$group_conSD3AHmean_rt_high, rp_cleaned$group_conSD3AHmean_rt_high, rp_cleaned$rt) # winsorize long RTs by group-level congruent vs incongruent.
+```
+
+
+
+5. Compute and display (as table) summary statistics for RT by subject and block. May need to leverage harmonic mean (Ratcliff) or ex-Gaussian fitted statistics to get a sense of averages (given positive skew of RTs).
+
+```{r}
+summaries_rt <- rp_cleaned %>% group_by(Subject, Condition) %>% dplyr::summarise(sd = sd(rt, na.rm = TRUE),
+                                                                       hmean = harmonic.mean(rt)) %>% arrange(-hmean) 
+head(summaries_rt)
+```
+
+6. Screen for unlikely RT means between subjects, separating incongruent and congruent trials. For example, if the congruent sample average is ~250ms and one subject has a mean ~750ms, is this plausible? If not, discuss and potentially drop.
+
+```{r}
+condition_meansd <- rp_cleaned %>% group_by(Condition) %>% dplyr::summarise(g_mean = harmonic.mean(rt, na.rm = TRUE), g_sd = sd(rt, na.rm = TRUE), g_meansd = g_mean + 2*g_sd)
+condition_meansd
+
+p <- ggplot(summaries_rt, aes(x = hmean)) + geom_histogram()   + facet_wrap(~Condition) #+ geom_vline(xintercept = summaries_rt$g_mean, color = "red")
+plot(p)
+
+
+
+summaries_rt <- summaries_rt %>% group_by(Subject) %>% mutate(sub_mean = mean(hmean)) %>% arrange(-hmean) %>% left_join(condition_meansd, by = "Condition")
+
+
+#to look at this more formally just take those subjects that have combinations of stimulus type (cong vs incongr) and block type (most cong vs most incong)
+summaries_rt %>% filter(hmean >= g_meansd)
+
+
+p_trim <- ggplot(filter(summaries_rt, !Subject %in% c(64,72)), aes(x = hmean)) + geom_histogram()   + facet_wrap(~ Condition) #+ geom_vline(xintercept = summaries_rt$g_mean, color = "red")
+plot(p_trim)
+
+
+
+```
+Honestly, I think they can stay in.
+
+```{r, include=FALSE, eval=FALSE}
+rp_cleaned <- rp_cleaned %>% filter(!Subject %in% c(64, 72))
+length(unique(rp_cleaned$Subject)) #down to 105
+```
+
+
+8. Check for subjects with a high number of NA trials. Could be due to RTs and accuracies that are not properly recorded (NA), or could be an unbelievably fast outlier. Consider removing subjects with a high number of NAs 
+```{r}
+nas_persub <- rp_cleaned %>% group_by(Subject) %>% dplyr::summarise(na.counts_sub = length(which(is.na(rt)))) %>% arrange(-na.counts_sub)
+
+table(nas_persub$na.counts_sub)
+hist(unique(nas_persub$na.counts_sub))
+
+head(nas_persub)
+# 36 is pretty darn fast, are they getting them right?
+
+rp_cleaned %>% filter(Subject == 36)
+```
+yeah this guy needs to go. esp when looking at the last 10 or so trials.
+
+```{r}
+rp_cleaned <- rp_cleaned %>% filter(Subject != 36)
+length(unique(rp_cleaned$Subject))
+```
+
+9. Drop unnecessary variables before moving on to MLM
+
+```{r}
+str(rp_cleaned)
+
+### N.B. for stimulus coding my assumption is that the Z that we calculate will bias subject towards answering positive or negative towards the probe. 
+head(rp_cleaned)
+
+rp_cleaned <- rp_cleaned %>% mutate(response = ifelse(ProbeDisplay_RESP == "j", 1 ,0)) # 1 = negative, 0 = positive
+
+rp_use <- rp_cleaned %>% select(Subject, ProbeDisplay_ACC, rt, Condition, response) %>% left_join(SNAPz, by = "Subject") %>% na.omit() %>% dplyr::rename(`stim` = `Condition`, `subj_idx` = `Subject`) 
+
+rp_use$rt <- rp_use$rt/1000
+
+save(rp_use, file = paste0(datadir,"preprocessed/rp_use.RData"))
+write.csv(rp_use, file = paste0(datadir,"preprocessed/rp_use.csv"), row.names = FALSE)
+```
+
