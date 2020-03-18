@@ -21,9 +21,10 @@ import kabuki
 from kabuki.analyze import gelman_rubin
 import pickle
 import numpy as np
+import sys
 
 ##Create a string for SNAP (Schedule for Nonadaptive and Adaptive Personality) dimensions 
-#SNAP_dim = ('DISINH', 'SUICPRON', 'NEGTEMP', 'MISTRUST', 'MANIP', 'AGG', 'SELFHARM', 'ECCPERC', 'DEPEN', 'POSTEMP', 'EXHIB', 'ENTITL', 'DETACH', 'IMPUL', 'PROPER', 'HDWK','DISINHP', 'LOSLFEST')
+SNAP_dim = ('DISINH', 'SUICPRON', 'NEGTEMP', 'MISTRUST', 'MANIP', 'AGG', 'SELFHARM', 'ECCPERC', 'DEPEN', 'POSTEMP', 'EXHIB', 'ENTITL', 'DETACH', 'IMPUL', 'PROPER', 'HDWK','DISINHP', 'LOSLFEST')
 
 ics = 0 #binary for working on local computer(0) or on ICS(1). Note that if working on local computer ICS must be mounted. 
 code = 'stim' #coding scheme: stimulus(stim) or accuracy(acc) 
@@ -38,15 +39,16 @@ nchains = 5
 ##Read in data and set up burn and sample quantities
 if ics == 0:
     #local
-    os.chdir('/Users/nth7/PD_Inhibition_DDM')
+    basedir = '/Users/natehall/github_repos/PD_Inhibition_DDM'
+    os.chdir(basedir)
     if code == 'stim':
         data = hddm.load_csv('Data/preprocessed/flank_use.csv')
     elif code == 'acc':
-        data = hddm.load_csv('Flanker_reduced_acc_coded_nooutliers.csv')
-    outputdir = ('practice_files') 
+        # data = hddm.load_csv('Flanker_reduced_acc_coded_nooutliers.csv')
+    outputdir = basedir+'/Outputs/practice_hddm'
     nsample = 50
     nburn = 3
-    os.chdir('/mnt/ics/PD_Inhibition_DDM_bashfiles_outputs/practice_files')
+    os.chdir(outputdir)
 elif ics == 1:
     os.chdir('/gpfs/group/mnh5174/default/DEPENd_Box/Projects/PD_Inhibition_DDM')
     if code == 'stim':
@@ -74,18 +76,18 @@ v = {'model': "v ~ 1  + C(stim, Treatment(0))", 'link_func': lambda x: x}
 #v = {'model': "v ~ 1  ", 'link_func': lambda x: x}
 v_block = {'model': "v ~ 1  + C(stim, Treatment(0)) * C(CongruentBlock, Treatment(0))", 'link_func': lambda x: x}
 sv = {'model': "sv ~ 1 ", 'link_func': lambda x: x}
-z = {'model': "z ~ 1", 'link_func': z_link_func}
-sz = {'model': "sz ~ 1", 'link_func': lambda x: x}
+# z = {'model': "z ~ 1", 'link_func': z_link_func}
+# sz = {'model': "sz ~ 1", 'link_func': lambda x: x}
 a = {'model': "a ~ 1", 'link_func': lambda x: x}
-t = {'model': "t ~ 1", 'link_func': lambda x: x}
+# t = {'model': "t ~ 1", 'link_func': lambda x: x}
 st = {'model': "st ~ 1", 'link_func': lambda x: x}
 
 
 mod_dict = {'v_reg':hddm.HDDMRegressor(data, v),
-'vsv_reg':hddm.HDDMRegressor(data, [v,sv], include = 'sv'),
-'vz_reg':hddm.HDDMRegressor(data, [v,z], include = 'z')}#,
+'vsv_reg':hddm.HDDMRegressor(data, [v,sv], include = 'sv')}#,#,
+# 'vz_reg':hddm.HDDMRegressor(data, [v,z], include = 'z')}
 #'vsvz_reg':hddm.HDDMRegressor(data, [v,sv,z], include = ('sv','z')),
-#'v_block_reg':hddm.HDDMRegressor(data, v_block),
+# 'v_block_reg':hddm.HDDMRegressor(data, v_block)}#,
 #'v_blocksv_reg':hddm.HDDMRegressor(data, [v_block,sv], include = 'sv'),
 #'v_blockz_reg':hddm.HDDMRegressor(data, [v_block,z], include = 'z'),
 #'v_blocksvz_reg':hddm.HDDMRegressor(data, [v_block,sv,z], include = ('sv', 'z'))}
@@ -93,31 +95,70 @@ mod_dict = {'v_reg':hddm.HDDMRegressor(data, v),
 mod_dict
 all_models = {}
 
-with pymp.Parallel(len(mod_dict)) as m:
-    with pymp.Parallel(nchains) as ch:
-            for mod in m.range(0, len(mod_dict)):
-                print mod
-                models = []
-                for chain in ch.range(0, nchains):
-                    mod_dict[mod].sample(nsample, burn = nburn, dbname = 'flanker/v_reg.db', db = 'pickle')    
-                    models.append(mod_dict[mod])
-                all_models[mod] = models
-      
-models = []
-with pymp.Parallel(len(mod_dict)) as m:
-    for mod in mod_dict:
-        models.append(mod)
+# from __future__ import print_function
+
+import pymp
+ex_array = pymp.shared.array((100,), dtype='uint8')
+with pymp.Parallel(1) as p:
+    for index in p.range(0, 100):
+        ex_array[index] = 1
+        # The parallel print function takes care of asynchronous output.
+        # p.print('Yay! {} done!'.format(index))
+        # print index
         
+ex_array = np.zeros((100,), dtype='uint8')
+for index in range(0, 100):
+    ex_array[index] = 1
+    print('Yay! {} done!'.format(index))
+
+
+with pymp.Parallel(4) as p:
+    for sec_idx in p.xrange(4):
+        if sec_idx == 0:
+            p.print('Section 0')
+        elif sec_idx == 1:
+            p.print('Section 1')
+
+# with pymp.Parallel(len(mod_dict)) as m:
+#     with pymp.Parallel(nchains) as ch:
+#             for mod in m.range(0, len(mod_dict)):
+#                 print mod
+#                 models = []
+#                 for chain in ch.range(0, nchains):
+#                     #mod_dict[mod].sample(nsample, burn = nburn, dbname = 'flanker/v_reg.db', db = 'pickle')    
+#                     #models.append(mod_dict[mod])
+#                     models.append(chain)
+#                 all_models[mod] = models
+      
+# all_models
+# mod
+
+# models = []
+# with pymp.Parallel(len(mod_dict)) as m:
+#     for mod in mod_dict:
+#         print mod
+
+# with pymp.Parallel(2) as p1:
+#     with pymp.Parallel(2) as p2:
+#         p.print(p1.thread_num, p2.thread_num)
+
+# ex_array = pymp.shared.array((100,), dtype='uint8')
+
+# with pymp.Parallel(4) as p:
+#     for index in p.range(0, 100):
+#         ex_array[index] = 1
+#         # The parallel print function takes care of asynchronous output.
+#         p.print('Yay! {} done!'.format(index))        
         
         
 for mod in mod_dict:
     print mod
     models = []
-    for chain in range(nchains):
-        mod_dict[mod].sample(nsample, burn = nburn, dbname = 'flanker/v_reg.db', db = 'pickle')    
+    for chain in 1:#range(nchains):
+        mod_dict[mod].sample(nsample, burn = nburn, dbname = outputdir+'flanker/v_reg.db', db = 'pickle')    
         models.append(mod_dict[mod])
     all_models[mod] = models
-
+mod_dict
 
 all_models.save('flanker/all_models_simple_multchains')
 
@@ -129,10 +170,16 @@ with pymp.Parallel(len(SNAP_dim)) as p:
                 for index in p.range(0, len(SNAP_dim)):
                     for m in pmodel.range(0, nmodels):
 
-
+ with pymp.Parallel(len(SNAP_dim)) as p:
+            with pymp.Parallel(nmodels) as pmodel:
+                #for predict in p.iterate(SNAP_dim):    
+                for index in p.range(0, len(SNAP_dim)):
+                    for m in pmodel.range(0, nmodels):
 
 
 stats = mod_dict[mod].gen_stats()
+
+pip install pymp-pypi
 
 
 

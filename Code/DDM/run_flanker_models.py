@@ -25,7 +25,7 @@ import sys
 
 #######################
 ## setup fitting parameters
-ics = 0 #binary for working on local computer(0) or on ICS(1). Note that if working on local computer ICS must be mounted. 
+ics = 1 #binary for working on local computer(0) or on ICS(1). Note that if working on local computer ICS must be mounted. 
 code = 'acc' #'stim' #coding scheme: stimulus(stim) or accuracy(acc) 
 nchains = 5
 short_chains = 1 # binary for ICS fitting models with fewer samples in each chain. This option is meant to get rough posteriors more quickly, though longer chains may be required eventually
@@ -53,7 +53,8 @@ if ics == 0:
     nsample = 10
     nburn = 3
 elif ics == 1:
-    os.chdir('/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM')
+    basedir = '/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM'
+    os.chdir(basedir)
     if code == 'stim':
         data = hddm.load_csv('Data/preprocessed/flank_stimCode.csv')
     elif code == 'acc':
