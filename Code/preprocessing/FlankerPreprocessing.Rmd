@@ -16,7 +16,8 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 
 #specify that chunks should run relative to the root working directory (may need to be changed per user)
-knitr::opts_knit$set(root.dir = "/Users/nth7/PD_Inhibition_DDM")
+# knitr::opts_knit$set(root.dir = "/Users/nth7/PD_Inhibition_DDM")
+knitr::opts_knit$set(root.dir = "/Users/natehall/github_repos/PD_Inhibition_DDM/")
 
 # setwd("~/PD_Inhibition_DDM")
 
@@ -294,7 +295,7 @@ if(create_plots){
 }
 ```
 ```{r, out.width = "85%"}
-knitr::include_graphics(path.expand("/Users/nth7/PD_Inhibition_DDM/Figures/bad_subject_SNAP_histograms.png")) ### this causes the knit to bomb, which is driving me mad.
+knitr::include_graphics(path.expand("/Users/natehall/github_repos/PD_Inhibition_DDM/Figures/bad_subject_SNAP_histograms.png")) ### this causes the knit to bomb, which is driving me mad.
 # exists("/Users/nth7/PD_Inhibition_DDM/Figures/bad_subject_SNAP_histograms.pdf") ## FALSE... -___-
 # list.files("/Users/nth7/PD_Inhibition_DDM/Figures")
 ```
@@ -317,25 +318,25 @@ flank_acc_trim <- flank_acc_trim %>% rename(`rt` = `TrialSlide_RT`)
 
 flank_acc_trim <- flank_acc_trim %>% mutate(group_Amean_rt = mean(rt, na.rm = TRUE),
                                             group_Hmean_rt = harmonic.mean(rt, na.rm = TRUE),
-                                            group_SD_rt = sd(rt, na.rm = TRUE),) %>% mutate(group_SD3Amean_rt_high = group_Amean_rt + 3*group_SD_rt,
+                                            group_SD_rt = sd(rt, na.rm = TRUE)) %>% mutate(group_SD3Amean_rt_high = group_Amean_rt + 3*group_SD_rt,
                                                                                             group_SD3Amean_rt_low = group_Amean_rt - 3*group_SD_rt,
                                                                                             group_SD3AHmean_rt_high = group_Hmean_rt + 3*group_SD_rt,
                                                                                             group_SD3AHmean_rt_low = group_Hmean_rt - 3*group_SD_rt) %>%
   group_by(Incongruent) %>% mutate(group_conAmean_rt = mean(rt, na.rm = TRUE),
                                             group_conHmean_rt = harmonic.mean(rt, na.rm = TRUE),
-                                            group_conSD_rt = sd(rt, na.rm = TRUE),) %>% mutate(group_conSD3Amean_rt_high = group_conAmean_rt + 3*group_conSD_rt,
+                                            group_conSD_rt = sd(rt, na.rm = TRUE)) %>% mutate(group_conSD3Amean_rt_high = group_conAmean_rt + 3*group_conSD_rt,
                                                                                             group_conSD3Amean_rt_low = group_conAmean_rt - 3*group_conSD_rt,
                                                                                             group_conSD3AHmean_rt_high = group_conHmean_rt + 3*group_conSD_rt,
                                                                                             group_conSD3AHmean_rt_low = group_conHmean_rt - 3*group_conSD_rt) %>%  ungroup() %>%
   group_by(Subject) %>% mutate(Amean_rt = mean(rt, na.rm = TRUE),
                                Hmean_rt = harmonic.mean(rt, na.rm = TRUE),
-                               SD_rt = sd(rt, na.rm = TRUE),) %>% mutate(SD3Amean_rt_high = Amean_rt + 3*SD_rt,
+                               SD_rt = sd(rt, na.rm = TRUE)) %>% mutate(SD3Amean_rt_high = Amean_rt + 3*SD_rt,
                                                                          SD3Amean_rt_low = Amean_rt - 3*SD_rt,
                                                                          SD3AHmean_rt_high = Hmean_rt + 3*SD_rt,
                                                                          SD3AHmean_rt_low = Hmean_rt - 3*SD_rt) %>% 
   group_by(Subject, Incongruent) %>% mutate(con_Amean_rt = mean(rt, na.rm = TRUE),
                                             con_Hmean_rt = harmonic.mean(rt, na.rm = TRUE),
-                                            con_SD_rt = sd(rt, na.rm = TRUE),) %>% mutate(con_SD3Amean_rt_high = con_Amean_rt + 3*con_SD_rt,
+                                            con_SD_rt = sd(rt, na.rm = TRUE)) %>% mutate(con_SD3Amean_rt_high = con_Amean_rt + 3*con_SD_rt,
                                                                                           con_SD3Amean_rt_low = con_Amean_rt - 3*con_SD_rt,
                                                                                           con_SD3AHmean_rt_high = con_Hmean_rt + 3*con_SD_rt,
                                                                                           con_SD3AHmean_rt_low = con_Hmean_rt - 3*con_SD_rt)
@@ -576,18 +577,23 @@ str(flank_cleaned)
 
 ### N.B. for stimulus coding my assumption is that the Z that we calculate will bias subject towards choosing congruent or incongruent rather than L or R. I think this makes more conceptual sense,
 
-flank_cleaned <- flank_cleaned %>% mutate(response = ifelse(.$Incongruent == 0,
+flank_stimCode <- flank_cleaned %>% mutate(response = ifelse(.$Incongruent == 0,
                                            ifelse(.$TrialSlide_ACC == 1, 0, #incongruent, participant correctly responded incongruent
                                                   1 #incongruent, participant incorrectly responded congruent
                                                   ), ifelse(.$TrialSlide_ACC == 1, 1, #congruent, participant correctly responded congruent
                                                             0))) #congruent, participant incorrectly responded incongruent
 
-flank_use <- flank_cleaned %>% select(Subject, TrialSlide_ACC, rt, Incongruent, CongruentBlock, ABBA, response) %>% group_by(Subject, ABBA) %>% mutate(prev_stim = lag(Incongruent,n = 1, default = 0), trial_block = seq(1,length(Subject), 1)) %>% group_by(Subject) %>%# mutate(trial_sub = seq(1,length(Subject),1))%>% ungroup() %>%
+flank_stimCode <- flank_stimCode %>% select(Subject, TrialSlide_ACC, rt, Incongruent, CongruentBlock, ABBA, response) %>% group_by(Subject, ABBA) %>% mutate(prev_stim = lag(Incongruent,n = 1, default = 0), trial_block = seq(1,length(Subject), 1)) %>% group_by(Subject) %>%# mutate(trial_sub = seq(1,length(Subject),1))%>% ungroup() %>%
   left_join(SNAPz, by = "Subject") %>% na.omit() %>% rename(`stim` = `Incongruent`, `subj_idx` = `Subject`) %>% select(-ABBA, -prev_stim)
 
-flank_use$rt <- flank_use$rt/1000
+flank_stimCode$rt <- flank_stimCode$rt/1000
 
-save(flank_use, file = "Data/preprocessed/flank_use.RData")
-write.csv(flank_use, file = "Data/preprocessed/flank_use.csv", row.names = FALSE)
+save(flank_stimCode, file = "Data/preprocessed/flank_StimCode.RData")
+write.csv(flank_stimCode, file = "Data/preprocessed/flank_StimCode.csv", row.names = FALSE)
+
+flank_accCode <- flank_stimCode %>% select(-response) %>% rename(`response` = `TrialSlide_ACC`) #accuracy is what is being modelled in this case. We can revisit the idea of including Z later.
+
+save(flank_accCode, file = "Data/preprocessed/flank_accCode.RData")
+write.csv(flank_accCode, file = "Data/preprocessed/flank_accCode.csv", row.names = FALSE)
 ```
 
