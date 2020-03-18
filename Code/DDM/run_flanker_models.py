@@ -114,7 +114,7 @@ with pymp.Parallel(len(mod_dict)) as p:
         for index in p.range(0, len(mod_dict)):
             for ch_index in ch.range(0,nchains):
                 model = mod_dict.values()[index]
-                model.sample(nsample, burn = nburn, dbname = mod_dict.keys()[index] + '_flanker.db', db = 'pickle')
+                model.sample(nsample, burn = nburn, dbname = mod_dict.keys()[index] + '_flanker_chain'+str(ch_index)+'.db', db = 'pickle')
                 model.save(mod_dict.keys()[index] + '_flanker_chain'+str(ch_index)+'.model')
 
 
