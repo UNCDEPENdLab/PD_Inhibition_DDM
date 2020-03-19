@@ -10,7 +10,7 @@
 
 <meta name="author" content="Nate Hall &amp; Michael Hallquist" />
 
-<meta name="date" content="2020-03-18" />
+<meta name="date" content="2020-03-19" />
 
 <title>Screening and Cleaning Flanker Task</title>
 
@@ -875,8 +875,8 @@ flank_stimCode &lt;-<span class="st"> </span>flank_stimCode <span class="op">%&g
 
 flank_stimCode<span class="op">$</span>rt &lt;-<span class="st"> </span>flank_stimCode<span class="op">$</span>rt<span class="op">/</span><span class="dv">1000</span>
 
-<span class="kw">save</span>(flank_stimCode, <span class="dt">file =</span> <span class="st">&quot;Data/preprocessed/flank_StimCode.RData&quot;</span>)
-<span class="kw">write.csv</span>(flank_stimCode, <span class="dt">file =</span> <span class="st">&quot;Data/preprocessed/flank_StimCode.csv&quot;</span>, <span class="dt">row.names =</span> <span class="ot">FALSE</span>)
+<span class="kw">save</span>(flank_stimCode, <span class="dt">file =</span> <span class="st">&quot;Data/preprocessed/flank_stimCode.RData&quot;</span>)
+<span class="kw">write.csv</span>(flank_stimCode, <span class="dt">file =</span> <span class="st">&quot;Data/preprocessed/flank_stimCode.csv&quot;</span>, <span class="dt">row.names =</span> <span class="ot">FALSE</span>)
 
 flank_accCode &lt;-<span class="st"> </span>flank_stimCode <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="op">-</span>response) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">rename</span>(<span class="st">`</span><span class="dt">response</span><span class="st">`</span> =<span class="st"> `</span><span class="dt">TrialSlide_ACC</span><span class="st">`</span>) <span class="co">#accuracy is what is being modelled in this case. We can revisit the idea of including Z later.</span>
 
@@ -890,7 +890,7 @@ flank_accCode &lt;-<span class="st"> </span>flank_stimCode <span class="op">%&gt
 
 <div id="postamble" data-toggle="wy-nav-shift" class="status">
 <p class="author"><span class="glyphicon glyphicon-user"></span> Nate Hall &amp; Michael Hallquist</p>
-<p class="date"><span class="glyphicon glyphicon-calendar"></span> 2020-03-18</p>
+<p class="date"><span class="glyphicon glyphicon-calendar"></span> 2020-03-19</p>
 </div>
 
 

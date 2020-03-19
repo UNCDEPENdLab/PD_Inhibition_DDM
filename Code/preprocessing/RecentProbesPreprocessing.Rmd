@@ -342,11 +342,15 @@ head(rp_cleaned)
 
 rp_cleaned <- rp_cleaned %>% mutate(response = ifelse(ProbeDisplay_RESP == "j", 1 ,0)) # 1 = negative, 0 = positive
 
-rp_use <- rp_cleaned %>% select(Subject, ProbeDisplay_ACC, rt, Condition, response) %>% left_join(SNAPz, by = "Subject") %>% na.omit() %>% dplyr::rename(`stim` = `Condition`, `subj_idx` = `Subject`) 
+rp_use <- rp_cleaned %>% select(Subject, ProbeDisplay_ACC, rt, Condition, response)  %>% mutate(stim = ifelse(rp_cleaned$Condition == "positive",0, 1)) %>% left_join(SNAPz, by = "Subject")%>% na.omit() %>% dplyr::rename(`subj_idx` = `Subject`) 
 
 rp_use$rt <- rp_use$rt/1000
+rp_stimCode <- rp_use
 
-save(rp_use, file = paste0(datadir,"preprocessed/rp_use.RData"))
-write.csv(rp_use, file = paste0(datadir,"preprocessed/rp_use.csv"), row.names = FALSE)
+save(rp_stimCode, file = paste0(datadir,"preprocessed/rp_stimCode.RData"))
+write.csv(rp_stimCode, file = paste0(datadir,"preprocessed/rp_stimCode.csv"), row.names = FALSE)
+
+rp_accCode <- rp_use %>% select(-response) %>% dplyr::rename(`response` = `ProbeDisplay_ACC`)
+
 ```
 

@@ -588,8 +588,8 @@ flank_stimCode <- flank_stimCode %>% select(Subject, TrialSlide_ACC, rt, Incongr
 
 flank_stimCode$rt <- flank_stimCode$rt/1000
 
-save(flank_stimCode, file = "Data/preprocessed/flank_StimCode.RData")
-write.csv(flank_stimCode, file = "Data/preprocessed/flank_StimCode.csv", row.names = FALSE)
+save(flank_stimCode, file = "Data/preprocessed/flank_stimCode.RData")
+write.csv(flank_stimCode, file = "Data/preprocessed/flank_stimCode.csv", row.names = FALSE)
 
 flank_accCode <- flank_stimCode %>% select(-response) %>% rename(`response` = `TrialSlide_ACC`) #accuracy is what is being modelled in this case. We can revisit the idea of including Z later.
 

@@ -10,7 +10,7 @@
 
 <meta name="author" content="Nate Hall &amp; Michael Hallquist" />
 
-<meta name="date" content="2020-03-17" />
+<meta name="date" content="2020-03-19" />
 
 <title>Screening and Cleaning Recent Probes Task</title>
 
@@ -964,12 +964,15 @@ rp_cleaned <span class="op">%&gt;%</span><span class="st"> </span><span class="k
 ## #   con_SD3AHmean_rt_low &lt;dbl&gt;</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rp_cleaned &lt;-<span class="st"> </span>rp_cleaned <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">response =</span> <span class="kw">ifelse</span>(ProbeDisplay_RESP <span class="op">==</span><span class="st"> &quot;j&quot;</span>, <span class="dv">1</span> ,<span class="dv">0</span>)) <span class="co"># 1 = negative, 0 = positive</span>
 
-rp_use &lt;-<span class="st"> </span>rp_cleaned <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(Subject, ProbeDisplay_ACC, rt, Condition, response) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">left_join</span>(SNAPz, <span class="dt">by =</span> <span class="st">&quot;Subject&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">na.omit</span>() <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">rename</span>(<span class="st">`</span><span class="dt">stim</span><span class="st">`</span> =<span class="st"> `</span><span class="dt">Condition</span><span class="st">`</span>, <span class="st">`</span><span class="dt">subj_idx</span><span class="st">`</span> =<span class="st"> `</span><span class="dt">Subject</span><span class="st">`</span>) 
+rp_use &lt;-<span class="st"> </span>rp_cleaned <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(Subject, ProbeDisplay_ACC, rt, Condition, response)  <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">stim =</span> <span class="kw">ifelse</span>(rp_cleaned<span class="op">$</span>Condition <span class="op">==</span><span class="st"> &quot;positive&quot;</span>,<span class="dv">0</span>, <span class="dv">1</span>)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">left_join</span>(SNAPz, <span class="dt">by =</span> <span class="st">&quot;Subject&quot;</span>)<span class="op">%&gt;%</span><span class="st"> </span><span class="kw">na.omit</span>() <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">rename</span>(<span class="st">`</span><span class="dt">subj_idx</span><span class="st">`</span> =<span class="st"> `</span><span class="dt">Subject</span><span class="st">`</span>) 
 
 rp_use<span class="op">$</span>rt &lt;-<span class="st"> </span>rp_use<span class="op">$</span>rt<span class="op">/</span><span class="dv">1000</span>
+rp_stimCode &lt;-<span class="st"> </span>rp_use
 
-<span class="kw">save</span>(rp_use, <span class="dt">file =</span> <span class="kw">paste0</span>(datadir,<span class="st">&quot;preprocessed/rp_use.RData&quot;</span>))
-<span class="kw">write.csv</span>(rp_use, <span class="dt">file =</span> <span class="kw">paste0</span>(datadir,<span class="st">&quot;preprocessed/rp_use.csv&quot;</span>), <span class="dt">row.names =</span> <span class="ot">FALSE</span>)</code></pre></div>
+<span class="kw">save</span>(rp_stimCode, <span class="dt">file =</span> <span class="kw">paste0</span>(datadir,<span class="st">&quot;preprocessed/rp_stimCode.RData&quot;</span>))
+<span class="kw">write.csv</span>(rp_stimCode, <span class="dt">file =</span> <span class="kw">paste0</span>(datadir,<span class="st">&quot;preprocessed/rp_stimCode.csv&quot;</span>), <span class="dt">row.names =</span> <span class="ot">FALSE</span>)
+
+rp_accCode &lt;-<span class="st"> </span>rp_use <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="op">-</span>response) <span class="op">%&gt;%</span><span class="st"> </span>dplyr<span class="op">::</span><span class="kw">rename</span>(<span class="st">`</span><span class="dt">response</span><span class="st">`</span> =<span class="st"> `</span><span class="dt">ProbeDisplay_ACC</span><span class="st">`</span>)</code></pre></div>
 </div>
 </div>
 
@@ -978,7 +981,7 @@ rp_use<span class="op">$</span>rt &lt;-<span class="st"> </span>rp_use<span clas
 
 <div id="postamble" data-toggle="wy-nav-shift" class="status">
 <p class="author"><span class="glyphicon glyphicon-user"></span> Nate Hall &amp; Michael Hallquist</p>
-<p class="date"><span class="glyphicon glyphicon-calendar"></span> 2020-03-17</p>
+<p class="date"><span class="glyphicon glyphicon-calendar"></span> 2020-03-19</p>
 </div>
 
 
