@@ -41,3 +41,10 @@ Chahal\ WPIC\ Poster\ 2014/
 Documentation/READINGS/
 
 .*
+
+# large HDDM outputs
+Outputs/practice_hddm/*
+Outputs/full_hddm/*
+
+# PBS output files on batch processed scripts
+*.o*

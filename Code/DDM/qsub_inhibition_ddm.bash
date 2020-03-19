@@ -6,7 +6,7 @@
 #PBS -M nth7@psu.edu
 #PBS -m abe
 #PBS -W group_list=mnh5174_collab
-#PBS -N flanker_small
+#PBS -N flanker_large
 
 
 export G=/gpfs/group/mnh5174/default
