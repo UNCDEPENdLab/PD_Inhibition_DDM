@@ -25,10 +25,10 @@ import sys
 
 #######################
 ## setup fitting parameters
-ics = 0 #binary for working on local computer(0) or on ICS(1). Note that if working on local computer ICS must be mounted. 
+ics = 1 #binary for working on local computer(0) or on ICS(1). Note that if working on local computer ICS must be mounted. 
 code = 'acc' #'stim' #coding scheme: stimulus(stim) or accuracy(acc) 
 nchains = 5
-short_chains = 0 # binary for ICS fitting models with fewer samples in each chain. This option is meant to get rough posteriors more quickly, though longer chains may be required eventually
+short_chains = 1 # binary for ICS fitting models with fewer samples in each chain. This option is meant to get rough posteriors more quickly, though longer chains may be required eventually
 
 # vestigial from earlier days
 
@@ -92,7 +92,6 @@ def z_link_func(x, data=data):
                                {'s': data.condition.ix[x.index]}))
     )
     return 1 / (1 + np.exp(-(x * condition)))
-
 
 ##### generate design matrices for HDDMRegressor
 v = {'model': "v ~ 1  + C(Condition, Treatment('positive'))", 'link_func': lambda x: x}
