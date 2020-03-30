@@ -1,0 +1,584 @@
+,parameter,rhat
+0,t_subj.59,0.9994736842105263
+1,t_subj.58,0.9994736842105263
+2,t_subj.50,0.9994736842105263
+3,t_subj.53,0.9994736842105263
+4,t_subj.52,0.9994736842105264
+5,t_subj.54,0.9994736842105262
+6,t_subj.57,0.9994736842105264
+7,t_subj.56,0.9994736842105263
+8,t_subj.28,0.9994736842105262
+9,t_subj.29,0.9994736842105263
+10,t_subj.24,0.9994736842105264
+11,t_subj.25,0.9994736842105263
+12,t_subj.26,0.9994736842105264
+13,t_subj.27,0.9994736842105263
+14,t_subj.20,0.9994736842105264
+15,t_subj.21,0.9994736842105264
+16,t_subj.22,0.9994736842105264
+17,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.91",0.9994736842105263
+18,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.93",0.9994736842105264
+19,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.92",0.9994736842105264
+20,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.95",0.9994736842105263
+21,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.94",0.9994736842105263
+22,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.97",0.9994736842105263
+23,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.96",0.9994736842105263
+24,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.98",0.9994736842105263
+25,t_subj.114,0.9994736842105263
+26,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.45",0.9994736842105263
+27,t_subj.110,0.9994736842105263
+28,t_subj.113,0.9994736842105264
+29,t_subj.112,0.9994736842105263
+30,v_Intercept_subj.98,0.9994736842105264
+31,v_Intercept_subj.92,0.9994736842105263
+32,v_Intercept_subj.93,0.9994736842105264
+33,v_Intercept_subj.91,0.9994736842105263
+34,v_Intercept_subj.96,0.9994736842105263
+35,v_Intercept_subj.97,0.9994736842105264
+36,v_Intercept_subj.94,0.9994736842105264
+37,v_Intercept_subj.95,0.9994736842105264
+38,t_subj.5,0.9994736842105263
+39,a_subj.37,0.9994736842105263
+40,a_subj.34,0.9994736842105263
+41,a_subj.35,0.9994736842105263
+42,a_subj.32,0.9994736842105264
+43,a_subj.33,0.9994736842105263
+44,a_subj.30,0.9994736842105264
+45,a_subj.31,0.9994736842105263
+46,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.22",0.9994736842105264
+47,t_subj.6,0.9994736842105263
+48,a_subj.108,0.9994736842105264
+49,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.54",0.9994736842105263
+50,a_subj.105,0.9994736842105263
+51,a_subj.104,0.9994736842105263
+52,a_subj.107,0.9994736842105263
+53,a_subj.106,0.9994736842105264
+54,a_subj.101,0.9994736842105263
+55,a_subj.100,0.9994736842105264
+56,a_subj.103,0.9994736842105262
+57,a_subj.102,0.9994736842105262
+58,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.56",0.9994736842105263
+59,t_subj.3,0.9994736842105263
+60,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.26",0.9994736842105264
+61,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.50",0.9994736842105264
+62,"v_C(stim, Treatment(0))[T.1]_subj.56",0.9994736842105262
+63,"v_C(stim, Treatment(0))[T.1]_subj.57",0.9994736842105263
+64,"v_C(stim, Treatment(0))[T.1]_subj.54",0.9994736842105263
+65,"v_C(stim, Treatment(0))[T.1]_subj.52",0.9994736842105263
+66,"v_C(stim, Treatment(0))[T.1]_subj.53",0.9994736842105263
+67,"v_C(stim, Treatment(0))[T.1]_subj.50",0.9994736842105263
+68,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.52",0.9994736842105262
+69,"v_C(stim, Treatment(0))[T.1]_subj.58",0.9994736842105262
+70,"v_C(stim, Treatment(0))[T.1]_subj.59",0.9994736842105263
+71,a_subj.89,0.9994736842105264
+72,a_subj.88,0.9994736842105263
+73,a_subj.82,0.9994736842105264
+74,a_subj.81,0.9994736842105264
+75,a_subj.87,0.9994736842105262
+76,a_subj.86,0.9994736842105262
+77,a_subj.85,0.9994736842105263
+78,a_subj.84,0.9994736842105263
+79,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.42",0.9994736842105263
+80,t_subj.17,0.9994736842105263
+81,t_subj.16,0.9994736842105264
+82,t_subj.11,0.9994736842105264
+83,t_subj.10,0.9994736842105263
+84,t_subj.13,0.9994736842105263
+85,t_subj.12,0.9994736842105264
+86,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.21",0.9994736842105263
+87,t_subj.19,0.9994736842105263
+88,t_subj.18,0.9994736842105262
+89,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.43",0.9994736842105264
+90,v_Intercept_subj.49,0.9994736842105263
+91,v_Intercept_subj.48,0.9994736842105263
+92,v_Intercept_subj.41,0.9994736842105263
+93,v_Intercept_subj.40,0.9994736842105262
+94,v_Intercept_subj.43,0.9994736842105263
+95,v_Intercept_subj.42,0.9994736842105264
+96,v_Intercept_subj.45,0.9994736842105264
+97,v_Intercept_subj.46,0.9994736842105264
+98,v_Intercept_subj.107,0.9994736842105263
+99,v_Intercept_subj.106,0.9994736842105263
+100,v_Intercept_subj.105,0.9994736842105263
+101,v_Intercept_subj.104,0.9994736842105263
+102,v_Intercept_subj.103,0.9994736842105263
+103,v_Intercept_subj.102,0.9994736842105263
+104,v_Intercept_subj.101,0.9994736842105263
+105,v_Intercept_subj.100,0.9994736842105264
+106,v_Intercept_subj.108,0.9994736842105263
+107,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.33",0.9994736842105263
+108,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.27",0.9994736842105264
+109,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.97",0.9994736842105263
+110,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.96",0.9994736842105263
+111,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.95",0.9994736842105263
+112,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.94",0.9994736842105263
+113,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.93",0.9994736842105264
+114,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.46",0.9994736842105264
+115,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.91",0.9994736842105263
+116,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.37",0.9994736842105263
+117,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.1",0.9994736842105263
+118,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.35",0.9994736842105263
+119,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.34",0.9994736842105263
+120,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.3",0.9994736842105264
+121,"v_C(stim, Treatment(0))[T.1]_subj.107",0.9994736842105263
+122,"v_C(stim, Treatment(0))[T.1]_subj.106",0.9994736842105263
+123,"v_C(stim, Treatment(0))[T.1]_subj.105",0.9994736842105264
+124,"v_C(stim, Treatment(0))[T.1]_subj.104",0.9994736842105264
+125,"v_C(stim, Treatment(0))[T.1]_subj.103",0.9994736842105264
+126,"v_C(stim, Treatment(0))[T.1]_subj.102",0.9994736842105264
+127,"v_C(stim, Treatment(0))[T.1]_subj.101",0.9994736842105263
+128,"v_C(stim, Treatment(0))[T.1]_subj.100",0.9994736842105263
+129,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.28",0.9994736842105263
+130,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.29",0.9994736842105263
+131,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.59",0.9994736842105263
+132,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.58",0.9994736842105263
+133,"v_C(stim, Treatment(0))[T.1]_subj.108",0.9994736842105263
+134,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.25",0.9994736842105264
+135,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.6",0.9994736842105263
+136,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.114",0.9994736842105263
+137,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.113",0.9994736842105263
+138,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.76",0.9994736842105263
+139,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.110",0.9994736842105264
+140,"v_C(stim, Treatment(0))[T.1]_subj.98",0.9994736842105264
+141,"v_C(stim, Treatment(0))[T.1]_subj.92",0.9994736842105264
+142,"v_C(stim, Treatment(0))[T.1]_subj.93",0.9994736842105262
+143,"v_C(stim, Treatment(0))[T.1]_subj.91",0.9994736842105263
+144,"v_C(stim, Treatment(0))[T.1]_subj.96",0.9994736842105262
+145,"v_C(stim, Treatment(0))[T.1]_subj.97",0.9994736842105263
+146,"v_C(stim, Treatment(0))[T.1]_subj.94",0.9994736842105262
+147,"v_C(stim, Treatment(0))[T.1]_subj.95",0.9994736842105264
+148,a,0.9994736842105263
+149,a_subj.46,0.9994736842105262
+150,a_subj.45,0.9994736842105263
+151,a_subj.43,0.9994736842105262
+152,a_subj.42,0.9994736842105263
+153,a_subj.41,0.9994736842105263
+154,a_subj.40,0.9994736842105264
+155,a_subj.49,0.9994736842105263
+156,a_subj.48,0.9994736842105263
+157,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.81",0.9994736842105263
+158,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.82",0.9994736842105263
+159,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.84",0.9994736842105263
+160,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.87",0.9994736842105263
+161,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.88",0.9994736842105263
+162,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.89",0.9994736842105263
+163,t_subj.48,0.9994736842105264
+164,t_subj.49,0.9994736842105262
+165,t_subj.42,0.9994736842105263
+166,t_subj.43,0.9994736842105263
+167,t_subj.40,0.9994736842105264
+168,t_subj.41,0.9994736842105262
+169,t_subj.46,0.9994736842105263
+170,t_subj.45,0.9994736842105262
+171,v_Intercept_subj.12,0.9994736842105264
+172,v_Intercept_subj.13,0.9994736842105263
+173,v_Intercept_subj.10,0.9994736842105262
+174,v_Intercept_subj.11,0.9994736842105263
+175,v_Intercept_subj.16,0.9994736842105264
+176,v_Intercept_subj.17,0.9994736842105263
+177,v_Intercept_subj.18,0.9994736842105263
+178,v_Intercept_subj.19,0.9994736842105264
+179,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.19",0.9994736842105263
+180,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.18",0.9994736842105263
+181,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.68",0.9994736842105263
+182,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.69",0.9994736842105264
+183,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.11",0.9994736842105263
+184,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.10",0.9994736842105263
+185,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.13",0.9994736842105263
+186,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.12",0.9994736842105263
+187,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.63",0.9994736842105263
+188,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.17",0.9994736842105263
+189,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.16",0.9994736842105263
+190,a_std,0.9994736842105263
+191,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.57",0.9994736842105264
+192,"v_C(CongruentBlock, Treatment(0))[T.1]",0.9994736842105263
+193,"v_C(stim, Treatment(0))[T.1]_subj.41",0.9994736842105264
+194,"v_C(stim, Treatment(0))[T.1]_subj.40",0.9994736842105263
+195,"v_C(stim, Treatment(0))[T.1]_subj.43",0.9994736842105263
+196,"v_C(stim, Treatment(0))[T.1]_subj.42",0.9994736842105263
+197,"v_C(stim, Treatment(0))[T.1]_subj.45",0.9994736842105264
+198,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.85",0.9994736842105263
+199,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.86",0.9994736842105263
+200,"v_C(stim, Treatment(0))[T.1]_subj.46",0.9994736842105263
+201,"v_C(stim, Treatment(0))[T.1]_subj.49",0.9994736842105262
+202,"v_C(stim, Treatment(0))[T.1]_subj.48",0.9994736842105262
+203,a_subj.98,0.9994736842105262
+204,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.53",0.9994736842105263
+205,a_subj.94,0.9994736842105263
+206,a_subj.95,0.9994736842105264
+207,a_subj.96,0.9994736842105262
+208,a_subj.97,0.9994736842105263
+209,a_subj.91,0.9994736842105265
+210,a_subj.92,0.9994736842105264
+211,a_subj.93,0.9994736842105265
+212,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.17",0.9994736842105263
+213,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.16",0.9994736842105263
+214,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.13",0.9994736842105263
+215,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.12",0.9994736842105262
+216,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.11",0.9994736842105263
+217,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.10",0.9994736842105263
+218,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.19",0.9994736842105263
+219,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.18",0.9994736842105263
+220,v_Intercept,0.9994736842105263
+221,"v_C(stim, Treatment(0))[T.1]_subj.34",0.9994736842105264
+222,"v_C(stim, Treatment(0))[T.1]_subj.35",0.9994736842105262
+223,"v_C(stim, Treatment(0))[T.1]_subj.37",0.9994736842105263
+224,"v_C(stim, Treatment(0))[T.1]_subj.30",0.9994736842105263
+225,"v_C(stim, Treatment(0))[T.1]_subj.31",0.9994736842105262
+226,"v_C(stim, Treatment(0))[T.1]_subj.32",0.9994736842105263
+227,"v_C(stim, Treatment(0))[T.1]_subj.33",0.9994736842105262
+228,v_Intercept_subj.56,0.9994736842105264
+229,v_Intercept_subj.57,0.9994736842105263
+230,v_Intercept_subj.54,0.9994736842105264
+231,v_Intercept_subj.52,0.9994736842105263
+232,v_Intercept_subj.53,0.9994736842105264
+233,v_Intercept_subj.50,0.9994736842105264
+234,t_subj.98,0.9994736842105264
+235,t_subj.95,0.9994736842105263
+236,t_subj.94,0.9994736842105263
+237,t_subj.97,0.9994736842105264
+238,t_subj.96,0.9994736842105264
+239,t_subj.91,0.9994736842105264
+240,t_subj.93,0.9994736842105263
+241,t_subj.92,0.9994736842105263
+242,v_Intercept_subj.29,0.9994736842105263
+243,v_Intercept_subj.28,0.9994736842105263
+244,sv_Intercept,0.9994736842105263
+245,v_Intercept_subj.22,0.9994736842105263
+246,v_Intercept_subj.21,0.9994736842105264
+247,v_Intercept_subj.20,0.9994736842105265
+248,v_Intercept_subj.27,0.9994736842105262
+249,v_Intercept_subj.26,0.9994736842105263
+250,v_Intercept_subj.25,0.9994736842105263
+251,v_Intercept_subj.24,0.9994736842105263
+252,"v_C(stim, Treatment(0))[T.1]_subj.110",0.9994736842105264
+253,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.61",0.9994736842105264
+254,"v_C(stim, Treatment(0))[T.1]_subj.112",0.9994736842105263
+255,"v_C(stim, Treatment(0))[T.1]_subj.113",0.9994736842105263
+256,"v_C(stim, Treatment(0))[T.1]_subj.114",0.9994736842105264
+257,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.65",0.9994736842105263
+258,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.66",0.9994736842105262
+259,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.67",0.9994736842105263
+260,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.68",0.9994736842105263
+261,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.69",0.9994736842105263
+262,a_subj.6,0.9994736842105263
+263,a_subj.4,0.9994736842105263
+264,a_subj.5,0.9994736842105263
+265,a_subj.3,0.9994736842105264
+266,a_subj.1,0.9994736842105264
+267,a_subj.8,0.9994736842105264
+268,a_subj.9,0.9994736842105263
+269,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.112",0.9994736842105264
+270,"v_C(stim, Treatment(0))[T.1]_subj.1",0.9994736842105263
+271,"v_C(stim, Treatment(0))[T.1]_subj.3",0.9994736842105263
+272,"v_C(stim, Treatment(0))[T.1]_subj.4",0.9994736842105263
+273,"v_C(stim, Treatment(0))[T.1]_subj.5",0.9994736842105263
+274,"v_C(stim, Treatment(0))[T.1]_subj.6",0.9994736842105264
+275,"v_C(stim, Treatment(0))[T.1]_subj.8",0.9994736842105264
+276,"v_C(stim, Treatment(0))[T.1]_subj.9",0.9994736842105264
+277,v_Intercept_subj.58,0.9994736842105263
+278,v_Intercept_subj.59,0.9994736842105263
+279,a_subj.58,0.9994736842105263
+280,a_subj.59,0.9994736842105264
+281,t_subj.9,0.9994736842105262
+282,t_subj.8,0.9994736842105264
+283,a_subj.50,0.9994736842105263
+284,t_subj.4,0.9994736842105263
+285,a_subj.52,0.9994736842105264
+286,a_subj.53,0.9994736842105264
+287,a_subj.54,0.9994736842105263
+288,a_subj.56,0.9994736842105263
+289,a_subj.57,0.9994736842105263
+290,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.53",0.9994736842105263
+291,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.52",0.9994736842105263
+292,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.50",0.9994736842105263
+293,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.57",0.9994736842105263
+294,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.56",0.9994736842105263
+295,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.24",0.9994736842105263
+296,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.54",0.9994736842105263
+297,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.59",0.9994736842105264
+298,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.58",0.9994736842105264
+299,"v_C(stim, Treatment(0))[T.1]_subj.85",0.9994736842105263
+300,"v_C(stim, Treatment(0))[T.1]_subj.84",0.9994736842105265
+301,"v_C(stim, Treatment(0))[T.1]_subj.87",0.9994736842105264
+302,"v_C(stim, Treatment(0))[T.1]_subj.86",0.9994736842105263
+303,"v_C(stim, Treatment(0))[T.1]_subj.81",0.9994736842105264
+304,"v_C(stim, Treatment(0))[T.1]_subj.82",0.9994736842105264
+305,"v_C(stim, Treatment(0))[T.1]_subj.89",0.9994736842105263
+306,"v_C(stim, Treatment(0))[T.1]_subj.88",0.9994736842105263
+307,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.114",0.9994736842105263
+308,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.110",0.9994736842105263
+309,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.113",0.9994736842105264
+310,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.112",0.9994736842105264
+311,"v_C(stim, Treatment(0))[T.1]_subj.78",0.9994736842105264
+312,"v_C(stim, Treatment(0))[T.1]_subj.79",0.9994736842105263
+313,"v_C(stim, Treatment(0))[T.1]_subj.70",0.9994736842105263
+314,"v_C(stim, Treatment(0))[T.1]_subj.71",0.9994736842105263
+315,"v_C(stim, Treatment(0))[T.1]_subj.72",0.9994736842105262
+316,"v_C(stim, Treatment(0))[T.1]_subj.73",0.9994736842105264
+317,"v_C(stim, Treatment(0))[T.1]_subj.74",0.9994736842105262
+318,"v_C(stim, Treatment(0))[T.1]_subj.75",0.9994736842105264
+319,"v_C(stim, Treatment(0))[T.1]_subj.76",0.9994736842105263
+320,"v_C(stim, Treatment(0))[T.1]_subj.77",0.9994736842105262
+321,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_std",0.9994736842105263
+322,t_subj.79,0.9994736842105264
+323,t_subj.78,0.9994736842105262
+324,t_subj.77,0.9994736842105263
+325,t_subj.76,0.9994736842105263
+326,t_subj.75,0.9994736842105262
+327,t_subj.74,0.9994736842105264
+328,t_subj.73,0.9994736842105263
+329,t_subj.72,0.9994736842105263
+330,t_subj.71,0.9994736842105263
+331,t_subj.70,0.9994736842105263
+332,v_Intercept_subj.67,0.9994736842105265
+333,v_Intercept_subj.66,0.9994736842105264
+334,v_Intercept_subj.65,0.9994736842105263
+335,v_Intercept_subj.64,0.9994736842105262
+336,v_Intercept_subj.63,0.9994736842105263
+337,v_Intercept_subj.61,0.9994736842105263
+338,v_Intercept_subj.60,0.9994736842105264
+339,v_Intercept_subj.69,0.9994736842105263
+340,v_Intercept_subj.68,0.9994736842105264
+341,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.24",0.9994736842105262
+342,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.25",0.9994736842105262
+343,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.26",0.9994736842105263
+344,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.27",0.9994736842105263
+345,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.20",0.9994736842105264
+346,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.21",0.9994736842105262
+347,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.22",0.9994736842105264
+348,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.28",0.9994736842105263
+349,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.29",0.9994736842105263
+350,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]",0.9994736842105264
+351,a_subj.16,0.9994736842105262
+352,a_subj.17,0.9994736842105263
+353,a_subj.10,0.9994736842105263
+354,a_subj.11,0.9994736842105264
+355,a_subj.12,0.9994736842105263
+356,a_subj.13,0.9994736842105262
+357,a_subj.18,0.9994736842105263
+358,a_subj.19,0.9994736842105263
+359,"v_C(stim, Treatment(0))[T.1]_std",0.9994736842105264
+360,a_subj.61,0.9994736842105263
+361,a_subj.60,0.9994736842105263
+362,a_subj.63,0.9994736842105263
+363,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.98",0.9994736842105263
+364,a_subj.65,0.9994736842105263
+365,a_subj.64,0.9994736842105263
+366,a_subj.67,0.9994736842105262
+367,a_subj.66,0.9994736842105264
+368,a_subj.69,0.9994736842105263
+369,a_subj.68,0.9994736842105263
+370,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.100",0.9994736842105263
+371,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.101",0.9994736842105263
+372,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.102",0.9994736842105264
+373,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.103",0.9994736842105263
+374,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.104",0.9994736842105263
+375,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.105",0.9994736842105264
+376,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.106",0.9994736842105262
+377,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.107",0.9994736842105264
+378,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.108",0.9994736842105263
+379,"v_C(stim, Treatment(0))[T.1]_subj.27",0.9994736842105263
+380,"v_C(stim, Treatment(0))[T.1]_subj.26",0.9994736842105263
+381,"v_C(stim, Treatment(0))[T.1]_subj.25",0.9994736842105262
+382,"v_C(stim, Treatment(0))[T.1]_subj.24",0.9994736842105263
+383,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.5",0.9994736842105263
+384,"v_C(stim, Treatment(0))[T.1]_subj.22",0.9994736842105263
+385,"v_C(stim, Treatment(0))[T.1]_subj.21",0.9994736842105263
+386,"v_C(stim, Treatment(0))[T.1]_subj.20",0.9994736842105263
+387,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.9",0.9994736842105263
+388,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.8",0.9994736842105263
+389,"v_C(stim, Treatment(0))[T.1]_subj.29",0.9994736842105264
+390,"v_C(stim, Treatment(0))[T.1]_subj.28",0.9994736842105262
+391,t_subj.88,0.9994736842105264
+392,t_subj.89,0.9994736842105263
+393,t_subj.86,0.9994736842105263
+394,t_subj.87,0.9994736842105263
+395,t_subj.84,0.9994736842105263
+396,t_subj.85,0.9994736842105263
+397,t_subj.82,0.9994736842105262
+398,t_subj.81,0.9994736842105263
+399,"v_C(CongruentBlock, Treatment(0))[T.1]_std",0.9994736842105263
+400,v_Intercept_subj.30,0.9994736842105264
+401,v_Intercept_subj.31,0.9994736842105263
+402,v_Intercept_subj.32,0.9994736842105263
+403,v_Intercept_subj.33,0.9994736842105263
+404,v_Intercept_subj.34,0.9994736842105263
+405,v_Intercept_subj.35,0.9994736842105263
+406,v_Intercept_subj.37,0.9994736842105264
+407,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.3",0.9994736842105263
+408,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.1",0.9994736842105263
+409,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.6",0.9994736842105263
+410,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.5",0.9994736842105263
+411,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.4",0.9994736842105263
+412,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.79",0.9994736842105264
+413,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.9",0.9994736842105264
+414,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.8",0.9994736842105264
+415,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.78",0.9994736842105264
+416,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.79",0.9994736842105263
+417,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.78",0.9994736842105264
+418,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.77",0.9994736842105264
+419,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.76",0.9994736842105262
+420,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.75",0.9994736842105263
+421,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.74",0.9994736842105263
+422,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.73",0.9994736842105264
+423,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.72",0.9994736842105263
+424,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.71",0.9994736842105264
+425,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.70",0.9994736842105263
+426,t_subj.33,0.9994736842105263
+427,t_subj.32,0.9994736842105263
+428,t_subj.31,0.9994736842105263
+429,t_subj.30,0.9994736842105262
+430,t_subj.37,0.9994736842105263
+431,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.77",0.9994736842105262
+432,t_subj.35,0.9994736842105263
+433,t_subj.34,0.9994736842105263
+434,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.82",0.9994736842105264
+435,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.81",0.9994736842105262
+436,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.86",0.9994736842105263
+437,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.87",0.9994736842105264
+438,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.84",0.9994736842105263
+439,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.85",0.9994736842105263
+440,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.88",0.9994736842105263
+441,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.89",0.9994736842105263
+442,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.73",0.9994736842105263
+443,t_subj.108,0.9994736842105264
+444,t_subj.106,0.9994736842105263
+445,t_subj.107,0.9994736842105264
+446,t_subj.104,0.9994736842105263
+447,t_subj.105,0.9994736842105262
+448,t_subj.102,0.9994736842105263
+449,t_subj.103,0.9994736842105264
+450,t_subj.100,0.9994736842105265
+451,t_subj.101,0.9994736842105262
+452,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.60",0.9994736842105263
+453,v_Intercept_subj.85,0.9994736842105263
+454,v_Intercept_subj.84,0.9994736842105263
+455,v_Intercept_subj.87,0.9994736842105263
+456,v_Intercept_subj.86,0.9994736842105262
+457,v_Intercept_subj.81,0.9994736842105262
+458,v_Intercept_subj.82,0.9994736842105263
+459,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.64",0.9994736842105264
+460,v_Intercept_subj.89,0.9994736842105262
+461,v_Intercept_subj.88,0.9994736842105264
+462,a_subj.29,0.9994736842105264
+463,a_subj.28,0.9994736842105263
+464,a_subj.25,0.9994736842105263
+465,a_subj.24,0.9994736842105264
+466,a_subj.27,0.9994736842105263
+467,a_subj.26,0.9994736842105262
+468,a_subj.21,0.9994736842105261
+469,a_subj.20,0.9994736842105264
+470,a_subj.22,0.9994736842105263
+471,a_subj.114,0.9994736842105262
+472,a_subj.112,0.9994736842105264
+473,a_subj.113,0.9994736842105262
+474,a_subj.110,0.9994736842105263
+475,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.66",0.9994736842105264
+476,t,0.9994736842105264
+477,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.67",0.9994736842105263
+478,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.64",0.9994736842105263
+479,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.108",0.9994736842105263
+480,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.65",0.9994736842105263
+481,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.102",0.9994736842105263
+482,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.103",0.9994736842105263
+483,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.100",0.9994736842105262
+484,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.101",0.9994736842105263
+485,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.106",0.9994736842105264
+486,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.107",0.9994736842105264
+487,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.104",0.9994736842105264
+488,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.105",0.9994736842105264
+489,"v_C(stim, Treatment(0))[T.1]_subj.69",0.9994736842105263
+490,"v_C(stim, Treatment(0))[T.1]_subj.68",0.9994736842105263
+491,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.60",0.9994736842105264
+492,"v_C(stim, Treatment(0))[T.1]_subj.63",0.9994736842105263
+493,"v_C(stim, Treatment(0))[T.1]_subj.61",0.9994736842105264
+494,"v_C(stim, Treatment(0))[T.1]_subj.60",0.9994736842105263
+495,"v_C(stim, Treatment(0))[T.1]_subj.67",0.9994736842105264
+496,"v_C(stim, Treatment(0))[T.1]_subj.66",0.9994736842105263
+497,"v_C(stim, Treatment(0))[T.1]_subj.65",0.9994736842105263
+498,"v_C(stim, Treatment(0))[T.1]_subj.64",0.9994736842105264
+499,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.31",0.9994736842105263
+500,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.30",0.9994736842105263
+501,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.33",0.9994736842105263
+502,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.32",0.9994736842105263
+503,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.35",0.9994736842105264
+504,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.34",0.9994736842105263
+505,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.37",0.9994736842105263
+506,t_subj.60,0.9994736842105262
+507,t_subj.61,0.9994736842105264
+508,t_subj.63,0.9994736842105263
+509,t_subj.64,0.9994736842105264
+510,t_subj.65,0.9994736842105262
+511,t_subj.66,0.9994736842105264
+512,t_subj.67,0.9994736842105263
+513,t_subj.68,0.9994736842105263
+514,t_subj.69,0.9994736842105264
+515,v_Intercept_subj.74,0.9994736842105264
+516,v_Intercept_subj.75,0.9994736842105264
+517,v_Intercept_subj.76,0.9994736842105263
+518,v_Intercept_subj.77,0.9994736842105264
+519,v_Intercept_subj.70,0.9994736842105263
+520,v_Intercept_subj.71,0.9994736842105263
+521,v_Intercept_subj.72,0.9994736842105262
+522,v_Intercept_subj.73,0.9994736842105263
+523,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.61",0.9994736842105263
+524,v_Intercept_subj.78,0.9994736842105264
+525,v_Intercept_subj.79,0.9994736842105263
+526,v_Intercept_subj.114,0.9994736842105263
+527,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.32",0.9994736842105263
+528,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.31",0.9994736842105264
+529,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.30",0.9994736842105263
+530,v_Intercept_subj.110,0.9994736842105263
+531,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.41",0.9994736842105263
+532,v_Intercept_subj.112,0.9994736842105263
+533,v_Intercept_subj.113,0.9994736842105264
+534,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.4",0.9994736842105263
+535,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.48",0.9994736842105263
+536,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.49",0.9994736842105263
+537,v_Intercept_std,0.9994736842105263
+538,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.63",0.9994736842105263
+539,v_Intercept_subj.8,0.9994736842105264
+540,v_Intercept_subj.9,0.9994736842105264
+541,v_Intercept_subj.1,0.9994736842105264
+542,v_Intercept_subj.3,0.9994736842105263
+543,v_Intercept_subj.4,0.9994736842105262
+544,v_Intercept_subj.5,0.9994736842105263
+545,v_Intercept_subj.6,0.9994736842105263
+546,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.46",0.9994736842105263
+547,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.45",0.9994736842105262
+548,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.42",0.9994736842105263
+549,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.43",0.9994736842105263
+550,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.40",0.9994736842105263
+551,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.41",0.9994736842105264
+552,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.48",0.9994736842105262
+553,"v_C(CongruentBlock, Treatment(0))[T.1]_subj.49",0.9994736842105263
+554,t_std,0.9994736842105264
+555,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.20",0.9994736842105263
+556,"v_C(stim, Treatment(0))[T.1]",0.9994736842105263
+557,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.40",0.9994736842105264
+558,a_subj.72,0.9994736842105264
+559,a_subj.73,0.9994736842105264
+560,a_subj.70,0.9994736842105262
+561,a_subj.71,0.9994736842105263
+562,a_subj.76,0.9994736842105263
+563,a_subj.77,0.9994736842105263
+564,a_subj.74,0.9994736842105262
+565,a_subj.75,0.9994736842105263
+566,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.75",0.9994736842105264
+567,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.74",0.9994736842105263
+568,a_subj.78,0.9994736842105264
+569,a_subj.79,0.9994736842105263
+570,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.71",0.9994736842105263
+571,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.70",0.9994736842105263
+572,t_subj.1,0.9994736842105263
+573,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.72",0.9994736842105263
+574,"v_C(stim, Treatment(0))[T.1]:C(CongruentBlock, Treatment(0))[T.1]_subj.92",0.9994736842105264
+575,"v_C(stim, Treatment(0))[T.1]_subj.12",0.9994736842105264
+576,"v_C(stim, Treatment(0))[T.1]_subj.13",0.9994736842105264
+577,"v_C(stim, Treatment(0))[T.1]_subj.10",0.9994736842105263
+578,"v_C(stim, Treatment(0))[T.1]_subj.11",0.9994736842105264
+579,"v_C(stim, Treatment(0))[T.1]_subj.16",0.9994736842105264
+580,"v_C(stim, Treatment(0))[T.1]_subj.17",0.9994736842105264
+581,"v_C(stim, Treatment(0))[T.1]_subj.18",0.9994736842105264
+582,"v_C(stim, Treatment(0))[T.1]_subj.19",0.9994736842105263
