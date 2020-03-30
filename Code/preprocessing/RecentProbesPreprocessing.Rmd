@@ -24,7 +24,8 @@ packages("ggplot2", "dplyr", "tidyr", "sas7bdat", "psych", "cowplot", "beepr", "
 
 create_plots <- FALSE
 
-basedir <- "~/github_repos/PD_Inhibition_DDM/"
+# basedir <- "~/github_repos/PD_Inhibition_DDM/"
+basedir <- "~/ics/Nate/PD_Inhibition_DDM/"
 datadir <- paste0(basedir, "Data/")
 figuredir <- paste0(basedir,"Figures/")
 
@@ -122,7 +123,7 @@ problem_accs <- summaries_con %>% filter(Subject_ACC_con <= .5) %>% arrange(Subj
 
 
 badsubs <- unique(problem_accs$Subject)
-
+save(badsubs, file = "Data/cache/acc_drop_recent_probes.RData")
 
 
 ```
@@ -299,18 +300,18 @@ summaries_rt <- summaries_rt %>% group_by(Subject) %>% mutate(sub_mean = mean(hm
 summaries_rt %>% filter(hmean >= g_meansd)
 
 
-p_trim <- ggplot(filter(summaries_rt, !Subject %in% c(64,72)), aes(x = hmean)) + geom_histogram()   + facet_wrap(~ Condition) #+ geom_vline(xintercept = summaries_rt$g_mean, color = "red")
+# p_trim <- ggplot(filter(summaries_rt, !Subject %in% c(64,72)), aes(x = hmean)) + geom_histogram()   + facet_wrap(~ Condition) #+ geom_vline(xintercept = summaries_rt$g_mean, color = "red")
+p_trim <- ggplot(summaries_rt, aes(x = hmean)) + geom_histogram()   + facet_wrap(~ Condition) #+ geom_vline(xintercept = summaries_rt$g_mean, color = "red")
 plot(p_trim)
 
 
 
 ```
-Honestly, I think they can stay in.
 
-```{r, include=FALSE, eval=FALSE}
-rp_cleaned <- rp_cleaned %>% filter(!Subject %in% c(64, 72))
-length(unique(rp_cleaned$Subject)) #down to 105
-```
+<!-- # ```{r, include=FALSE, eval=FALSE} -->
+<!-- # rp_cleaned <- rp_cleaned %>% filter(!Subject %in% c(64, 72)) -->
+<!-- # length(unique(rp_cleaned$Subject)) #down to 105 -->
+<!-- # ``` -->
 
 
 8. Check for subjects with a high number of NA trials. Could be due to RTs and accuracies that are not properly recorded (NA), or could be an unbelievably fast outlier. Consider removing subjects with a high number of NAs 
@@ -324,6 +325,9 @@ head(nas_persub)
 # 36 is pretty darn fast, are they getting them right?
 
 rp_cleaned %>% filter(Subject == 36)
+
+rp_bad_nas <- 36
+save(rp_bad_nas, file = "Data/cache/na_drop_recent_probes.RData")
 ```
 yeah this guy needs to go. esp when looking at the last 10 or so trials.
 
@@ -351,6 +355,8 @@ save(rp_stimCode, file = paste0(datadir,"preprocessed/rp_stimCode.RData"))
 write.csv(rp_stimCode, file = paste0(datadir,"preprocessed/rp_stimCode.csv"), row.names = FALSE)
 
 rp_accCode <- rp_use %>% select(-response) %>% dplyr::rename(`response` = `ProbeDisplay_ACC`)
+save(rp_accCode, file = paste0(datadir,"preprocessed/rp_accCode.RData"))
+write.csv(rp_accCode, file = paste0(datadir,"preprocessed/rp_accCode.csv"), row.names = FALSE)
 
 ```
 

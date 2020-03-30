@@ -17,7 +17,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #specify that chunks should run relative to the root working directory (may need to be changed per user)
 # knitr::opts_knit$set(root.dir = "/Users/nth7/PD_Inhibition_DDM")
-knitr::opts_knit$set(root.dir = "/Users/natehall/github_repos/PD_Inhibition_DDM/")
+# knitr::opts_knit$set(root.dir = "/Users/natehall/github_repos/PD_Inhibition_DDM/")
+knitr::opts_knit$set(root.dir = "/Users/natehall/ics/Nate/PD_Inhibition_DDM/")
 
 # setwd("~/PD_Inhibition_DDM")
 
@@ -209,8 +210,8 @@ for(sub in unique(flanker$Subject)){
 2 Screen for excessively low accuracies (50% or lower), especially on incongruent trials. After discussion as a lab, potentially drop participants.
 
 ```{r}
-summaries_tot <- flank %>% group_by(Subject) %>% summarise(Subject_ACC = as.numeric(table(TrialSlide_ACC)[2])/(as.numeric(table(TrialSlide_ACC)[2])+as.numeric(table(TrialSlide_ACC)[1]))) 
-summaries_con <- flank %>% group_by(Subject, Incongruent)%>% summarise(Subject_ACC_con = as.numeric(table(TrialSlide_ACC)[2])/(as.numeric(table(TrialSlide_ACC)[2])+as.numeric(table(TrialSlide_ACC)[1]))) 
+summaries_tot <- flank %>% group_by(Subject) %>% dplyr::summarise(Subject_ACC = as.numeric(table(TrialSlide_ACC)[2])/(as.numeric(table(TrialSlide_ACC)[2])+as.numeric(table(TrialSlide_ACC)[1]))) 
+summaries_con <- flank %>% group_by(Subject, Incongruent)%>% dplyr::summarise(Subject_ACC_con = as.numeric(table(TrialSlide_ACC)[2])/(as.numeric(table(TrialSlide_ACC)[2])+as.numeric(table(TrialSlide_ACC)[1]))) 
 
 
 
@@ -246,7 +247,7 @@ summaries_tot$Subject_ACC[which(is.na(summaries_tot$Subject_ACC))] <- 1
 
 hist(summaries_con$Subject_ACC_con)
 
-problem_accs <- summaries_con %>% filter(Subject_ACC_con <= .8) %>% arrange(Subject_ACC_con) %>% print()
+problem_accs <- summaries_con %>% dplyr::filter(Subject_ACC_con <= .6) %>% arrange(Subject_ACC_con) %>% print()
 
 
 badsubs_cong <- unique(problem_accs$Subject)
@@ -256,11 +257,12 @@ badsubs_cong <- unique(problem_accs$Subject)
 
 3. Compute and display (as table) summary statistics for accuracy by subject and block.
 ```{r}
-summaries_abba <- flank %>% group_by(Subject, ABBA) %>% summarise(Subject_ACC_abba = as.numeric(table(TrialSlide_ACC)[2])/(as.numeric(table(TrialSlide_ACC)[2])+as.numeric(table(TrialSlide_ACC)[1]))) 
+summaries_abba <- flank %>% group_by(Subject, ABBA) %>% dplyr::summarise(Subject_ACC_abba = as.numeric(table(TrialSlide_ACC)[2])/(as.numeric(table(TrialSlide_ACC)[2])+as.numeric(table(TrialSlide_ACC)[1]))) 
 
 summaries_abba$Subject_ACC_abba <- ifelse(is.na(summaries_abba$Subject_ACC_abba),1,summaries_abba$Subject_ACC_abba)
-which(is.na(summaries_abba$Subject_ACC_con))
 hist(summaries_abba$Subject_ACC_abba)
+# which(is.na(summaries_abba$Subject_ACC_con))
+
 
 bad_blocks <- summaries_abba %>% filter(Subject_ACC_abba <= .6) %>% arrange(Subject_ACC_abba)
 # print(bad_blocks)
@@ -268,9 +270,12 @@ bad_blocks <- summaries_abba %>% filter(Subject_ACC_abba <= .6) %>% arrange(Subj
 badsubs_abba <- unique(bad_blocks$Subject)
 badsubs_tot <- unique(c(badsubs_cong, badsubs_abba))  # subjects with either poor accuracy on a given block or on incongruent trials
 
+save(badsubs_tot, file = "Data/cache/acc_drop_flanker.RData")
+
+
 
 badsubs_abba
-badsubs_cong #adds 62, wonder 
+badsubs_cong #adds 62, wonder what the deal is here. Regardless, just stick with ABBA for now.
 
 summaries_abba <- summaries_abba %>% mutate(Incongruent = ifelse(grepl("A",ABBA), 0,1)) %>% left_join(summaries_con, by = c("Subject", "Incongruent")) %>% left_join(summaries_tot, by = "Subject") #%>% arrange("Subject_ACC")
 summaries_abba %>% filter(Subject %in% badsubs_tot)
@@ -464,7 +469,7 @@ In fact, let's check out the distributions of congruent and incongruent 3 SDs ab
 
 ```{r cong incong 3SD Hmean dists}
 flank_acc_trim <- data.frame(flank_acc_trim)
-subject_sd3 <- flank_acc_trim %>% group_by(Subject, Incongruent ) %>% summarise(winsorize = unique(con_SD3AHmean_rt_high))
+subject_sd3 <- flank_acc_trim %>% group_by(Subject, Incongruent ) %>% dplyr::summarise(winsorize = unique(con_SD3AHmean_rt_high))
 
 x <- ggplot(data = subject_sd3, aes(x = winsorize)) + geom_histogram() + facet_wrap(~Incongruent)
 plot(x)
@@ -492,7 +497,7 @@ flank_cleaned$rt <- ifelse(flank_cleaned$rt >= flank_cleaned$group_conSD3AHmean_
 5. Compute and display (as table) summary statistics for RT by subject and block. May need to leverage harmonic mean (Ratcliff) or ex-Gaussian fitted statistics to get a sense of averages (given positive skew of RTs).
 
 ```{r}
-summaries_rt <- flank_cleaned %>% group_by(Subject, Incongruent,CongruentBlock) %>% summarise(amean = mean(rt, na.rm = TRUE),
+summaries_rt <- flank_cleaned %>% group_by(Subject, Incongruent,CongruentBlock) %>% dplyr::summarise(amean = mean(rt, na.rm = TRUE),
                                                                        sd = sd(rt, na.rm = TRUE),
                                                                        hmean = harmonic.mean(rt))#,
                                                                        
@@ -521,8 +526,11 @@ p <- ggplot(filter(summaries_rt, !Subject %in% c(90, 111,15)), aes(x = hmean)) +
 plot(p)
 
 #to look at this more formally just take those subjects that have combinations of stimulus type (cong vs incongr) and block type (most cong vs most incong)
-summaries_rt %>% filter(hmean >= g_meansd)
+slow_subs  <- summaries_rt %>% filter(hmean >= g_meansd)
+slow_subs
 
+badsubs_rt <- unique(slow_subs$Subject)
+save(badsubs_rt, file = "Data/cache/rt_drop_flanker.RData")
 ```
 
 I'd say we're justified in dropping these folks given that both 15 and 111 are greater than 3SDs above the mean RT for the crossed stimulus type and block type cells (even after winsorizing). 90 is whacky bc they are so far out on the incong-incong combination. I'd say this warrants us booting them in order to be conservative.
@@ -538,17 +546,15 @@ length(unique(flank_cleaned$Subject)) #down to 101
 
 
 
-nas_persub <- flank_cleaned %>% group_by(Subject) %>% summarise(na.counts_sub = length(which(is.na(rt)))) %>% arrange(-na.counts_sub)
+nas_persub <- flank_cleaned %>% group_by(Subject) %>% dplyr::summarise(na.counts_sub = length(which(is.na(rt)))) %>% arrange(-na.counts_sub)
 
 table(nas_persub$na.counts_sub)
 hist(unique(nas_persub$na.counts_sub))
 
-# I mean, 11 and 12 are pretty different than the rest but overall dont seem all that damning across all 160 trials. 12/160 = 7.5% trials dropped. that's not all that  bad in my mind. We can look at these folks to see if they are on the slow/fast/inaccurate side.
-
 head(nas_persub)
 summaries_rt %>% filter(Subject %in% c(92,36))
 
-#these subjects are on the fast side, I'd say they're fine to stay.
+#these subjects are on the fast side, I'd say they're fine to stay, though 35/160 trials is getting up there.
 
 
 
