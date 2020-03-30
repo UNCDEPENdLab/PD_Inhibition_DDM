@@ -107,7 +107,9 @@ mod_dict = {'v_reg':hddm.HDDMRegressor(data, v, group_only_regressors = False),
 #'vsvz_reg':hddm.HDDMRegressor(data, [v,sv,z], include = ('sv','z')),
 #'v_blockz_reg':hddm.HDDMRegressor(data, [v_block,z], include = 'z'),
 #'v_blocksvz_reg':hddm.HDDMRegressor(data, [v_block,sv,z], include = ('sv', 'z'))}
-                                        
+
+mod_dict = {'v_blocksvst_reg':hddm.HDDMRegressor(data, [v_block,sv,st], include = ('sv', 'st'),group_only_regressors = False)}
+
 ##### parallel loop over models and number of chains for gelman rubin statistic. Sample and save 
 with pymp.Parallel(len(mod_dict)) as p:
     with pymp.Parallel(nchains) as ch:

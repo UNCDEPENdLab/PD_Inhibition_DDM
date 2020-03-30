@@ -1,12 +1,12 @@
 #!/usr/bin/env sh
 #PBS -A mnh5174_c_g_sc_default
-#PBS -l nodes=1:ppn=20
-#PBS -l walltime=160:00:00
+#PBS -l nodes=1:ppn=5
+#PBS -l walltime=300:00:00
 #PBS -j oe
 #PBS -M nth7@psu.edu
 #PBS -m abe
 #PBS -W group_list=mnh5174_collab
-#PBS -N probes_small
+#PBS -N rp_diag
 
 
 export G=/gpfs/group/mnh5174/default
@@ -30,11 +30,11 @@ source /gpfs/group/mnh5174/default/lab_resources/lab_python/bin/activate
 
 ######
 ## sample recent probes models
-python /gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/run_recent_probes_models.py
+#python /gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/run_recent_probes_models.py
 
 #######
 ## gelman-rubin checks, chain export, DIC, export 
-#python /gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/assess_fit.py
+python /gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/assess_fit.py
 
 
 

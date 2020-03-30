@@ -48,3 +48,6 @@ Outputs/full_hddm/*
 
 # PBS output files on batch processed scripts
 *.o*
+
+# MH dissertation code and data. On ACI for reference.
+MH_Diss_Analyses/*
