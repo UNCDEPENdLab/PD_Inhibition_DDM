@@ -1,15 +1,21 @@
 ## examine HDDM diagnostics and posteriors
 
 task <- "flanker"
-full_models <- TRUE; full <- ifelse(full_models, "full", "practice")
+# task <- "recent_probes"
+full_models <- FALSE; full <- ifelse(full_models, "full", "practice")
 create_plots <- TRUE
 basedir <- "~/ics/Nate/PD_Inhibition_DDM/"; setwd(basedir)
 diagnosdir_full <- paste0(basedir, "Outputs/full_hddm/", task, "/diagnostics")
 diagnosdir_prac <- paste0(basedir, "Outputs/practice_hddm/", task, "/diagnostics")
-list.files(diagnosdir_full)
+# diagnosdir_full <- paste0("~/ics/Nate/HDDM_outputs_PD_Inhibition/full_hddm/", task, "/diagnostics")
+# diagnosdir_prac <- paste0("~/ics/Nate/HDDM_outputs_PD_Inhibition/practice_hddm/", task, "/diagnostics")
+
+list.files(diagnosdir_prac)
 
 if(task == "recent_probes"){
   models <- c("v_reg", "vst_reg", "vsv_reg", "vsvst_reg")    
+} else if(task == "flanker"){
+  models <- c("v_reg","vst_reg", "vsv_reg", "vsvst_reg", "v_block_reg", "v_blockst_reg", "v_blocksv_reg", "v_blockst_reg", "v_blocksvst_reg")
 }
 
 pacman::p_load(tidyverse, tictoc, bayestestR)
@@ -19,13 +25,15 @@ if(full_models){
   dics  <- read.csv(paste0(diagnosdir_full, "/dics_all.csv"))   
 } else{
   dics <- read.csv(paste0(diagnosdir_prac, "/dics_all.csv"))  
-}
+ }
 
 dics <- dics %>% mutate(DIC_diff = DIC -dics[1,3])
 
 if(create_plots){
-  pdf(paste0(basedir,"Figures/DIC_diff_plot_", task, "_", full, ".pdf"), width = 11, height = 8)
-  dic_diff <- ggplot(dics_full, aes(x = model, y = DIC_diff)) + geom_bar(stat = "identity", fill = "steelblue") + theme_bw() + geom_text(aes(label = round(DIC_diff,2)), vjust = -.5, color = "black")  
+  pdf(paste0(basedir,"Figures/DIC_diff_plot_", task, "_", full, ".pdf"), width = 11, height = 8) #this is so dumb.
+  # pdf(paste0("/Users/natehall/ics/Nate/PD_Inhibition_DDM/Figures/DIC_diff_plot_", task, "_", full, ".pdf"), width = 11, height = 8)
+  
+  dic_diff <- ggplot(dics, aes(x = model, y = DIC_diff)) + geom_bar(stat = "identity", fill = "steelblue") + theme_bw() + geom_text(aes(label = round(DIC_diff,2)), vjust = -.5, color = "black")  
   print(dic_diff)
   dev.off()
 }
@@ -35,6 +43,8 @@ win_mod <- as.character(dics$model[which(dics$DIC == min(dics$DIC))])
 
 if(full_models){
   grs <- read.csv(paste0(diagnosdir_full, "/gr_",win_mod,".csv")) %>% select(-X)
+} else {
+  grs <- read.csv(paste0(diagnosdir_prac, "/gr_",win_mod,".csv")) %>% select(-X)
 }
 
 if(create_plots){
