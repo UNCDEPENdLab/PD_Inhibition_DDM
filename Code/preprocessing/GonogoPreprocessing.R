@@ -68,9 +68,9 @@ gng_accs %>% arrange(ACC)
 
 
 gng_accs_proc <- gng_all %>% group_by(Subject, TrialType, Procedure_Trial_) %>% dplyr::summarise(as.numeric(table(ACC)[2])/(as.numeric(table(ACC)[2])+as.numeric(table(ACC)[1])))
-colnames(gng_accs)[4] <- "ACC"
+colnames(gng_accs_proc)[4] <- "ACC"
 
-gng_accs_proc %>% arrange(ACC)
+gng_accs_proc %>% arrange(ACC) 
 
 
 # drop 7: 33.3% on nogo trials is substantially lower than the rest. 
