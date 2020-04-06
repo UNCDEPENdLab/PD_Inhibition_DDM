@@ -15,8 +15,8 @@ nsamp <- 1000
 models <- paste("v" , 'vsv', 'v_block', 'v_blocksv', 'vst', 'vsvst', 'v_blockst', "v_blocksvst")
 
 
-# system(paste0('qsub -v NODES=\"',nodes,
-#        '\",PPN'=,ppn),
+# system(paste0("qsub -v NODES=\"",nodes,
+#        "\",PPN"=,ppn,
 #        ",WT=", wt,
 #        ",JOB_ID_NH=",job_id,
 #        ",DF=",rawdf,
@@ -27,8 +27,11 @@ models <- paste("v" , 'vsv', 'v_block', 'v_blocksv', 'vst', 'vsvst', 'v_blockst'
 #        ",NBURN=", as.character(nburn),
 #        ",NSAMP=", as.character(nsamp),
 #        " qsub_inhibition_ddm_args.bash"))
-# 
-# 
-# paste0('qsub -v NODES=\"',nodes),'\",PPN'=,ppn)
 
-paste0('qsub -v NODES=\"',nodes,'\",PPN=\"',ppn,"\" test_script.bash")
+
+
+command <- shQuote(paste0("qsub -v NODES=\"",nodes,"\",PPN=\"",ppn, "\" test_script.bash"))
+system(command)
+# paste0('qsub -v NODES=\"',nodes),'\",PPN'=,ppn)
+# 
+# paste0('qsub -v NODES=\"',nodes,'\",PPN=\"',ppn,"\" test_script.bash")

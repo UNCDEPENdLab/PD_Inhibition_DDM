@@ -6,7 +6,7 @@
 #PBS -M nth7@psu.edu
 #PBS -m abe
 #PBS -W group_list=mnh5174_collab
-#PBS -N {JOB_ID_NH}
+#PBS -N ${JOB_ID_NH}
 
 
 export G=/gpfs/group/mnh5174/default
@@ -26,4 +26,4 @@ source /gpfs/group/mnh5174/default/lab_resources/lab_python/bin/activate
 
 ######
 ## run HDDM models with inputs from PBS args
-python /gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/run_hddm.py {DF} {OUTDIR} {TASK} -m {MODELS} -nc {NCHAINS} -nb {NBURN} -ns {NSAMP} 
+python /gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/run_hddm.py \"${DF}\" ${OUTDIR} ${TASK} -m ${MODELS} -nc ${NCHAINS} -nb ${NBURN} -ns ${NSAMP} 
