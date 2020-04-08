@@ -1,0 +1,1079 @@
+---
+title: "Flanker MLMs"
+subtitle: "PD Inhibition Project"
+author: "Michael Hallquist"
+date: "5 Apr 2020"
+output:
+  html_document:
+    code_folding: show
+    df_print: default
+    mathjax: default
+    number_sections: no
+    theme: spacelab
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+    fig_width: 9 
+    fig_height: 6 
+  pdf_document:
+    code_folding: hide
+    df_print: default
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+---
+
+
+```{r setup, include=FALSE}
+if (!require(pacman)) { install.packages("pacman"); library(pacman) }
+p_load(car, brms, nlme, lme4, loo, readr, tidyverse, emmeans, cowplot, glmmTMB, bbmle, broom)
+knitr::opts_chunk$set(echo = TRUE) #print code by default
+#knitr::opts_chunk$set(cache.path = "../../Outputs/flanker_mlms/")
+options(digits=3)
+options(width = 140)
+```
+
+# Data cleaning and setup
+
+```{r datapreproc}
+#raw flanker data, all subjects
+load("../../Data/R_Originals/flanker_raw.RData")
+
+flanker <- flanker %>%
+  select(Subject, TrialSlide_ACC, TrialSlide_RT, Incongruent, CongruentBlock, Block) %>%
+  dplyr::rename(id=Subject, correct=TrialSlide_ACC, rt=TrialSlide_RT, 
+                block=CongruentBlock, trial=Block, cond=Incongruent) %>%
+  mutate(
+    trial = trial - 8,  #1:8 are practice trials
+    block = factor(block, levels=c(0, 1), labels=c("most_incon", "most_con")),
+    cond = factor(cond, levels=c(0,1), labels=c("congruent", "incongruent")),
+    block_number = case_when(
+      trial <= 40 ~ 1,
+      trial > 40 & trial <= 80 ~ 2,
+      trial > 80 & trial <= 120 ~ 3,
+      trial > 120 & trial <= 160 ~ 4
+    ),
+    trial_z = as.vector(scale(trial)),
+    rt_inv=-1000/rt #puts Rts on the -4 -- -1 range (makes parameter estimates a bit easier to see)
+  ) %>% group_by(id, block_number) %>% arrange(trial) %>%
+  mutate(
+    run_trial = 1:40, #NB. This is a risky solution in general, but I've verified that all subjects show the correct ordering and don't have gaps
+    run_trial_z = as.vector(scale(run_trial)),
+    prev_rt=dplyr::lag(rt, 1, order_by=run_trial)/1000, #convert to seconds to put it on a smaller scale, roughly comparable to the -1000/rt rt_inv
+    prev_rt_inv=dplyr::lag(rt_inv, 1, order_by=run_trial)
+  ) %>% ungroup()
+
+#sanity checks on structure
+xtabs(~run_trial + block_number, flanker)
+#xtabs(~block + block_number, flanker)
+#xtabs(~run_trial + block, flanker)
+str(flanker) #after basic processing
+```
+
+## sanity checks
+
+Looks like the number of congruent and incongruent trials by block matches expectation
+```{r}
+xtabs(~cond + block, flanker)
+prop.table(xtabs(~cond + block, flanker), 2)
+```
+
+A few super-short RTs, and then a long RT tail
+```{r, fig=TRUE, width=6, height=6}
+ggplot(flanker, aes(x=cond, y=rt)) + geom_boxplot() + facet_wrap(~block) + theme_cowplot()
+
+#missed trials
+#flanker %>% filter(is.na(rt))
+```
+
+```{r, figure=TRUE, cache=TRUE, width=9, height=2.5}
+accuracies <- flanker %>% group_by(id, cond) %>%
+  summarise(nacc=sum(correct==1, na.rm=T), nerr=sum(correct==0, na.rm=T)) %>%
+  pivot_wider(names_from="cond", values_from=c("nerr", "nacc")) %>%
+  mutate(
+    p_acc=(nacc_congruent + nacc_incongruent)/(nacc_congruent + nacc_incongruent + nerr_congruent + nerr_incongruent),
+    p_acc_congruent=(nacc_congruent)/(nacc_congruent + nerr_congruent),
+    p_acc_incongruent=(nacc_incongruent)/(nacc_incongruent + nerr_incongruent)
+  )
+    
+g1 <- ggplot(accuracies, aes(y=p_acc)) + geom_boxplot() + ggtitle("Overall Accuracy")
+g2 <- ggplot(accuracies, aes(y=p_acc_incongruent)) + geom_boxplot() + ggtitle("Incongruent Accuracy")
+g3 <- ggplot(accuracies, aes(y=p_acc_congruent)) + geom_boxplot() + ggtitle("Congruent Accuracy")
+plot_grid(g1, g2, g3, nrow=1)
+
+#exclusion subjects from dissertation
+accuracies %>% filter(id %in% c(7, 14, 36, 38, 47, 55, 62, 83))
+#kable(accuracies %>% filter(n_acc < .))
+```
+
+## Unlikely values
+
+Look at harmonic means
+
+## Subject exclusions
+
+Looking over exclusions from dissertation, I might advocate a more conservative approach (keep more data). But there are clearly folks who are systematically wrong on incongruent (< 50%), suggesting that they did not understand the task.
+
+### Exclusion coding
+
+Generate a column called exclude with the following scheme:
+
+- 0:  a good subject, no concerns
+- 1: a subject with minor problems that we should try to salvage
+- 2: a suspicious subject whose behavior is questionable, but not obviously bad
+- 3: a subject who should certainly be excluded.
+
+Following this scheme, here are the combined recommendations of Nate and Michael. Here, I've built on the code above, plus Nate's FlankerPreprocessing R Markdown.
+
+#### 3: obviously bad subjects
+
+Systematically wrong on incongruent trials. Suggests that they simply didn't understand the task.
+
+- 7: 11.1% accuracy on incongruent; 97.5% accuracy congruent
+- 47: 18.0% accuracy on incongruent; 93.2% accuracy congruent
+- 55: 6.4% accuracy on incongruent; 98.8% congruent
+- 83: 11.8% accuracy on incongruent; 93.8% congruent
+
+#### 2: probably bad
+
+At chance, or somewhat below, on incongruent trials
+
+- 14: 30.4% accuracy on incongruent; 98.8% accuracy congruent
+- 38: 51.2% accuracy on incongruent; 97.5% congruent
+- 62: 47.8% accuracy on incongruent; 90.3% congruent
+
+#### 1: questionable, but not clearly flawed
+
+- 36: 88.3% accuracy on incongruent; 72.2% accuracy congruent
+- 15: mean RT > 3SDs above sample harmonic mean (per Nate)
+- 111: mean RT > 3SDs above sample harmonic mean (per Nate)
+- 90: strange behavior on incon (per Nate)?
+
+I’d say we’re justified in dropping these folks given that both 15 and 111 are greater than 3SDs above the mean RT for the crossed stimulus type and block type cells (even after winsorizing). 90 is whacky bc they are so far out on the incong-incong combination. I’d say this warrants us booting them in order to be conservative.
+
+```{r code_exclusions}
+flanker <- flanker %>% mutate(
+  exclude=dplyr::recode(id,
+                 `7`  = 3, `47` = 3, `55` = 3, `83` = 3,
+                 `14` = 2, `38` = 2, `62` = 2, 
+                 `36` = 1, `15` = 1, `111` = 1, `90` = 1,
+                 .default = 0
+                 ))
+length(unique(flanker$id))
+```
+
+## RT problems
+
+Following Nate's document, let's treat RTs < 250ms as implausible. I started out with < 200ms as the target, but then in looking at transformed RTs, keeping the
+200-250ms range led to a slightly long left tail in the distribution after the 1/RT transformation. I solved this by trimming the bottom 1% of RTs by condition and
+block (at group level), but ironically, this specifically targeted RTs between 201ms and 250ms. So, we land on the 250ms threshold either way we slice things, and
+the data are beautifully normal under a 1/RT transformation with this threshold.
+
+Number of trials with RTs < 250.
+
+```{r}
+nrow(flanker %>% filter(rt < 250))
+```
+
+This is about 1.3% of the data, which is a very minor loss.
+
+Set accuracy and RT to NA when RT < 250ms.
+
+```{r dropfast}
+flanker <- flanker %>% mutate(rt=if_else(rt < 250, NA_real_, rt), correct=if_else(rt < 250, NA_real_, correct))
+#flanker <- flanker %>% filter(!is.na(rt)) #drop rows with missing RTs
+```
+
+# Getting the distribution of RTs right
+
+One question is whether we should be modeling $log(RT)$ or just $RT$. Following Ratcliff, a log-normal assumption on RTs is pretty reasonable. What does the density look like for each?
+
+```{r, fig=TRUE, width=8, height=6, message=FALSE, cache=TRUE}
+g1 <- ggplot(flanker, aes(x=rt)) + geom_density() + facet_wrap(~cond) + ggtitle("RT (ms)")
+g2 <- ggplot(flanker, aes(x=log(rt))) + geom_density() + facet_wrap(~cond) + ggtitle("Log transformed RT")
+plot_grid(g1, g2, nrow=2)
+
+cat("Skewness of raw RT by block\n")
+tapply(flanker$rt, flanker$cond, moments::skewness, na.rm=T)
+
+cat("Skewness of log(RT) by block\n")
+tapply(log(flanker$rt), flanker$cond, moments::skewness, na.rm=T)
+
+g1 <- ggplot(flanker, aes(sample=rt)) + stat_qq(distribution=qnorm) + stat_qq_line(color="blue") +
+  facet_wrap(~cond) + ggtitle("Normal Q-Q RT (ms)")
+g2 <- ggplot(flanker, aes(sample=log(rt))) + stat_qq(distribution=qnorm) + stat_qq_line(color="blue") +
+  facet_wrap(~cond) + ggtitle("Normal Q-Q log(RT)")
+plot_grid(g1, g2, nrow=2)
+
+```
+
+Looks like modeling $log(RT)$ is closer to a standard Gaussian-distributed, though there is still a small positive tail that deviates from normality.
+
+What about inverse transform?
+
+```{r invdist, cache=TRUE, fig=TRUE}
+g1 <- ggplot(flanker, aes(x=rt)) + geom_density() + facet_wrap(~cond) + ggtitle("RT (ms)")
+g2 <- ggplot(flanker, aes(x=-100/rt)) + geom_density() + facet_wrap(~cond) + ggtitle("Inv. transformed RT")
+plot_grid(g1, g2, nrow=2)
+
+cat("Skewness of inverse RT by block\n")
+tapply(-100/flanker$rt, flanker$cond, moments::skewness, na.rm=T)
+
+g1 <- ggplot(flanker, aes(sample=rt)) + stat_qq(distribution=qnorm) + stat_qq_line(color="blue") +
+  facet_wrap(~cond) + ggtitle("Normal Q-Q RT (ms)")
+g2 <- ggplot(flanker, aes(sample=-100/rt)) + stat_qq(distribution=qnorm) + stat_qq_line(color="blue") +
+  facet_wrap(~cond) + ggtitle("Normal Q-Q 1/RT")
+plot_grid(g1, g2, nrow=2)
+
+```
+
+
+
+At 200ms, Inverse transform works somewhat better, though it suppresses a few more RTs at the bottom end vis-a-vis a normal distribution.
+
+At 250ms, however, which is what is plotted above, everything looks good enough!
+
+```{r, fig=TRUE, width=8, height=6, cache=TRUE, message=FALSE, eval=FALSE}
+#What about Winsorizing the top 1% of log-transformed RTs by condition and block?
+flanker <- flanker %>% group_by(cond, block) %>% 
+  mutate(
+    rt_log=log10(rt), 
+    rt_log_winsor=DescTools::Winsorize(rt_log, probs=c(0, .99), na.rm = T),
+  ) %>%
+  ungroup() %>% group_by(id, cond, block) %>% #use per-subject condition and block RT quantiles to trim
+  mutate(
+    rt_inv_trim=if_else(rt_inv < quantile(rt_inv, 0.01, na.rm=T), NA_real_, rt_inv), #rt_inv > quantile(rt_inv, 0.99) | 
+    rt_trim=if_else(rt > quantile(rt, 0.99, na.rm=T), NA_real_, rt),
+    rt_log_trim=if_else(rt_log > quantile(rt_log, 0.99, na.rm=T), NA_real_, rt_log)
+  ) %>% ungroup() %>%
+  group_by(cond, block) %>% #use overall condition and block RT quantiles to trim
+  mutate(
+    rt_inv_trim_grp=if_else(rt_inv < quantile(rt_inv, 0.01, na.rm=T), NA_real_, rt_inv), #rt_inv > quantile(rt_inv, 0.99) | 
+    rt_trim_grp=if_else(rt > quantile(rt, 0.99, na.rm=T), NA_real_, rt),
+    rt_log_trim_grp=if_else(rt_log > quantile(rt_log, 0.99, na.rm=T), NA_real_, rt_log)
+  ) %>% ungroup()
+
+
+g1 <- ggplot(flanker, aes(sample=rt_log_winsor)) + stat_qq(distribution=qnorm) + stat_qq_line(color="blue") +
+  facet_wrap(~cond) + ggtitle("Normal Q-Q Winsorize log(RT)")
+g2 <- ggplot(flanker, aes(sample=rt_log_trim)) + stat_qq(distribution=qnorm) + stat_qq_line(color="blue") +
+  facet_wrap(~cond) + ggtitle("Normal Q-Q Trimmed log(RT)")
+g3 <- ggplot(flanker, aes(sample=rt_inv_trim)) + stat_qq(distribution=qnorm) + stat_qq_line(color="blue") +
+  facet_wrap(~cond) + ggtitle("Normal Q-Q Trimmed 1/RT")
+g4 <- ggplot(flanker, aes(sample=rt_log_trim_grp)) + stat_qq(distribution=qnorm) + stat_qq_line(color="blue") +
+  facet_wrap(~cond) + ggtitle("Normal Q-Q Group-Trimmed log(RT)")
+g5 <- ggplot(flanker, aes(sample=rt_inv_trim_grp)) + stat_qq(distribution=qnorm) + stat_qq_line(color="blue") +
+  facet_wrap(~cond) + ggtitle("Normal Q-Q Group-Trimmed 1/RT")
+g6 <- ggplot(flanker, aes(sample=rt_inv)) + stat_qq(distribution=qnorm) + stat_qq_line(color="blue") +
+  facet_wrap(~cond) + ggtitle("Normal Q-Q 1/RT")
+
+plot_grid(g1, g2, g3, g4, g5, g6, nrow=3)
+
+#the problem with per-subject trimming is that many plausible values are removed since they are unlikely compared to the subject's distribution
+flanker %>% filter(is.na(rt_inv_trim)) %>% pull(rt) %>% hist(main="RTs dropped by subject-specific trim")
+flanker %>% filter(is.na(rt_inv_trim_grp)) %>% pull(rt) %>% hist(main="RTs dropped by group trim")
+flanker %>% filter(is.na(rt_inv_trim_grp)) %>% nrow()
+flanker %>% filter(is.na(rt)) %>% nrow()
+```
+
+For the moment, the inverse-transformed RT shows the most promise, which matches Ratcliff (1993) recommendations.
+
+# Frequentist MLMs using maximum likelihood and no explicit temporal covariance
+
+Some useful resources:
+
+https://rpsychologist.com/r-guide-longitudinal-lme-lmer
+https://wiekvoet.blogspot.com/2013/09/mixed-models-influence-in-heterogeneous.html
+https://quantdev.ssri.psu.edu/sites/qdev/files/ILD_Ch06_2017_MLMwithHeterogeneousVariance.html
+https://m-clark.github.io/mixed-models-with-R/
+
+(information about blocked variance components and interpreting lme output)
+https://rstudio-pubs-static.s3.amazonaws.com/234821_71b392d30fe741e8afe32896a7446226.html
+
+```{r}
+flanker <- flanker %>% filter(exclude < 3) #keep most subjects, exclude horrid ones
+save(flanker, file="../../Data/preprocessed/flanker_for_traits.RData")
+```
+
+## m1: random intercept of subject, CS structure wrt trial
+
+starting point in ML: random intercept of subject, compount symmetry residual correlation structure wrt trial
+
+```{r m1, cache=TRUE}
+m1 <- lme(rt_inv ~ trial_z + cond*block, random = ~ 1 | id,
+          correlation=corCompSymm(form=~trial|id), na.action = na.exclude, 
+          data = flanker, method='ML')
+
+summary(m1)
+emmeans(m1, ~cond | block)
+```
+
+## m2: simple random intercept model
+
+Compound symmetry is already captured above by a simple variance component (G-side),
+which is why the CS correlation is zero in a model that has both.
+
+This is discussed here: https://m-clark.github.io/mixed-models-with-R/extensions.html
+
+Go back to a simple random intercept model.
+
+```{r m2, cache=TRUE}
+m2 <- lme(rt_inv ~ trial_z + cond*block, random = ~ 1 | id,
+          na.action = na.exclude, 
+          data = flanker, method='ML', control = lmeControl(opt="optim"))
+
+summary(m2)
+anova(m1, m2)
+emmeans(m2, ~cond | block)
+
+#same log likelihood!
+cat("LL(m1) - LL(m2)\n")
+logLik(m1) - logLik(m2)
+```
+
+## m3: R-side only CS model
+
+Verify that an R-side only compound symmetry model matches variance component random intercept model. Need to use `gls` for this.
+
+```{r m3, cache=TRUE}
+#Here's the R-side only model with compound symmetry (no random intercept)
+#this should also yield identical fit statistics -- just a reparameterization of the same approach
+m3 <- gls(rt_inv ~ trial_z + cond*block, correlation=corCompSymm(form=~trial|id), na.action = na.exclude, 
+          data = flanker, method='ML')
+
+anova(m2, m3)
+cat("LL(m3) - LL(m2)\n")
+logLik(m3) - logLik(m2)
+
+#look at model-predicted residual correlation structure
+
+#R.a <- getVarCov(dental.lme.a,type="conditional",individual=1)
+rcov <- getVarCov(m3, type="conditional", individual=1) #covariance matrix
+rcorr <- cov2cor(getVarCov(m3, type="conditional",individual=1)) #residual correlation matrix for subj 1
+
+#V_i <- getVarCov(m3, type="marginal", individual=1)
+```
+
+*Conclusion*: Confirmed that m1, m2, and m3 are isomorphic with each other. The conceptually simplest model is m2, the random intercept only model. 
+Use this as the benchmark for increasingly complex models below
+
+## m4: random intercept of subject, block nested within subject
+
+```{r m4, cache=TRUE}
+m4 <- lme(rt_inv ~ trial_z + cond*block, random=~1|id/block,
+          na.action = na.exclude,
+          data = flanker, method='ML')
+
+summary(m4)
+#getVarCov(m4, "random.effects")
+
+anova(m2, m4)
+```
+
+Allowing for a block within id variance component improves fit considerably.
+
+## m5: Random intercept per block (heterogeneous L2 intercept)
+
+Alternatively, we could consider whether we need separate variance components for the mostly congruent and mostly incongruent blocks.
+
+This is a heterogeneous intercept per block approach in lme, which allows the G-side part of the model (variance components)
+to be uniquely estimated per block, while keeping the L1 residual $\sigma^2_e$ homogeneous.
+
+```{r m5, cache=TRUE, fig=TRUE}
+#allows for variance heterogeneity between mostly congruent and mostly incongruent blocks
+#this generates a diagonal G-side matrix where each block has a different SD that controls
+#between-person variation in the random intercept. So now, each subject has an EBLUP
+#for the mostly congruent and mostly incongruent block.
+
+m5 <- lme(rt_inv ~ trial_z + cond*block,
+          random=list(id=pdDiag(~block)),
+          na.action = na.exclude,
+          data = flanker, method='ML')
+
+summary(m5)
+#cor(ranef(m5)) #clean: ~0
+vv <- ranef(m5)
+plot(vv)
+vv %>% pivot_longer(cols = everything()) %>% ggplot(aes(x=name, y=value)) + geom_boxplot() + labs(y="ranef", x="effect")
+#VarCorr(m5)
+
+#reconstruct subject-specific variance estimates for each condition using the regression parameterization
+estimated_ranef <- data.frame(
+  mostly_congruent = vv[,"(Intercept)"] + vv[,"blockmost_con"],
+  mostly_incongruent = vv[,"(Intercept)"] #incongruent is reference condition
+)
+
+#N.B. The addition of -1 in the pdDiag call appears to remove the intercept from the L2 parameterization,
+#resulting in individual estimates for each block. Although this seems more intuitive and would be
+#closer to a no-intercept model, the LL is way worse than m5 above. I don't know why, but I suspect it is
+#because the two random effects (mostly congruent and mostly incongruent) become intractably correlated.
+m5b <- lme(rt_inv ~ trial_z + cond*block,
+          random=list(id=pdDiag(~block-1)),
+          na.action = na.exclude,
+          data = flanker, method='ML')
+
+#cor(ranef(m5b)) #ugly: ~.94
+
+#equivalent model in glmmTMB
+m5_glmmTMB <- glmmTMB(rt_inv ~ trial_z + cond*block + diag(1 + block|id),
+                na.action = na.exclude,
+                data = flanker, REML = FALSE)
+
+# AICtab(m5, m5_glmmTMB)
+```
+
+Here, the SD of the individual differences in the intercept for the mostly incongruent block is labeled (Intercept) because that is the reference level for `flanker$block`. And the SD of random intercept for the mostly congruent block is the `(Intercept)` + the `blockmost_con` components. Thus, the variance of the mostly congruent condition is somewhat larger than for mostly incongruent.
+
+```{r}
+sapply(estimated_ranef, sd)
+hist(estimated_ranef$mostly_congruent / estimated_ranef$mostly_incongruent) # one person looks a bit funky...
+#pdf("resid_test.pdf", width=12, height=20)
+#plot(m5,form=resid(., type = "p") ~fitted(.) | id, idLabels=~id)
+#plot(ranef(m5))
+#dev.off()
+```
+
+One conceptual question is whether that variation is driven by the trial condition (incongruent versus congruent), not the block type. That is, perhaps incongruent trials are just more variable in RT than congruent ones, regardless of block. But let's table that and just look at variants of heterogeneous variance by block type.
+
+## m6: allow for heterogeneous L1 variance by block
+
+Instead of allowing the L2 estimates of random intercept to vary by block, we could allow for a heterogeneous L1 residual variance by block. Since we do not have any formal L2 random effects (e.g., intercept), estimate the model with `gls`. Note that this model is conceptually rather flawed because it does not capture within-subject correlation. That is, `id` does not appear in any part of the specification
+
+```{r m6, cache=TRUE}
+m6 <- gls(rt_inv ~ trial_z + cond*block,
+          weights=varIdent(form=~1|block),
+          na.action = na.exclude,
+          data = flanker, method='ML')
+
+summary(m6)
+```
+
+### m7: Heterogeneous L1 variance, add homogeneous random intercept at L2
+
+We can allow for block-specific L1 residual variance and a single L2 (here, intercept) variance component (not block-specific) by combining `weights` and `random` as follows:
+
+```{r m7, cache=TRUE}
+#https://m-clark.github.io/mixed-models-with-R/extensions.html
+
+#heterogeneous L1 resid var, homogeneous L2 intercept
+m7 <- lme(rt_inv ~ trial_z + cond*block, 
+          weights=varIdent(form=~1|block),
+          random=~1|id,
+          na.action = na.exclude,
+          data = flanker, method='ML')
+
+summary(m7)
+
+```
+
+## m8: Heterogeneous L1 residual variance and L2 random intercept, both estimated per block
+
+```{r m8, cache=TRUE}
+#this model allows for heterogeneity in the L1 residuals by block, as well as the L2 random effects by block
+m8 <- lme(rt_inv ~ trial_z + cond*block, 
+          weights=varIdent(form=~1|block),
+          random=list(id = pdDiag(~block)),
+          na.action = na.exclude,
+          data = flanker, method='ML')
+
+summary(m8)
+AICtab(m2, m4, m5, m6, m7, m8, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+As Clark notes, the parameterization of the intercept variances by block is funky, with one serving as a reference condition, variance = 1.0.
+
+The glmmTMB package provides a more intuitive parameterization
+
+## m9: repeat for condition, not block, as key factor
+```{r m9, cache=TRUE}
+#this model allows for heterogeneity in the L1 residuals by block, as well as the L2 random effects by block
+m9 <- lme(rt_inv ~ trial_z + cond*block, 
+          weights=varIdent(form=~1|cond),
+          random=list(id = pdDiag(~cond)),
+          na.action = na.exclude,
+          data = flanker, method='ML')
+
+summary(m9)
+AICtab(m2, m4, m5, m6, m7, m8, m9, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+## m10: random intercept by condition, L1 resid var by block
+
+```{r m10, cache=TRUE}
+#this model allows for heterogeneity in the L1 residuals by block, as well as the L2 random effects by block
+m10 <- lme(rt_inv ~ trial_z + cond*block, 
+          weights=varIdent(form=~1|block),
+          random=list(id = pdDiag(~cond)),
+          na.action = na.exclude,
+          data = flanker, method='ML')
+
+summary(m10)
+AICtab(m2, m4, m5, m6, m7, m8, m9, m10, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+## m11: random intercept by block, L1 resid var by condition
+
+```{r m11, cache=TRUE}
+#this model allows for heterogeneity in the L1 residuals by block, as well as the L2 random effects by block
+m11 <- lme(rt_inv ~ trial_z + cond*block, 
+          weights=varIdent(form=~1|cond),
+          random=list(id = pdDiag(~block)),
+          na.action = na.exclude,
+          data = flanker, method='ML')
+
+summary(m11)
+AICtab(m2, m4, m5, m6, m7, m8, m9, m10, m11, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+## m12 random intercept for condition nested within block within subject (3-level model)
+
+This model allows for individuals to have a different mean RT in each combination of trial condition (incongruent, congruent)
+and block (mostly congruent, mostly incongruent).
+
+This model does not allow for heterogeneous L1 variability.
+
+```{r m12, cache=TRUE}
+#this model allows for heterogeneity in the L1 residuals by block, as well as the L2 random effects by block
+m12 <- lme(rt_inv ~ trial_z + cond*block, 
+          random=list(id = pdDiag(~block/cond)),
+          na.action = na.exclude,
+          data = flanker, method='ML')
+
+summary(m12)
+VarCorr(m12)
+
+m12b <- lme(rt_inv ~ trial_z + cond*block, 
+          random=~1|id/block/cond,
+          na.action = na.exclude,
+          data = flanker, method='ML')
+
+summary(m12b)
+VarCorr(m12b)
+logLik(m12) - logLik(m12b)
+
+```
+
+Note that m12b is the traditional 3-level approach, while m12 flattens the problem to a 2-level model (I believe).
+
+## m13: Allow for residual L1 variance as a function of both block and condition
+
+Building on the success of m8, what if we allow L1 residual variance to vary by both condition and block?
+
+Keep a simple random intercept for subject on the G-side.
+
+```{r m13, cache=TRUE}
+m13 <-  lme(rt_inv ~ trial_z + cond*block, 
+          random=~1|id,
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML')
+
+summary(m13)
+
+AICtab(m8, m12b, m13, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+## m14: L1 resid var by block and condition, block within id for L2 random intercept
+
+Relative to m13, m14 simply allows for a block within id random intercept specification.
+
+```{r m14, cache=TRUE}
+m14 <-  lme(rt_inv ~ trial_z + cond*block, 
+          random=~1|id/block,
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML')
+
+summary(m14)
+
+AICtab(m8, m12b, m13, m14, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+## m15: Extend L2 variance to allow for heterogeneity by block
+
+Rather than a block within id parameterization, estimate a diagonal matrix by block for L2 random intercept. Keep L1 heterogeneity by block and condition.
+
+```{r m15, cache=TRUE}
+m15 <-  lme(rt_inv ~ trial_z + cond*block, 
+          random=list(id = pdDiag(~block)),
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML')
+
+summary(m15)
+
+AICtab(m8, m12b, m13, m14, m15, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+# Interim consolidation
+
+We see that m14 wins among the models considered above. Some take homes from this:
+
+1. There is heterogeneous L1 variability across blocks (m8 vs. m4)
+2. There is further evidence of L1 variability by condition within block (m15 vs. m8).
+3. Treating a block as nested within id for the random intercept improves fit substantially (m2 vs. m4)
+4. The block nested within id at L2 is good, even when we have block and condition heterogeneity at L1 (m14 vs. m13).
+5. There is relatively similar support for a block within id and a diagonal per-block random intercept (m15 vs. m14). Keep m14 for further consideration since it is simpler, more conventional (nested random effect).
+
+# Add random slope of trial
+
+We could make ourselves crazy with the consideration of whether a random slope of trial depends on block or condition. 
+
+Let's just build on m14 and consider whether the random slope of trial depends on block.
+
+## m16: add random slope of trial, allowing for differences between blocks
+
+```{r m16, cache=TRUE}
+m16 <-  lme(rt_inv ~ trial_z + cond*block, 
+          random=~1 + trial_z|id/block,
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML')
+
+summary(m16)
+
+AICtab(m14, m16, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+As expected, we see a huge boost when we allow for individual differences in the slope of trial_z, which captures the tendency of subjects to speed up or slow down over the experiment.
+
+## m17 random slope of trial only by id, not block within id
+
+What if we simplify the random slope of trial so that it is not nested within block. In lme, we need to create the interaction term ourselves, unlike the `(1+trial_z | id) + (1 | id/block)` notation of `lmer`.
+
+```{r m17, cache=TRUE}
+flanker$block_id <- with(flanker, interaction(block,id))
+m17 <- lme(rt_inv ~ trial_z + cond*block, 
+           random=list(~1+trial_z | id, ~1 | block_id),
+           weights=varIdent(form=~1|block*cond), 
+           na.action = na.exclude,
+           data = flanker, method='ML')
+
+summary(m17)
+
+AICtab(m14, m16, m17, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+
+#check order of blocks
+#xtabs(~trial+block, flanker)
+```
+
+So far, it looks like allowing trial slope to vary between mostly congruent and mostly incongruent blocks is a good idea (m16 better than m17).
+
+Note that all subjects got mostly congruent, then two blocks of mostly incongruent, followed by a final block of mostly congruent. Since block is in the model explicitly, there shouldn't be any inadvertent confounding of trial and block, but is there an interaction?
+
+## m18: trial x block
+
+We see no evidence of a trial x block interaction when we allo
+
+```{r m18, cache=TRUE}
+m18 <- lme(rt_inv ~ trial_z*block + cond*block, 
+          random=list(~1+trial_z | id, ~1 | block_id),
+           weights=varIdent(form=~1|block*cond), 
+           na.action = na.exclude,
+           data = flanker, method='ML')
+
+summary(m18)
+
+AICtab(m14, m16, m17, m18, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+
+#check order of blocks
+#xtabs(~trial+block, flanker)
+```
+
+## m19: Any evidence of local trial (run_trial) effects?
+
+Yes, as a fixed effect, we see that in mostly congruent blocks, people get faster as the run goes on, whereas this doesn't hold in mostly incongruent.
+
+```{r m19, cache=TRUE}
+m19 <- lme(rt_inv ~ run_trial_z*block + cond*block, 
+          random=list(~1+run_trial_z | id, ~1 | block_id),
+           weights=varIdent(form=~1|block*cond), 
+           na.action = na.exclude,
+           data = flanker, method='ML')
+
+summary(m19)
+
+emtrends(m19, ~block, var = "run_trial_z")
+AICtab(m14, m16, m17, m18, m19, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+
+```
+
+Leaving out `trial_z` altogether in favor of `run_trial_z` fits the data much worse (m19 vs. m16).
+
+## m20: run_trial and trial effects
+
+It's possible that we could have both local (run) and overall (experiment) trial effects. Adding run_trial_z as a fixed effect only to the winning m16 does result in a substantial model fit improvement. 
+
+```{r m20, cache=TRUE}
+m20 <-  lme(rt_inv ~ run_trial_z + trial_z + cond*block, 
+          random=~1 + trial_z|id/block,
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML')
+
+summary(m20)
+
+AICtab(m14, m16, m19, m20, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+## m21: add run_trial_z as random, too
+
+Huge improvement
+
+```{r m21, cache=TRUE}
+#doesn't like to converge with nlminb... maybe a sign of overparameterization
+m21 <-  lme(rt_inv ~ run_trial_z + trial_z + cond*block, 
+          random=~1 + run_trial_z + trial_z|id/block,
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+summary(m21)
+
+AICtab(m14, m16, m19, m20, m21, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+## m22: simplify a bit -- trial_z as random at subject level only
+
+```{r m22, cache=TRUE}
+#doesn't like to converge with nlminb... maybe a sign of overparameterization
+m22 <-  lme(rt_inv ~ run_trial_z + trial_z + cond*block, 
+          random=list(~1+trial_z+run_trial_z| id, ~1 + run_trial_z|block_id),
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+summary(m22)
+
+AICtab(m14, m16, m19, m20, m21, m22, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+## m23: trial, run_trial, and condition as random slopes within id
+
+```{r m23, cache=TRUE}
+#doesn't like to converge with nlminb... maybe a sign of overparameterization
+m23 <-  lme(rt_inv ~ run_trial_z + trial_z + cond*block, 
+          random=list(~1+trial_z+run_trial_z + cond| id),
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+summary(m23)
+
+AICtab(m14, m16, m19, m20, m21, m22, m23, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+## m24: run_trial, trial, and condition as random slopes, all block nested within id
+
+```{r m24, cache=TRUE}
+
+#doesn't like to converge with nlminb... maybe a sign of overparameterization
+m24 <-  lme(rt_inv ~ run_trial_z + trial_z + cond*block, 
+          random=~1 + run_trial_z + trial_z + cond|id/block,
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+summary(m24)
+AICtab(m14, m16, m19, m20, m21, m22, m23, m24, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+
+car::vif(m24) #nothing at all concerning
+```
+
+So, even though it is a ton of parameters, the model with random slopes of condition, trial, and run_trial is faring well. What if we tried to treat block as a random slope, not a blocking factor? This is conceptually distinct, but also simpler.
+
+## m25: put block on the random slope side
+
+```{r m25, cache=TRUE}
+
+#doesn't like to converge with nlminb... maybe a sign of overparameterization
+m25 <-  lme(rt_inv ~ run_trial_z + trial_z + cond*block, 
+          random=~1 + run_trial_z + trial_z + cond + block|id,
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+summary(m25)
+AICtab(m14, m16, m19, m20, m21, m22, m23, m24, m25, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+
+car::vif(m25) #nothing at all concerning
+```
+
+m25 can't compete with the nested models... Can we get any closer if we have just an intercept that respects the block nesting?
+
+## m26: intercept only with block nesting
+
+This absolutely doesn't work... seems to be equivalent to m25 and throws a message about singularity.
+
+```{r m26, cache=TRUE}
+#doesn't like to converge with nlminb... maybe a sign of overparameterization
+
+m26 <-  lme(rt_inv ~ run_trial_z + trial_z + cond*block, 
+          random=list(~1 + run_trial_z + trial_z + cond + block|id, ~1|block_id),
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+summary(m26)
+AICtab(m14, m16, m19, m20, m21, m22, m23, m24, m25, m26, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+
+car::vif(m26) #nothing at all concerning
+```
+
+Note that none of the above models account further for temporally structured residual correlations like AR(1). Some evidence below indicates that this can help a lot.
+
+Given the complexity of the above, however, I'm going to forgo that for the moment in favor of adding a previous rt fixed effect
+
+## m27: add prev_rt to winning model to capture local RT dependency
+
+```{r m27, cache=TRUE}
+#doesn't like to converge with nlminb... maybe a sign of overparameterization
+m27 <-  lme(rt_inv ~ run_trial_z + trial_z + cond*block + prev_rt, 
+          random=~1 + run_trial_z + trial_z + cond|id/block,
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+summary(m27)
+AICtab(m14, m16, m22, m23, m24, m27, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+
+car::vif(m27)
+```
+
+## m28: let prev_rt interact with run_trial
+
+```{r m28, cache=TRUE}
+#doesn't like to converge with nlminb... maybe a sign of overparameterization
+m28 <-  lme(rt_inv ~ run_trial_z*prev_rt + trial_z + cond*block,
+          random=~1 + run_trial_z + trial_z + cond |id/block,
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+summary(m28)
+AICtab(m14, m16, m24, m27, m28, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+## m29: let prev_rt be random slope
+
+Don't treat it as nested
+
+```{r m29, cache=TRUE}
+#doesn't like to converge with nlminb... maybe a sign of overparameterization
+m29 <-  lme(rt_inv ~ run_trial_z + trial_z + cond*block + prev_rt, 
+          random=list(id=~ 1 + run_trial_z + trial_z + cond + prev_rt, block=~1 + run_trial_z + trial_z + cond),
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim", maxIter=200, msMaxIter=200)) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+#random=list(~ 1 + run_trial_z + trial_z + cond | id/block, ~ 0 + prev_rt | block_id),
+
+summary(m29)
+AICtab(m14, m16, m24, m27, m28, m29, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+## m30: Move cond to id-level only (not nested)
+
+Trying to put fewer random slopes on block varying-level...
+
+Start by moving cond to id only. Success!
+
+```{r m30, cache=TRUE}
+#doesn't like to converge with nlminb... maybe a sign of overparameterization
+m30 <-  lme(rt_inv ~ run_trial_z + trial_z + cond*block + prev_rt, 
+          random=list(id=~ 1 + run_trial_z + trial_z + cond + prev_rt, block=~1 + run_trial_z + trial_z),
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+#random=list(~ 1 + run_trial_z + trial_z + cond | id/block, ~ 0 + prev_rt | block_id),
+
+summary(m30)
+AICtab(m14, m16, m24, m27, m28, m29, m30, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+## m30a: try prev_rt_inv instead of prev_rt
+
+Initially, I used `prev_rt` in the models that capture the AR(1) effect as a fixed effect. But this leads to a huge difference in scale between the outcome, `rt_inv`, and the
+predictor, `prev_rt` that makes the coefficients for that term tiny. Thus, I have switched to `prev_rt` specified in terms of seconds to get the scaling on the same playing field.
+
+But why not just switch to the inverse-transformed previous RT, `prev_rt_inv` in general?
+
+```{r m30a, cache=TRUE}
+#doesn't like to converge with nlminb... maybe a sign of overparameterization
+m30a <-  lme(rt_inv ~ run_trial_z + trial_z + cond*block + prev_rt_inv, 
+          random=list(id=~ 1 + run_trial_z + trial_z + cond + prev_rt_inv, block=~1 + run_trial_z + trial_z),
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+summary(m30a)
+AICtab(m30, m30a, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+Conclusion: the inverse transformation on the previous RT is a poorer predictor. Perhaps values in the positive tail of the RT distribution shouldn't be reined in when predicting the outcome. Since the model makes an assumption on the conditional distribution of the outcome, not the predictors, stick with `prev_rt` (in seconds) throughout.
+
+## m31: move trial to subject-varying
+
+Move trial to |id as well. Gets worse, don't do it.
+
+```{r m31, cache=TRUE}
+#doesn't like to converge with nlminb... maybe a sign of overparameterization
+m31 <-  lme(rt_inv ~ run_trial_z + trial_z + cond*block + prev_rt, 
+          random=list(id=~ 1 + run_trial_z + trial_z + cond + prev_rt, block=~1 + run_trial_z),
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+summary(m31)
+AICtab(m14, m16, m24, m27, m28, m29, m30, m31, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+## m32: move run_trial to subject-varying
+
+Move run_trial to |id as well.
+
+Somewhat worse than m30
+
+```{r m32, cache=TRUE}
+#doesn't like to converge with nlminb... maybe a sign of overparameterization
+m32 <-  lme(rt_inv ~ run_trial_z + trial_z + cond*block + prev_rt, 
+          random=list(id=~ 1 + run_trial_z + trial_z + cond + prev_rt, block=~1 + trial_z),
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+summary(m32)
+AICtab(m14, m16, m24, m27, m28, m29, m30, m31, m32, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+## m33: drop run_trial_z as fixed
+
+With the addition of `prev_rt`, the `run_trial_z` term becomes nonsignificant. This likely reflects that RT trends within a run are well-captured by an AR(1)-type process, rather than needing to be a linear trend. Can we drop the `run_trial_z` without loss of fit?
+
+This builds on the current-favorite m30.
+
+```{r m33, cache=TRUE}
+#doesn't like to converge with nlminb... maybe a sign of overparameterization
+m33 <-  lme(rt_inv ~ trial_z + cond*block + prev_rt, 
+          random=list(id=~ 1 + run_trial_z + trial_z + cond + prev_rt, block=~1 + run_trial_z + trial_z),
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+summary(m33)
+AICtab(m29, m30, m31, m32, m33, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+Totally equivocal. The parsimony argument would be to drop `run_trial_z` as fixed, but probably worth sorting out it's G-side contribution (random effects).
+
+## m34: drop run_trial_z as random at block level
+
+Restore `run_trial_z` as fixed effect, drop from block-level random effects.
+
+```{r m34, cache=TRUE}
+#doesn't like to converge with nlminb... maybe a sign of overparameterization
+m34 <-  lme(rt_inv ~ trial_z + cond*block + prev_rt + run_trial_z, 
+          random=list(id=~ 1 + run_trial_z + trial_z + cond + prev_rt, block=~1 + trial_z),
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+summary(m34)
+AICtab(m29, m30, m31, m32, m33, m34, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+## m35: drop run_trial_z as random at id level
+
+Restore `run_trial_z` as fixed effect, drop from id-level random effects.
+
+```{r m35, cache=TRUE}
+#doesn't like to converge with nlminb... maybe a sign of overparameterization
+m35 <-  lme(rt_inv ~ trial_z + cond*block + prev_rt + run_trial_z, 
+          random=list(id=~ 1 + trial_z + cond + prev_rt, block=~1 + trial_z + run_trial_z),
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+summary(m35)
+AICtab(m29, m30, m31, m32, m33, m34, m35, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+So, dropping `run_trial_z` at subject level and just keeping `run_trial_z` within block is a small improvement.
+
+## m36: only keep run_trial_z as random at block level
+
+Building on m35, just drop run_trial_z as fixed since it is highly nonsignificant.
+
+```{r m36, cache=TRUE}
+#doesn't like to converge with nlminb... maybe a sign of overparameterization
+m36 <-  lme(rt_inv ~ trial_z + cond*block + prev_rt, 
+          random=list(id=~ 1 + trial_z + cond + prev_rt, block=~1 + trial_z + run_trial_z),
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+summary(m36)
+AICtab(m29, m30, m31, m32, m33, m34, m35, m36, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+## m37: get rid of run_trial_z altogether
+
+But let prev_rt be a block-level random effect.
+
+```{r m37, cache=TRUE}
+#doesn't like to converge with nlminb... maybe a sign of overparameterization
+m37 <-  lme(rt_inv ~ trial_z + cond*block + prev_rt, 
+          random=list(id=~ 1 + trial_z + cond + prev_rt, block=~1 + trial_z + prev_rt),
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+summary(m37)
+AICtab(m29, m30, m31, m32, m33, m34, m35, m36, m37, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+# conclusion and brms
+
+m30 wins! Technically, m36 makes things a bit simpler by reducing the presence of `run_trial_z` in the model, but it's qualitatively the same.
+
+how about a Bayesian variant?
+Note that this took about 6 hours to run on my machine
+
+```{r m30_bayes, cache=TRUE, eval=FALSE}
+m30_brms <- brm(bf(rt_inv ~ run_trial_z + trial_z + cond*block + prev_rt +
+          (1 + run_trial_z + trial_z + cond + prev_rt | id) + (1 + run_trial_z + trial_z | id:block),
+          sigma ~ block*cond), data = flanker, chains=4, cores=4, iter=3000)
+m30_brms <- add_criterion(m30_brms, "waic")
+m30_brms <- add_criterion(m30_brms, "loo")
+summary(m30_brms)
+```
+
+Generally looks clean, but there seem to be modest problems having both run_trial and trial as random effects. These are intractably correlated. Given that they are included in the model mostly as a control for nuisance variability, I'm okay with them being poorly sampled.
+
+How about some hypothesis tests?
+```{r m30_brmstest, eval=FALSE}
+summary(pairs(emmeans(m30_brms, ~block*cond)))
+#https://cran.r-project.org/web/packages/brms/vignettes/brms_distreg.html
+
+#intercept reflects mostly incongruent block, congruent trials
+#thus, model-predicted residual variances in the 2x2 grid are:
+# block       cond        coefs
+# most_con    congruent   sigma_Intercept + sigma_blockmost_con
+# most_con    incongruent sigma_Intercept + sigma_blockmost_con + sigma_condincongruent + sigma_blockmost_con:condincongruent
+# most_incon  congruent   sigma_Intercept
+# most_incon  incongruent sigma_Intercept + sigma_condincongruent
+
+hyp <- c(
+  mincon_con_gt0="exp(sigma_Intercept) = 0",
+  mincon_incon_gt0="exp(sigma_Intercept + sigma_condincongruent) = 0",
+  mcon_con_gt0="exp(sigma_Intercept + sigma_blockmost_con) = 0",
+  mcon_incon_gt0="exp(sigma_Intercept + sigma_blockmost_con + sigma_condincongruent + sigma_blockmost_con:condincongruent) = 0",
+  mcon_con_eq_mcon_incon="exp(sigma_Intercept + sigma_blockmost_con) = exp(sigma_Intercept + sigma_blockmost_con + sigma_condincongruent + sigma_blockmost_con:condincongruent)",
+  mincon_con_eq_mincon_incon="exp(sigma_Intercept) = exp(sigma_Intercept + sigma_condincongruent)", #or just exp(sigma_condincongruent) > 0
+  mincon_con_eq_mcon_con="exp(sigma_Intercept) = exp(sigma_Intercept + sigma_blockmost_con)", #or just exp(sigma_blockmost_con) = 0
+  mincon_incon_eq_mcon_incon="exp(sigma_Intercept + sigma_condincongruent) = exp(sigma_Intercept + sigma_blockmost_con + sigma_condincongruent + sigma_blockmost_con:condincongruent)"
+)
+
+hypothesis(m30_brms, hyp)
+```

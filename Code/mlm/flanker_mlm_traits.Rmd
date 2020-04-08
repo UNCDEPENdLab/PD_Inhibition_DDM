@@ -1,0 +1,354 @@
+---
+title: "Flanker MLM Trait Relationships"
+subtitle: "PD Inhibition Project"
+author: "Michael Hallquist"
+date: "5 Apr 2020"
+output:
+  html_document:
+    code_folding: show
+    df_print: default
+    mathjax: default
+    number_sections: no
+    theme: spacelab
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+    fig_width: 9 
+    fig_height: 6 
+  pdf_document:
+    code_folding: hide
+    df_print: default
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+---
+<style type="text/css">
+body{ max-width: 2000px; margin: auto; padding: 1em; }
+</style>
+
+```{r setup, include=FALSE}
+if (!require(pacman)) { install.packages("pacman"); library(pacman) }
+p_load(car, nlme, lme4, readr, tidyverse, emmeans, cowplot, MplusAutomation, knitr, sas7bdat, ggcorrplot, psych, lavaan)
+knitr::opts_chunk$set(echo = TRUE) #print code by default
+#knitr::opts_chunk$set(cache.path = "../../Outputs/flanker_mlms/")
+options(digits=3)
+options(width=180)
+```
+
+# Data cleaning and setup
+
+```{r}
+#flanker data processed in flanker_mlm.Rmd
+#has the worst subjects removed, rt_inv transformation, etc.
+load("../../Data/preprocessed/flanker_for_traits.RData")
+```
+
+## prepare for mplus
+```{r}
+prepareMplusData(flanker, filename="flanker_mplus.dat")
+```
+
+# Initial model in Mplus
+
+This model mimics m30 from flanker_mlms, though I did not try to accommodate heterogeneous variance at L1 (which is a pain).
+
+I also haven't validated it closely and should probably spend a little more time looking at the details.
+
+```
+m30 <-  lme(rt_inv ~ run_trial_z + trial_z + cond*block + prev_rt, 
+          random=list(id=~ 1 + run_trial_z + trial_z + cond + prev_rt, block=~1 + run_trial_z + trial_z),
+          weights=varIdent(form=~1|block*cond),
+          na.action = na.exclude,
+          data = flanker, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+```
+
+
+```{r m30_mplus, cache=TRUE}
+m30_mplus <- mplusObject(
+  TITLE = "Equivalent model to lme m30",
+  DEFINE = "
+    cond = cond - 1; ! 0=congruent, 1=incongruent
+    block = block - 1; ! 0=most_incon, 1=most_con
+    cond_block = cond*block; ! 1=most_con, incongruent
+  ",
+  VARIABLE = "
+    WITHIN = cond block cond_block prev_rt trial_z run_trial_z;
+    USEVARIABLES = id rt_inv cond block prev_rt trial_z run_trial_z cond_block;
+    CLUSTER = id;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    FBITERATIONS=10000;
+    CHAINS=2;
+    PROCESSORS=4;
+  ",
+  MODEL = "
+    %WITHIN%
+    rt_inv ON block cond_block;
+    condslo | rt_inv ON cond;
+    runslo | rt_inv ON run_trial_z;
+    trialslo | rt_inv ON trial_z;
+    prevrtslo | rt_inv ON prev_rt;
+    
+    %BETWEEN%
+    !means of random slopes
+    [condslo];
+    [runslo];
+    [trialslo];
+    [prevrtslo];
+    
+    !variances of random slopes
+    condslo;
+    runslo;
+    trialslo;
+    prevrtslo;
+    
+    !slope correlations
+    condslo runslo trialslo prevrtslo WITH
+       condslo runslo trialslo prevrtslo;
+    
+    [rt_inv]; !mean average inverse RT
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
+  rdata = flanker
+)
+
+mout <- mplusModeler(m30_mplus, dataout="flanker_mplus.dat", 
+                        modelout="m30_mplus.inp", run=TRUE)
+
+results <- mout$results
+
+```
+
+Should run_trial_z and trial_z be WITHIN variables? Doesn't seem like we care about the between component of these. For now, I have put them as WITHIN. 
+But could revisit if there is any reason to anticipate a meaningful between-subjects latent variables for these.
+
+## Unstandardized effects
+
+```{r}
+kable(results$parameters$unstandardized)
+```
+
+## Standardized effects
+
+```{r}
+kable(results$parameters$stdyx)
+```
+
+## Summary
+
+Although it's a little more legwork to look for the right parameters since some show up as means (random slopes) and others as fixed effect parameters, there is a high degree of convergence between this output and m30.
+
+# Trait overview
+
+Just prototyping here... Get SNAP scores and try to build an antagonism factor.
+
+```{r}
+snap_scores <- read.sas7bdat("~/TresorSync/Grad_School/Dissertation/Analyses/Data/snap2scores.sas7bdat") %>%
+  select(subject, starts_with("T_")) %>% dplyr::rename(id=subject)
+```
+
+## Quick EFA
+
+Drop validity scales for a minute, as well as higher-order scales, look at spectrum
+
+```{r}
+to_efa <- snap_scores %>% select(-id, -T_InvalidityIndex, -T_RareVirtues, -T_Deviance, -T_BackDeviance, -T_TRIN, -T_VRIN, -T_DRIN,
+                                 -T_NegativeTemperament, -T_PositiveTemperament, -T_Disinhibition, #higher-order scales
+                                 -T_SuicideProneness, -T_LowSelfEsteem) #these have item overlap with self-harm
+eigen(cor(to_efa))$values
+```
+
+### Correlation plot of 12 SNAP scales
+```{r, fig=TRUE, width=10, height=10}
+ggcorrplot(to_efa %>% cor(), hc.order = TRUE)
+```
+
+
+### 4-factor EFA (Kaiser's rule)
+
+```{r}
+fa4 <- fa(to_efa, nfactors = 4, fm="ml")
+fa4
+```
+
+### 3-factor EFA
+
+Self-harm likes to stay to itself. Reduce to 3-factor solution
+```{r}
+fa3 <- fa(to_efa, nfactors = 3, fm="ml")
+fa3
+```
+
+### Simple antagonism factor
+
+Try 1-factor model with Mistrust, Manipulativeness, Aggression, and Self-Harm
+
+Detachment is squirrelly
+
+```{r}
+pathology1 <- "
+ f =~ T_Mistrust + T_Manipulativeness + T_Aggression + T_SelfHarm # + T_Detachment
+"
+
+m1 <- cfa(pathology1, data=snap_scores, estimator="MLR")
+summary(m1, fit.measures=TRUE, standardized=TRUE)
+modificationindices(m1, minimum.value = 4)
+```
+
+# Trait - flanker MSEM prototype
+
+Add relevant SNAP scores to Mplus dataset, then fit MSEM model with traits as moderator of congruency random slope
+
+```{r}
+flanker_traits <- full_join(snap_scores %>% select(id, T_Mistrust, T_Manipulativeness, T_Aggression, T_SelfHarm),
+                            flanker, by="id")
+```
+
+## Corroborate 1-factor model in simple between-subjects Mplus
+
+```{r mplus_1fac, cache=TRUE}
+mplus_trait <- mplusObject(
+  TITLE = "Antagonismesque factor",
+  VARIABLE = "
+    USEVARIABLES = T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm;
+  ",
+  ANALYSIS = "
+    ESTIMATOR=BAYES;
+    FBITERATIONS=10000;
+    CHAINS=2;
+    PROCESSORS=4;
+  ",
+  MODEL = "
+    ! trait model
+    antag BY T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm;
+    
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
+  rdata = snap_scores %>% select(id, T_Mistrust, T_Manipulativeness, T_Aggression, T_SelfHarm)
+)
+
+mout_trait <- mplusModeler(mplus_trait, dataout="traits_mplus.dat", 
+                        modelout="mplus_antag.inp", run=TRUE)
+
+trait_antag <- mout_trait$results
+```
+
+### Unstandardized effects
+
+```{r}
+kable(trait_antag$parameters$unstandardized)
+```
+
+### Standardized effects
+
+```{r}
+kable(trait_antag$parameters$stdyx)
+```
+
+Looks very clean -- not perfect (RMSEA) -- and comparable to lavaan
+
+## Full MSEM with Antagonism as predictor (moderator) of random slopes
+
+```{r m30_trait, cache=TRUE}
+m30_mplus_trait <- mplusObject(
+  TITLE = "Antagonismesque factor and flanker",
+  DEFINE = "
+    cond = cond - 1; ! 0=congruent, 1=incongruent
+    block = block - 1; ! 0=most_incon, 1=most_con
+    cond_block = cond*block; ! 1=most_con, incongruent
+  ",
+  VARIABLE = "
+    WITHIN = cond block cond_block prev_rt trial_z run_trial_z;
+    BETWEEN = T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm;
+    USEVARIABLES = id rt_inv cond block prev_rt trial_z run_trial_z 
+      T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm cond_block;
+    CLUSTER = id;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    FBITERATIONS=10000;
+    CHAINS=2;
+    PROCESSORS=4;
+  ",
+  MODEL = "
+    %WITHIN%
+    rt_inv ON block cond_block;
+    condslo | rt_inv ON cond;
+    runslo | rt_inv ON run_trial_z;
+    trialslo | rt_inv ON trial_z;
+    prevrtslo | rt_inv ON prev_rt;
+    
+    %BETWEEN%
+    
+    !means of random slopes
+    [condslo];
+    [runslo];
+    [trialslo];
+    [prevrtslo];
+    
+    !variances of random slopes
+    condslo;
+    runslo;
+    trialslo;
+    prevrtslo;
+    
+    !slope correlations (removed because all n.s.)
+    !condslo runslo trialslo prevrtslo WITH
+    !   condslo runslo trialslo prevrtslo;
+    
+    [rt_inv]; !mean average inverse RT
+    
+    ! trait model
+    antag BY T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm;
+
+    ! trait moderates flanker performance -- incongruency effect and stickiness of RT
+    condslo ON antag;
+    prevrtslo ON antag;
+    
+    !N.B. Leaving out the association of antag with rt_inv omits a hugely important relationship
+    !  on the between level and will lead to bizarre problems -- like factor loadings near zero
+    
+    !allow antag as a predictor of average RT
+    rt_inv ON antag;
+    
+    ! let factor correlate with other variables on the between level
+    ! omitting this for now because it leads to estimation problems at times and when added individually, these are highly n.s.
+    !antag WITH runslo;
+    !antag WITH trialslo;
+    
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
+  rdata = flanker_traits
+)
+
+mout_antag <- mplusModeler(m30_mplus_trait, dataout="flanker_traits_mplus.dat", 
+                        modelout="m30_mplus_antag.inp", run=TRUE)
+
+results_antag <- mout_antag$results
+
+```
+
+### Unstandardized effects
+
+```{r}
+kable(results_antag$parameters$unstandardized)
+```
+
+### Standardized effects
+
+```{r}
+kable(results_antag$parameters$stdyx)
+```
+
+### Conclusions:
+
+1. Sweet, we see that the factor moderates key performance measures!!
+2. First, we see that greater antagonism is associated with longer RTs on incongruent relative to congruent trials, $\beta = .37, p = .01$ (CONDSLO.ON ANTAG)
+3. Higher antagonism is associated with faster RTs overall (tendency to respond quickly): $\beta = -.51, p = .001$ (RT_INV.ON ANTAG)
+4. Higher antagonism is associated with stronger RT stickiness (AR1 effect): $\beta = .52, p = .009$ (PREVRTSLO.ON ANTAG)
