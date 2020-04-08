@@ -1934,8 +1934,12 @@ flanker %&gt;% filter(is.na(rt)) %&gt;% nrow()</code></pre>
 <div id="frequentist-mlms-using-maximum-likelihood-and-no-explicit-temporal-covariance" class="section level1">
 <h1>Frequentist MLMs using maximum likelihood and no explicit temporal covariance</h1>
 <p>Some useful resources:</p>
-<p><a href="https://rpsychologist.com/r-guide-longitudinal-lme-lmer" class="uri">https://rpsychologist.com/r-guide-longitudinal-lme-lmer</a> <a href="https://wiekvoet.blogspot.com/2013/09/mixed-models-influence-in-heterogeneous.html" class="uri">https://wiekvoet.blogspot.com/2013/09/mixed-models-influence-in-heterogeneous.html</a> <a href="https://quantdev.ssri.psu.edu/sites/qdev/files/ILD_Ch06_2017_MLMwithHeterogeneousVariance.html" class="uri">https://quantdev.ssri.psu.edu/sites/qdev/files/ILD_Ch06_2017_MLMwithHeterogeneousVariance.html</a> <a href="https://m-clark.github.io/mixed-models-with-R/" class="uri">https://m-clark.github.io/mixed-models-with-R/</a></p>
-<p>(information about blocked variance components and interpreting lme output) <a href="https://rstudio-pubs-static.s3.amazonaws.com/234821_71b392d30fe741e8afe32896a7446226.html" class="uri">https://rstudio-pubs-static.s3.amazonaws.com/234821_71b392d30fe741e8afe32896a7446226.html</a></p>
+<p><a href="https://rpsychologist.com/r-guide-longitudinal-lme-lmer" class="uri">https://rpsychologist.com/r-guide-longitudinal-lme-lmer</a></p>
+<p><a href="https://wiekvoet.blogspot.com/2013/09/mixed-models-influence-in-heterogeneous.html" class="uri">https://wiekvoet.blogspot.com/2013/09/mixed-models-influence-in-heterogeneous.html</a></p>
+<p><a href="https://quantdev.ssri.psu.edu/sites/qdev/files/ILD_Ch06_2017_MLMwithHeterogeneousVariance.html" class="uri">https://quantdev.ssri.psu.edu/sites/qdev/files/ILD_Ch06_2017_MLMwithHeterogeneousVariance.html</a></p>
+<p><a href="https://m-clark.github.io/mixed-models-with-R/" class="uri">https://m-clark.github.io/mixed-models-with-R/</a></p>
+<p>(information about blocked variance components and interpreting lme output)</p>
+<p><a href="https://rstudio-pubs-static.s3.amazonaws.com/234821_71b392d30fe741e8afe32896a7446226.html" class="uri">https://rstudio-pubs-static.s3.amazonaws.com/234821_71b392d30fe741e8afe32896a7446226.html</a></p>
 <pre class="r"><code>flanker &lt;- flanker %&gt;% filter(exclude &lt; 3) #keep most subjects, exclude horrid ones
 save(flanker, file=&quot;../../Data/preprocessed/flanker_for_traits.RData&quot;)</code></pre>
 <div id="m1-random-intercept-of-subject-cs-structure-wrt-trial" class="section level2">
@@ -4515,16 +4519,90 @@ summary(m37)</code></pre>
 <h1>conclusion and brms</h1>
 <p>m30 wins! Technically, m36 makes things a bit simpler by reducing the presence of <code>run_trial_z</code> in the model, but it’s qualitatively the same.</p>
 <p>how about a Bayesian variant? Note that this took about 6 hours to run on my machine</p>
+<p>Here, we are using the ‘distributional model’ approachs in brms where the distribution of the level 1 residual variance is itself a variable to be fit by the model. This is described here: <a href="https://cran.r-project.org/web/packages/brms/vignettes/brms_distreg.html" class="uri">https://cran.r-project.org/web/packages/brms/vignettes/brms_distreg.html</a></p>
 <pre class="r"><code>m30_brms &lt;- brm(bf(rt_inv ~ run_trial_z + trial_z + cond*block + prev_rt +
           (1 + run_trial_z + trial_z + cond + prev_rt | id) + (1 + run_trial_z + trial_z | id:block),
-          sigma ~ block*cond), data = flanker, chains=4, cores=4, iter=3000)
-m30_brms &lt;- add_criterion(m30_brms, &quot;waic&quot;)
-m30_brms &lt;- add_criterion(m30_brms, &quot;loo&quot;)
-summary(m30_brms)</code></pre>
+          sigma ~ block*cond), data = flanker, chains=4, cores=4, iter=3000)</code></pre>
+<pre><code>## Warning: Rows containing NAs were excluded from the model.</code></pre>
+<pre><code>## Compiling the C++ model</code></pre>
+<pre><code>## Start sampling</code></pre>
+<pre><code>## Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
+## Running the chains for more iterations may help. See
+## http://mc-stan.org/misc/warnings.html#bulk-ess</code></pre>
+<pre class="r"><code>m30_brms &lt;- add_criterion(m30_brms, &quot;waic&quot;)
+m30_brms &lt;- add_criterion(m30_brms, &quot;loo&quot;)</code></pre>
+<pre><code>## Warning: Found 1 observations with a pareto_k &gt; 0.7 in model &#39;m30_brms&#39;. It is recommended to set &#39;reloo = TRUE&#39; in order to calculate
+## the ELPD without the assumption that these observations are negligible. This will refit the model 1 times to compute the ELPDs for the
+## problematic observations directly.</code></pre>
+<pre class="r"><code>summary(m30_brms)</code></pre>
+<pre><code>##  Family: gaussian 
+##   Links: mu = identity; sigma = log 
+## Formula: rt_inv ~ run_trial_z + trial_z + cond * block + prev_rt + (1 + run_trial_z + trial_z + cond + prev_rt | id) + (1 + run_trial_z + trial_z | id:block) 
+##          sigma ~ block * cond
+##    Data: flanker (Number of observations: 16521) 
+## Samples: 4 chains, each with iter = 3000; warmup = 1500; thin = 1;
+##          total post-warmup samples = 6000
+## 
+## Group-Level Effects: 
+## ~id (Number of levels: 107) 
+##                                  Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## sd(Intercept)                        0.37      0.03     0.31     0.44 1.00     2623     3445
+## sd(run_trial_z)                      0.01      0.01     0.00     0.02 1.01     1075     1612
+## sd(trial_z)                          0.04      0.01     0.01     0.07 1.02      372      552
+## sd(condincongruent)                  0.06      0.01     0.04     0.08 1.00     3153     3936
+## sd(prev_rt)                          0.53      0.06     0.42     0.66 1.00     2273     3450
+## cor(Intercept,run_trial_z)           0.35      0.32    -0.41     0.85 1.00     4810     3300
+## cor(Intercept,trial_z)              -0.03      0.19    -0.40     0.32 1.00     3062     2418
+## cor(run_trial_z,trial_z)             0.04      0.36    -0.67     0.71 1.01      370      764
+## cor(Intercept,condincongruent)      -0.31      0.14    -0.57    -0.03 1.00     4233     4630
+## cor(run_trial_z,condincongruent)    -0.05      0.34    -0.70     0.62 1.01      531     1175
+## cor(trial_z,condincongruent)        -0.35      0.22    -0.75     0.11 1.00     1230     1988
+## cor(Intercept,prev_rt)              -0.75      0.06    -0.85    -0.61 1.00     3614     4636
+## cor(run_trial_z,prev_rt)            -0.13      0.35    -0.76     0.57 1.01      416      693
+## cor(trial_z,prev_rt)                 0.09      0.20    -0.31     0.48 1.00     1413     1375
+## cor(condincongruent,prev_rt)         0.10      0.18    -0.26     0.45 1.00     2554     3802
+## 
+## ~id:block (Number of levels: 214) 
+##                            Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## sd(Intercept)                  0.04      0.01     0.03     0.05 1.00     2263     2876
+## sd(run_trial_z)                0.04      0.01     0.02     0.05 1.00     1876     2680
+## sd(trial_z)                    0.06      0.01     0.04     0.08 1.02      527     1416
+## cor(Intercept,run_trial_z)    -0.32      0.24    -0.77     0.17 1.00      971     1300
+## cor(Intercept,trial_z)         0.02      0.21    -0.41     0.42 1.00      705     1628
+## cor(run_trial_z,trial_z)      -0.24      0.19    -0.60     0.15 1.00      879     1869
+## 
+## Population-Level Effects: 
+##                                     Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## Intercept                              -3.36      0.04    -3.45    -3.28 1.00     1797     3191
+## sigma_Intercept                        -1.02      0.01    -1.05    -0.99 1.00     6486     4922
+## run_trial_z                            -0.00      0.00    -0.01     0.01 1.00     7745     4861
+## trial_z                                -0.02      0.01    -0.04    -0.01 1.00     5886     4909
+## condincongruent                         0.11      0.01     0.09     0.13 1.00     5965     4700
+## blockmost_con                           0.01      0.01    -0.01     0.03 1.00     4479     4502
+## prev_rt                                 1.62      0.08     1.48     1.77 1.00     2862     4458
+## condincongruent:blockmost_con           0.05      0.01     0.03     0.08 1.00     8083     4033
+## sigma_blockmost_con                     0.06      0.02     0.03     0.10 1.00     6014     4618
+## sigma_condincongruent                   0.04      0.02     0.01     0.08 1.00     6079     4863
+## sigma_blockmost_con:condincongruent     0.02      0.02    -0.02     0.07 1.00     5835     4820
+## 
+## Samples were drawn using sampling(NUTS). For each parameter, Bulk_ESS
+## and Tail_ESS are effective sample size measures, and Rhat is the potential
+## scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 <p>Generally looks clean, but there seem to be modest problems having both run_trial and trial as random effects. These are intractably correlated. Given that they are included in the model mostly as a control for nuisance variability, I’m okay with them being poorly sampled.</p>
 <p>How about some hypothesis tests?</p>
-<pre class="r"><code>summary(pairs(emmeans(m30_brms, ~block*cond)))
-#https://cran.r-project.org/web/packages/brms/vignettes/brms_distreg.html
+<pre class="r"><code>summary(pairs(emmeans(m30_brms, ~block*cond)))</code></pre>
+<pre><code>## Warning: Argument &#39;exact_match&#39; is deprecated. Please use &#39;fixed&#39; instead.</code></pre>
+<pre><code>##  contrast                                      estimate lower.HPD upper.HPD
+##  most_incon,congruent - most_con,congruent      -0.0081   -0.0291    0.0132
+##  most_incon,congruent - most_incon,incongruent  -0.1137   -0.1334   -0.0923
+##  most_incon,congruent - most_con,incongruent    -0.1754   -0.2027   -0.1480
+##  most_con,congruent - most_incon,incongruent    -0.1056   -0.1275   -0.0843
+##  most_con,congruent - most_con,incongruent      -0.1674   -0.1906   -0.1453
+##  most_incon,incongruent - most_con,incongruent  -0.0617   -0.0834   -0.0382
+## 
+## Point estimate displayed: median 
+## HPD interval probability: 0.95</code></pre>
+<pre class="r"><code>#https://cran.r-project.org/web/packages/brms/vignettes/brms_distreg.html
 
 #intercept reflects mostly incongruent block, congruent trials
 #thus, model-predicted residual variances in the 2x2 grid are:
@@ -4546,6 +4624,21 @@ hyp &lt;- c(
 )
 
 hypothesis(m30_brms, hyp)</code></pre>
+<pre><code>## Hypothesis Tests for class b:
+##                 Hypothesis Estimate Est.Error CI.Lower CI.Upper Evid.Ratio Post.Prob Star
+## 1           mincon_con_gt0     0.36      0.01     0.35     0.37         NA        NA    *
+## 2         mincon_incon_gt0     0.38      0.00     0.37     0.38         NA        NA    *
+## 3             mcon_con_gt0     0.39      0.00     0.38     0.39         NA        NA    *
+## 4           mcon_incon_gt0     0.41      0.01     0.40     0.42         NA        NA    *
+## 5   mcon_con_eq_mcon_incon    -0.03      0.01    -0.04    -0.01         NA        NA    *
+## 6 mincon_con_eq_min...ncon    -0.02      0.01    -0.03     0.00         NA        NA    *
+## 7   mincon_con_eq_mcon_con    -0.02      0.01    -0.04    -0.01         NA        NA    *
+## 8 mincon_incon_eq_m...ncon    -0.03      0.01    -0.05    -0.02         NA        NA    *
+## ---
+## &#39;CI&#39;: 90%-CI for one-sided and 95%-CI for two-sided hypotheses.
+## &#39;*&#39;: For one-sided hypotheses, the posterior probability exceeds 95%;
+## for two-sided hypotheses, the value tested against lies outside the 95%-CI.
+## Posterior probabilities of point hypotheses assume equal prior probabilities.</code></pre>
 </div>
 
 

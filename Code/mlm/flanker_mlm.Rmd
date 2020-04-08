@@ -283,11 +283,15 @@ For the moment, the inverse-transformed RT shows the most promise, which matches
 Some useful resources:
 
 https://rpsychologist.com/r-guide-longitudinal-lme-lmer
+
 https://wiekvoet.blogspot.com/2013/09/mixed-models-influence-in-heterogeneous.html
+
 https://quantdev.ssri.psu.edu/sites/qdev/files/ILD_Ch06_2017_MLMwithHeterogeneousVariance.html
+
 https://m-clark.github.io/mixed-models-with-R/
 
 (information about blocked variance components and interpreting lme output)
+
 https://rstudio-pubs-static.s3.amazonaws.com/234821_71b392d30fe741e8afe32896a7446226.html
 
 ```{r}
@@ -1038,9 +1042,12 @@ AICtab(m29, m30, m31, m32, m33, m34, m35, m36, m37, sort=TRUE, delta=TRUE, weigh
 m30 wins! Technically, m36 makes things a bit simpler by reducing the presence of `run_trial_z` in the model, but it's qualitatively the same.
 
 how about a Bayesian variant?
-Note that this took about 6 hours to run on my machine
 
-```{r m30_bayes, cache=TRUE, eval=FALSE}
+Note that this took about 6 hours to run on my machine, so be careful in knitting!
+
+Here, we are using the 'distributional model' approachs in brms where the distribution of the level 1 residual variance is itself a variable to be fit by the model. This is described here: https://cran.r-project.org/web/packages/brms/vignettes/brms_distreg.html
+
+```{r m30_bayes, cache=TRUE}
 m30_brms <- brm(bf(rt_inv ~ run_trial_z + trial_z + cond*block + prev_rt +
           (1 + run_trial_z + trial_z + cond + prev_rt | id) + (1 + run_trial_z + trial_z | id:block),
           sigma ~ block*cond), data = flanker, chains=4, cores=4, iter=3000)
@@ -1052,7 +1059,7 @@ summary(m30_brms)
 Generally looks clean, but there seem to be modest problems having both run_trial and trial as random effects. These are intractably correlated. Given that they are included in the model mostly as a control for nuisance variability, I'm okay with them being poorly sampled.
 
 How about some hypothesis tests?
-```{r m30_brmstest, eval=FALSE}
+```{r m30_brmstest, cache=TRUE}
 summary(pairs(emmeans(m30_brms, ~block*cond)))
 #https://cran.r-project.org/web/packages/brms/vignettes/brms_distreg.html
 
