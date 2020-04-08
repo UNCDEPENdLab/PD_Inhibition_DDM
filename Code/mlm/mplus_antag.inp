@@ -1,0 +1,28 @@
+TITLE:
+Antagonismesque factor
+DATA:
+FILE = "traits_mplus_ac909afa2c8806c8d01dabbf80b5f562.dat";
+ 
+VARIABLE:
+NAMES = T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm; 
+ MISSING=.;
+ 
+    USEVARIABLES = T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm;
+  
+ANALYSIS:
+
+    ESTIMATOR=BAYES;
+    FBITERATIONS=10000;
+    CHAINS=2;
+    PROCESSORS=4;
+  
+MODEL:
+
+    ! trait model
+    antag BY T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm;
+    
+  
+OUTPUT:
+TECH1 TECH8 STANDARDIZED CINTERVAL;
+PLOT:
+TYPE = PLOT2;

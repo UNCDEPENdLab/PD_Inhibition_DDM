@@ -1,0 +1,59 @@
+TITLE:
+Equivalent model to lme m30
+DATA:
+FILE = "flanker_mplus_250251af597357c3fef01ad015d91a34.dat";
+ 
+VARIABLE:
+NAMES = id rt cond block trial trial_z rt_inv run_trial run_trial_z prev_rt; 
+ MISSING=.;
+ 
+    WITHIN = cond block cond_block prev_rt trial_z run_trial_z;
+    USEVARIABLES = id rt_inv cond block prev_rt trial_z run_trial_z cond_block;
+    CLUSTER = id;
+  
+DEFINE:
+
+    cond = cond - 1; ! 0=congruent, 1=incongruent
+    block = block - 1; ! 0=most_incon, 1=most_con
+    cond_block = cond*block; ! 1=most_con, incongruent
+  
+ANALYSIS:
+
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    FBITERATIONS=10000;
+    CHAINS=2;
+    PROCESSORS=4;
+  
+MODEL:
+
+    %WITHIN%
+    rt_inv ON block cond_block;
+    condslo | rt_inv ON cond;
+    runslo | rt_inv ON run_trial_z;
+    trialslo | rt_inv ON trial_z;
+    prevrtslo | rt_inv ON prev_rt;
+    
+    %BETWEEN%
+    !means of random slopes
+    [condslo];
+    [runslo];
+    [trialslo];
+    [prevrtslo];
+    
+    !variances of random slopes
+    condslo;
+    runslo;
+    trialslo;
+    prevrtslo;
+    
+    !slope correlations
+    condslo runslo trialslo prevrtslo WITH
+       condslo runslo trialslo prevrtslo;
+    
+    [rt_inv]; !mean average inverse RT
+  
+OUTPUT:
+TECH1 TECH8 STANDARDIZED CINTERVAL;
+PLOT:
+TYPE = PLOT2;
