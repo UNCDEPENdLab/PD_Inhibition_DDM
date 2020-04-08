@@ -123,7 +123,7 @@ problem_accs <- summaries_con %>% filter(Subject_ACC_con <= .5) %>% arrange(Subj
 
 
 badsubs <- unique(problem_accs$Subject)
-save(badsubs, file = "Data/cache/acc_drop_recent_probes.RData")
+# save(badsubs, file = "Data/cache/acc_drop_recent_probes.RData")
 
 
 ```
@@ -324,7 +324,11 @@ hist(unique(nas_persub$na.counts_sub))
 head(nas_persub)
 # 36 is pretty darn fast, are they getting them right?
 
-rp_cleaned %>% filter(Subject == 36)
+subj36 <- rp_cleaned %>% filter(Subject == 36)
+tail(subj36, 20)
+
+nona <- subj36 %>% filter(!is.na(rt))
+table(nona$Condition)
 
 rp_bad_nas <- 36
 save(rp_bad_nas, file = "Data/cache/na_drop_recent_probes.RData")
