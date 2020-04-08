@@ -319,7 +319,7 @@ length(unique(flank_acc_trim$Subject))
 
 ```{r}
 # str(flank_acc_trim)
-flank_acc_trim <- flank_acc_trim %>% rename(`rt` = `TrialSlide_RT`)
+flank_acc_trim <- flank_acc_trim %>% dplyr::rename(`rt` = `TrialSlide_RT`)
 
 flank_acc_trim <- flank_acc_trim %>% mutate(group_Amean_rt = mean(rt, na.rm = TRUE),
                                             group_Hmean_rt = harmonic.mean(rt, na.rm = TRUE),
@@ -499,7 +499,12 @@ flank_cleaned$rt <- ifelse(flank_cleaned$rt >= flank_cleaned$group_conSD3AHmean_
 ```{r}
 summaries_rt <- flank_cleaned %>% group_by(Subject, Incongruent,CongruentBlock) %>% dplyr::summarise(amean = mean(rt, na.rm = TRUE),
                                                                        sd = sd(rt, na.rm = TRUE),
-                                                                       hmean = harmonic.mean(rt))#,
+                                                                       hmean = harmonic.mean(rt)) #%>% ungroup() 
+
+
+summaries_group <- flank_cleaned %>% group_by(Incongruent, CongruentBlock) %>% dplyr::summarise(gmean = harmonic.mean(rt, na.rm = TRUE),
+                                                                                                gsd = sd(rt, na.rm = TRUE),
+                                                                                                gmeansd = gmean+(3*gsd))
                                                                        
 
 
@@ -510,8 +515,8 @@ cor(summaries_rt$amean, summaries_rt$hmean)
 6. Screen for unlikely RT means between subjects, separating incongruent and congruent trials. For example, if the congruent sample average is ~250ms and one subject has a mean ~750ms, is this plausible? If not, discuss and potentially drop.
 
 ```{r}
-summaries_rt <- summaries_rt %>% group_by(Incongruent, CongruentBlock) %>% mutate(g_mean = mean(hmean), g_sd = sd(hmean), g_meansd = g_mean + 3*g_sd)
-summaries_rt
+# summaries_rt <- summaries_rt %>% group_by(Incongruent, CongruentBlock) %>% mutate(g_mean = mean(hmean), g_sd = sd(hmean), g_meansd = g_mean + 3*g_sd)
+# summaries_rt
 p <- ggplot(summaries_rt, aes(x = hmean)) + geom_histogram()   + facet_grid(Incongruent ~ CongruentBlock) #+ geom_vline(xintercept = summaries_rt$g_mean, color = "red")
 plot(p)
 
