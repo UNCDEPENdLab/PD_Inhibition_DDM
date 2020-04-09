@@ -117,9 +117,12 @@ sv = {'model': "sv ~ 1 ", 'link_func': lambda x: x}
 st = {'model': "st ~ 1", 'link_func': lambda x: x}
 
 if task == 'flanker':
+    
     v = {'model': "v ~ 1  + C(stim, Treatment(0))", 'link_func': lambda x: x}
     v_block = {'model': "v ~ 1  + C(stim, Treatment(0)) * C(CongruentBlock, Treatment(0))", 'link_func': lambda x: x}
+    
     ##### create dict to index that includes different combinations of the design matrices from above
+    
     mod_dict = {'v':hddm.HDDMRegressor(data, v, group_only_regressors = False),
     'vsv':hddm.HDDMRegressor(data, [v,sv], include = 'sv', group_only_regressors = False),
     'v_block':hddm.HDDMRegressor(data, v_block, group_only_regressors = False),
@@ -134,8 +137,11 @@ if task == 'flanker':
     #'v_blocksvz_reg':hddm.HDDMRegressor(data, [v_block,sv,z], include = ('sv', 'z'))}
     # mod_dict = {'v_blocksvst_reg':hddm.HDDMRegressor(data, [v_block,sv,st], include = ('sv', 'st'),group_only_regressors = False)}
 elif task == 'recent_probes':
+    
     v = {'model': "v ~ 1  + C(Condition, Treatment('positive'))", 'link_func': lambda x: x}
+    
     ##### create dict to index that includes different combinations of the design matrices from above
+    
     mod_dict = {'v':hddm.HDDMRegressor(data, v, group_only_regressors = False),
     'vsv':hddm.HDDMRegressor(data, [v,sv], include = 'sv', group_only_regressors = False),
     'vst':hddm.HDDMRegressor(data, [v,st], include = 'st', group_only_regressors = False),
@@ -150,19 +156,23 @@ elif task == 'recent_probes':
 # allows for DDM to drop certain parameterizations if not requested.
 mod_dict_torun = {key: mod_dict[key] for key in models}
 
-
+print mod_dict_torun
 ##############################################
 ## parallel loop over models and number of chains. Sample and save 
 ##############################################
 ##### 
 
-with pymp.Parallel(len(mod_dict_torun)) as p:
-    with pymp.Parallel(nchains) as ch:
-        for index in p.range(0, len(mod_dict_torun)):
-            for ch_index in ch.range(0,nchains):
-                model = mod_dict_torun.values()[index]
-                model.sample(nsample, burn = nburn, dbname = mod_dict_torun.keys()[index] + '_chain'+str(ch_index)+'.db', db = 'pickle')
-                model.save(mod_dict_torun.keys()[index] + '_chain'+str(ch_index)+'.model')
-
-
+#
+##N.B. 4/9/20 per MH's suggestion, it is advised that this script be called to run one model and parallelize over the number of chains requested.
+### however, the function will still support running multiple models, though this will now be executed serially.
+#
+##with pymp.Parallel(len(mod_dict_torun)) as p:
+#for index in range(0, len(mod_dict_torun)):
+#    with pymp.Parallel(nchains) as ch:     
+#        for ch_index in ch.range(0,nchains):
+#            model = mod_dict_torun.values()[index]
+#            model.sample(nsample, burn = nburn, dbname = mod_dict_torun.keys()[index] + '_chain'+str(ch_index)+'.db', db = 'pickle')
+#            model.save(mod_dict_torun.keys()[index] + '_chain'+str(ch_index)+'.model')
+#
+#
 
