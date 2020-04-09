@@ -1,18 +1,19 @@
 TITLE:
 Antagonismesque factor and flanker
 DATA:
-FILE = "flanker_traits_mplus_acc9670d91dd3acb83a112c75a20acf1.dat";
+FILE = "flanker_traits_mplus_d687104fdcc17051863b941980a5fc36.dat";
  
 VARIABLE:
-NAMES = id T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm rt cond block trial
-     trial_z rt_inv run_trial run_trial_z prev_rt; 
+NAMES = id T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm correct rt cond
+     block trial trial_z rt_inv run_trial run_trial_z prev_rt; 
  MISSING=.;
  
     WITHIN = cond block cond_block prev_rt trial_z run_trial_z;
     BETWEEN = T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm;
-    USEVARIABLES = id rt_inv cond block prev_rt trial_z run_trial_z 
+    USEVARIABLES = id correct rt_inv cond block prev_rt trial_z run_trial_z 
       T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm cond_block;
     CLUSTER = id;
+    CATEGORICAL = correct;
   
 DEFINE:
 
@@ -24,7 +25,8 @@ ANALYSIS:
 
     TYPE=TWOLEVEL RANDOM;
     ESTIMATOR=BAYES;
-    FBITERATIONS=10000;
+    BITERATIONS=(15000);
+    BCONVERGENCE=.02;
     CHAINS=2;
     PROCESSORS=4;
   
@@ -36,6 +38,13 @@ MODEL:
     runslo | rt_inv ON run_trial_z;
     trialslo | rt_inv ON trial_z;
     prevslo | rt_inv ON prev_rt;
+    
+    !treat these as fixed only (keep the model sane)
+    correct ON trial_z run_trial_z block cond_block;
+    b_condslo | correct ON cond;
+    b_prevslo | correct ON prev_rt;
+    
+    correct WITH rt_inv; !allow RT-accuracy correlation
     
     %BETWEEN%
     
@@ -74,6 +83,21 @@ MODEL:
     ! omitting this for now because it leads to estimation problems at times and when added individually, these are highly n.s.
     !antag WITH runslo;
     !antag WITH trialslo;
+    
+    [correct$1]; !person average
+    b_condslo ON antag; !whether antagonism moderates the incongruency -> accuracy relationship
+    
+    b_prevslo WITH antag; !drives the model off the rails if we attempt b_prevslo ON antag
+    
+    !allow antag as predictor of overall accuracy
+    correct on antag;
+    
+    !relationship between average RT and accuracy
+    correct WITH rt_inv;
+    
+    !associations between continuous and binary random slopes
+    !condslo WITH b_condslo;
+    !prevslo WITH b_prevslo;
     
   
 OUTPUT:

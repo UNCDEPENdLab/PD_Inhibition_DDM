@@ -294,6 +294,19 @@ https://m-clark.github.io/mixed-models-with-R/
 
 https://rstudio-pubs-static.s3.amazonaws.com/234821_71b392d30fe741e8afe32896a7446226.html
 
+https://bookdown.org/content/3890/
+
+https://mjskay.github.io/tidybayes/articles/tidybayes.html
+
+https://fukamilab.github.io/BIO202/03-C-heterogeneity.html
+
+https://www.statforbiology.com/2019/stat_nlmm_designconstraints/
+
+http://www.dwoll.de/rexrepos/posts/anovaMixed.html
+
+https://lindeloev.github.io/shiny-rt/
+
+https://www.flutterbys.com.au/stats/tut/tut8.3b.html
 ```{r}
 flanker <- flanker %>% filter(exclude < 3) #keep most subjects, exclude horrid ones
 save(flanker, file="../../Data/preprocessed/flanker_for_traits.RData")

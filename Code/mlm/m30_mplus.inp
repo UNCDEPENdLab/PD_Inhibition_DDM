@@ -32,24 +32,24 @@ MODEL:
     condslo | rt_inv ON cond;
     runslo | rt_inv ON run_trial_z;
     trialslo | rt_inv ON trial_z;
-    prevrtslo | rt_inv ON prev_rt;
+    prevslo | rt_inv ON prev_rt;
     
     %BETWEEN%
     !means of random slopes
     [condslo];
     [runslo];
     [trialslo];
-    [prevrtslo];
+    [prevslo];
     
     !variances of random slopes
     condslo;
     runslo;
     trialslo;
-    prevrtslo;
+    prevslo;
     
     !slope correlations
-    condslo runslo trialslo prevrtslo WITH
-       condslo runslo trialslo prevrtslo;
+    condslo runslo trialslo prevslo WITH
+       condslo runslo trialslo prevslo;
     
     [rt_inv]; !mean average inverse RT
   

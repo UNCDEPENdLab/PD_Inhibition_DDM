@@ -1,6 +1,6 @@
 Mplus VERSION 8.4 (Mac)
 MUTHEN & MUTHEN
-04/08/2020  12:48 PM
+04/08/2020   4:30 PM
 
 INPUT INSTRUCTIONS
 
@@ -38,24 +38,24 @@ INPUT INSTRUCTIONS
       condslo | rt_inv ON cond;
       runslo | rt_inv ON run_trial_z;
       trialslo | rt_inv ON trial_z;
-      prevrtslo | rt_inv ON prev_rt;
+      prevslo | rt_inv ON prev_rt;
 
       %BETWEEN%
       !means of random slopes
       [condslo];
       [runslo];
       [trialslo];
-      [prevrtslo];
+      [prevslo];
 
       !variances of random slopes
       condslo;
       runslo;
       trialslo;
-      prevrtslo;
+      prevslo;
 
       !slope correlations
-      condslo runslo trialslo prevrtslo WITH
-         condslo runslo trialslo prevrtslo;
+      condslo runslo trialslo prevslo WITH
+         condslo runslo trialslo prevslo;
 
       [rt_inv]; !mean average inverse RT
 
@@ -106,7 +106,7 @@ Observed independent variables
    COND        BLOCK       PREV_RT     TRIAL_Z     RUN_TRIA    COND_BLO
 
 Continuous latent variables
-   CONDSLO     RUNSLO      TRIALSLO    PREVRTSL
+   CONDSLO     RUNSLO      TRIALSLO    PREVSLO
 
 Variables with special functions
 
@@ -248,28 +248,28 @@ Between Level
  CONDSLO  WITH
     RUNSLO             0.000       0.000      0.408      -0.001       0.001
     TRIALSLO          -0.001       0.001      0.033      -0.003       0.000
-    PREVRTSLO         -0.004       0.005      0.211      -0.015       0.006
+    PREVSLO           -0.004       0.005      0.211      -0.015       0.006
 
  RUNSLO   WITH
     TRIALSLO           0.000       0.000      0.458      -0.001       0.001
-    PREVRTSLO          0.000       0.002      0.449      -0.005       0.005
+    PREVSLO            0.000       0.002      0.449      -0.005       0.005
 
  TRIALSLO WITH
-    PREVRTSLO          0.001       0.004      0.375      -0.007       0.010
+    PREVSLO            0.001       0.004      0.375      -0.007       0.010
 
  Means
     RT_INV            -3.377       0.034      0.000      -3.443      -3.311      *
     CONDSLO            0.113       0.011      0.000       0.091       0.135      *
     RUNSLO            -0.002       0.004      0.291      -0.011       0.006
     TRIALSLO          -0.022       0.007      0.001      -0.036      -0.008      *
-    PREVRTSLO          1.642       0.063      0.000       1.517       1.764      *
+    PREVSLO            1.642       0.063      0.000       1.517       1.764      *
 
  Variances
     RT_INV             0.076       0.014      0.000       0.054       0.109      *
     CONDSLO            0.004       0.001      0.000       0.002       0.007      *
     RUNSLO             0.001       0.000      0.000       0.001       0.002      *
     TRIALSLO           0.004       0.001      0.000       0.003       0.006      *
-    PREVRTSLO          0.162       0.043      0.000       0.096       0.265      *
+    PREVSLO            0.162       0.043      0.000       0.096       0.265      *
 
 
 STANDARDIZED MODEL RESULTS
@@ -291,7 +291,7 @@ Within-Level Standardized Estimates Averaged Over Clusters
  TRIALSLO | RT_INV ON
     TRIAL_Z           -0.049       0.007      0.000      -0.063      -0.034      *
 
- PREVRTSLO | RT_INV ON
+ PREVSLO | RT_INV ON
     PREV_RT            0.256       0.007      0.000       0.243       0.269      *
 
  RT_INV     ON
@@ -306,28 +306,28 @@ Between Level
  CONDSLO  WITH
     RUNSLO             0.045       0.185      0.408      -0.318       0.401
     TRIALSLO          -0.286       0.147      0.033      -0.556       0.019
-    PREVRTSLO         -0.161       0.196      0.211      -0.517       0.243
+    PREVSLO           -0.161       0.196      0.211      -0.517       0.243
 
  RUNSLO   WITH
     TRIALSLO          -0.018       0.161      0.458      -0.329       0.298
-    PREVRTSLO         -0.024       0.187      0.449      -0.389       0.335
+    PREVSLO           -0.024       0.187      0.449      -0.389       0.335
 
  TRIALSLO WITH
-    PREVRTSLO          0.049       0.151      0.375      -0.252       0.335
+    PREVSLO            0.049       0.151      0.375      -0.252       0.335
 
  Means
     RT_INV           -12.226       1.104      0.000     -14.528     -10.207      *
     CONDSLO            1.735       0.304      0.000       1.231       2.423      *
     RUNSLO            -0.076       0.141      0.291      -0.349       0.190
     TRIALSLO          -0.328       0.110      0.001      -0.544      -0.112      *
-    PREVRTSLO          4.067       0.571      0.000       3.124       5.367      *
+    PREVSLO            4.067       0.571      0.000       3.124       5.367      *
 
  Variances
     RT_INV             1.000       0.000      0.000       1.000       1.000
     CONDSLO            1.000       0.000      0.000       1.000       1.000
     RUNSLO             1.000       0.000      0.000       1.000       1.000
     TRIALSLO           1.000       0.000      0.000       1.000       1.000
-    PREVRTSLO          1.000       0.000      0.000       1.000       1.000
+    PREVSLO            1.000       0.000      0.000       1.000       1.000
 
 
 STDY Standardization
@@ -346,7 +346,7 @@ Within-Level Standardized Estimates Averaged Over Clusters
  TRIALSLO | RT_INV ON
     TRIAL_Z           -0.049       0.007      0.000      -0.064      -0.035      *
 
- PREVRTSLO | RT_INV ON
+ PREVSLO | RT_INV ON
     PREV_RT            3.892       0.114      0.000       3.674       4.116      *
 
  RT_INV     ON
@@ -361,28 +361,28 @@ Between Level
  CONDSLO  WITH
     RUNSLO             0.045       0.185      0.408      -0.318       0.401
     TRIALSLO          -0.286       0.147      0.033      -0.556       0.019
-    PREVRTSLO         -0.161       0.196      0.211      -0.517       0.243
+    PREVSLO           -0.161       0.196      0.211      -0.517       0.243
 
  RUNSLO   WITH
     TRIALSLO          -0.018       0.161      0.458      -0.329       0.298
-    PREVRTSLO         -0.024       0.187      0.449      -0.389       0.335
+    PREVSLO           -0.024       0.187      0.449      -0.389       0.335
 
  TRIALSLO WITH
-    PREVRTSLO          0.049       0.151      0.375      -0.252       0.335
+    PREVSLO            0.049       0.151      0.375      -0.252       0.335
 
  Means
     RT_INV           -12.226       1.104      0.000     -14.528     -10.207      *
     CONDSLO            1.735       0.304      0.000       1.231       2.423      *
     RUNSLO            -0.076       0.141      0.291      -0.349       0.190
     TRIALSLO          -0.328       0.110      0.001      -0.544      -0.112      *
-    PREVRTSLO          4.067       0.571      0.000       3.124       5.367      *
+    PREVSLO            4.067       0.571      0.000       3.124       5.367      *
 
  Variances
     RT_INV             1.000       0.000      0.000       1.000       1.000
     CONDSLO            1.000       0.000      0.000       1.000       1.000
     RUNSLO             1.000       0.000      0.000       1.000       1.000
     TRIALSLO           1.000       0.000      0.000       1.000       1.000
-    PREVRTSLO          1.000       0.000      0.000       1.000       1.000
+    PREVSLO            1.000       0.000      0.000       1.000       1.000
 
 
 STD Standardization
@@ -401,7 +401,7 @@ Within-Level Standardized Estimates Averaged Over Clusters
  TRIALSLO | RT_INV ON
     TRIAL_Z           -0.022       0.003      0.000      -0.028      -0.016      *
 
- PREVRTSLO | RT_INV ON
+ PREVSLO | RT_INV ON
     PREV_RT            1.641       0.049      0.000       1.550       1.742      *
 
  RT_INV     ON
@@ -416,28 +416,28 @@ Between Level
  CONDSLO  WITH
     RUNSLO             0.045       0.185      0.408      -0.318       0.401
     TRIALSLO          -0.286       0.147      0.033      -0.556       0.019
-    PREVRTSLO         -0.161       0.196      0.211      -0.517       0.243
+    PREVSLO           -0.161       0.196      0.211      -0.517       0.243
 
  RUNSLO   WITH
     TRIALSLO          -0.018       0.161      0.458      -0.329       0.298
-    PREVRTSLO         -0.024       0.187      0.449      -0.389       0.335
+    PREVSLO           -0.024       0.187      0.449      -0.389       0.335
 
  TRIALSLO WITH
-    PREVRTSLO          0.049       0.151      0.375      -0.252       0.335
+    PREVSLO            0.049       0.151      0.375      -0.252       0.335
 
  Means
     RT_INV            -3.377       0.034      0.000      -3.443      -3.311      *
     CONDSLO            1.735       0.304      0.000       1.231       2.423      *
     RUNSLO            -0.076       0.141      0.291      -0.349       0.190
     TRIALSLO          -0.328       0.110      0.001      -0.544      -0.112      *
-    PREVRTSLO          4.067       0.571      0.000       3.124       5.367      *
+    PREVSLO            4.067       0.571      0.000       3.124       5.367      *
 
  Variances
     RT_INV             0.076       0.014      0.000       0.054       0.109      *
     CONDSLO            1.000       0.000      0.000       1.000       1.000
     RUNSLO             1.000       0.000      0.000       1.000       1.000
     TRIALSLO           1.000       0.000      0.000       1.000       1.000
-    PREVRTSLO          1.000       0.000      0.000       1.000       1.000
+    PREVSLO            1.000       0.000      0.000       1.000       1.000
 
 
 R-SQUARE
@@ -470,28 +470,28 @@ Between Level
  CONDSLO  WITH
     RUNSLO          -0.001      -0.001      -0.001       0.000       0.001       0.001       0.001
     TRIALSLO        -0.003      -0.003      -0.002      -0.001       0.000       0.000       0.000
-    PREVRTSLO       -0.019      -0.015      -0.013      -0.004       0.005       0.006       0.010
+    PREVSLO         -0.019      -0.015      -0.013      -0.004       0.005       0.006       0.010
 
  RUNSLO   WITH
     TRIALSLO        -0.001      -0.001      -0.001       0.000       0.001       0.001       0.001
-    PREVRTSLO       -0.007      -0.005      -0.004       0.000       0.004       0.005       0.006
+    PREVSLO         -0.007      -0.005      -0.004       0.000       0.004       0.005       0.006
 
  TRIALSLO WITH
-    PREVRTSLO       -0.011      -0.007      -0.006       0.001       0.008       0.010       0.013
+    PREVSLO         -0.011      -0.007      -0.006       0.001       0.008       0.010       0.013
 
  Means
     RT_INV          -3.462      -3.443      -3.433      -3.377      -3.321      -3.311      -3.291
     CONDSLO          0.083       0.091       0.094       0.113       0.132       0.135       0.143
     RUNSLO          -0.014      -0.011      -0.010      -0.002       0.005       0.006       0.009
     TRIALSLO        -0.040      -0.036      -0.033      -0.022      -0.010      -0.008      -0.003
-    PREVRTSLO        1.474       1.517       1.537       1.642       1.743       1.764       1.802
+    PREVSLO          1.474       1.517       1.537       1.642       1.743       1.764       1.802
 
  Variances
     RT_INV           0.049       0.054       0.057       0.076       0.103       0.109       0.122
     CONDSLO          0.002       0.002       0.003       0.004       0.006       0.007       0.008
     RUNSLO           0.001       0.001       0.001       0.001       0.001       0.002       0.002
     TRIALSLO         0.003       0.003       0.003       0.004       0.006       0.006       0.007
-    PREVRTSLO        0.082       0.096       0.105       0.162       0.246       0.265       0.308
+    PREVSLO          0.082       0.096       0.105       0.162       0.246       0.265       0.308
 
 
 CREDIBILITY INTERVALS OF STANDARDIZED MODEL RESULTS
@@ -515,28 +515,28 @@ Between Level
  CONDSLO  WITH
     RUNSLO          -0.435      -0.318      -0.261       0.045       0.345       0.401       0.504
     TRIALSLO        -0.638      -0.556      -0.518      -0.286      -0.029       0.019       0.103
-    PREVRTSLO       -0.646      -0.517      -0.470      -0.161       0.171       0.243       0.360
+    PREVSLO         -0.646      -0.517      -0.470      -0.161       0.171       0.243       0.360
 
  RUNSLO   WITH
     TRIALSLO        -0.419      -0.329      -0.282      -0.018       0.250       0.298       0.395
-    PREVRTSLO       -0.504      -0.389      -0.334      -0.024       0.283       0.335       0.438
+    PREVSLO         -0.504      -0.389      -0.334      -0.024       0.283       0.335       0.438
 
  TRIALSLO WITH
-    PREVRTSLO       -0.347      -0.252      -0.202       0.049       0.291       0.335       0.427
+    PREVSLO         -0.347      -0.252      -0.202       0.049       0.291       0.335       0.427
 
  Means
     RT_INV         -15.415     -14.528     -14.143     -12.226     -10.507     -10.207      -9.628
     CONDSLO          1.110       1.231       1.305       1.735       2.286       2.423       2.669
     RUNSLO          -0.440      -0.349      -0.307      -0.076       0.152       0.190       0.292
     TRIALSLO        -0.612      -0.544      -0.510      -0.328      -0.147      -0.112      -0.050
-    PREVRTSLO        2.873       3.124       3.255       4.067       5.124       5.367       5.827
+    PREVSLO          2.873       3.124       3.255       4.067       5.124       5.367       5.827
 
  Variances
     RT_INV           1.000       1.000       1.000       1.000       1.000       1.000       1.000
     CONDSLO          1.000       1.000       1.000       1.000       1.000       1.000       1.000
     RUNSLO           1.000       1.000       1.000       1.000       1.000       1.000       1.000
     TRIALSLO         1.000       1.000       1.000       1.000       1.000       1.000       1.000
-    PREVRTSLO        1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    PREVSLO          1.000       1.000       1.000       1.000       1.000       1.000       1.000
 
 
 STDY Standardization
@@ -557,28 +557,28 @@ Between Level
  CONDSLO  WITH
     RUNSLO          -0.435      -0.318      -0.261       0.045       0.345       0.401       0.504
     TRIALSLO        -0.638      -0.556      -0.518      -0.286      -0.029       0.019       0.103
-    PREVRTSLO       -0.646      -0.517      -0.470      -0.161       0.171       0.243       0.360
+    PREVSLO         -0.646      -0.517      -0.470      -0.161       0.171       0.243       0.360
 
  RUNSLO   WITH
     TRIALSLO        -0.419      -0.329      -0.282      -0.018       0.250       0.298       0.395
-    PREVRTSLO       -0.504      -0.389      -0.334      -0.024       0.283       0.335       0.438
+    PREVSLO         -0.504      -0.389      -0.334      -0.024       0.283       0.335       0.438
 
  TRIALSLO WITH
-    PREVRTSLO       -0.347      -0.252      -0.202       0.049       0.291       0.335       0.427
+    PREVSLO         -0.347      -0.252      -0.202       0.049       0.291       0.335       0.427
 
  Means
     RT_INV         -15.415     -14.528     -14.143     -12.226     -10.507     -10.207      -9.628
     CONDSLO          1.110       1.231       1.305       1.735       2.286       2.423       2.669
     RUNSLO          -0.440      -0.349      -0.307      -0.076       0.152       0.190       0.292
     TRIALSLO        -0.612      -0.544      -0.510      -0.328      -0.147      -0.112      -0.050
-    PREVRTSLO        2.873       3.124       3.255       4.067       5.124       5.367       5.827
+    PREVSLO          2.873       3.124       3.255       4.067       5.124       5.367       5.827
 
  Variances
     RT_INV           1.000       1.000       1.000       1.000       1.000       1.000       1.000
     CONDSLO          1.000       1.000       1.000       1.000       1.000       1.000       1.000
     RUNSLO           1.000       1.000       1.000       1.000       1.000       1.000       1.000
     TRIALSLO         1.000       1.000       1.000       1.000       1.000       1.000       1.000
-    PREVRTSLO        1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    PREVSLO          1.000       1.000       1.000       1.000       1.000       1.000       1.000
 
 
 STD Standardization
@@ -599,28 +599,28 @@ Between Level
  CONDSLO  WITH
     RUNSLO          -0.435      -0.318      -0.261       0.045       0.345       0.401       0.504
     TRIALSLO        -0.638      -0.556      -0.518      -0.286      -0.029       0.019       0.103
-    PREVRTSLO       -0.646      -0.517      -0.470      -0.161       0.171       0.243       0.360
+    PREVSLO         -0.646      -0.517      -0.470      -0.161       0.171       0.243       0.360
 
  RUNSLO   WITH
     TRIALSLO        -0.419      -0.329      -0.282      -0.018       0.250       0.298       0.395
-    PREVRTSLO       -0.504      -0.389      -0.334      -0.024       0.283       0.335       0.438
+    PREVSLO         -0.504      -0.389      -0.334      -0.024       0.283       0.335       0.438
 
  TRIALSLO WITH
-    PREVRTSLO       -0.347      -0.252      -0.202       0.049       0.291       0.335       0.427
+    PREVSLO         -0.347      -0.252      -0.202       0.049       0.291       0.335       0.427
 
  Means
     RT_INV          -3.462      -3.443      -3.433      -3.377      -3.321      -3.311      -3.291
     CONDSLO          1.110       1.231       1.305       1.735       2.286       2.423       2.669
     RUNSLO          -0.440      -0.349      -0.307      -0.076       0.152       0.190       0.292
     TRIALSLO        -0.612      -0.544      -0.510      -0.328      -0.147      -0.112      -0.050
-    PREVRTSLO        2.873       3.124       3.255       4.067       5.124       5.367       5.827
+    PREVSLO          2.873       3.124       3.255       4.067       5.124       5.367       5.827
 
  Variances
     RT_INV           0.049       0.054       0.057       0.076       0.103       0.109       0.122
     CONDSLO          1.000       1.000       1.000       1.000       1.000       1.000       1.000
     RUNSLO           1.000       1.000       1.000       1.000       1.000       1.000       1.000
     TRIALSLO         1.000       1.000       1.000       1.000       1.000       1.000       1.000
-    PREVRTSLO        1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    PREVSLO          1.000       1.000       1.000       1.000       1.000       1.000       1.000
 
 
 TECHNICAL 1 OUTPUT
@@ -749,7 +749,7 @@ TECHNICAL 1 OUTPUT
 
 
            LAMBDA
-              CONDSLO       RUNSLO        TRIALSLO      PREVRTSL      RT_INV
+              CONDSLO       RUNSLO        TRIALSLO      PREVSLO       RT_INV
               ________      ________      ________      ________      ________
  RT_INV             0             0             0             0             0
 
@@ -761,28 +761,28 @@ TECHNICAL 1 OUTPUT
 
 
            ALPHA
-              CONDSLO       RUNSLO        TRIALSLO      PREVRTSL      RT_INV
+              CONDSLO       RUNSLO        TRIALSLO      PREVSLO       RT_INV
               ________      ________      ________      ________      ________
                     4             5             6             7             8
 
 
            BETA
-              CONDSLO       RUNSLO        TRIALSLO      PREVRTSL      RT_INV
+              CONDSLO       RUNSLO        TRIALSLO      PREVSLO       RT_INV
               ________      ________      ________      ________      ________
  CONDSLO            0             0             0             0             0
  RUNSLO             0             0             0             0             0
  TRIALSLO           0             0             0             0             0
- PREVRTSL           0             0             0             0             0
+ PREVSLO            0             0             0             0             0
  RT_INV             0             0             0             0             0
 
 
            PSI
-              CONDSLO       RUNSLO        TRIALSLO      PREVRTSL      RT_INV
+              CONDSLO       RUNSLO        TRIALSLO      PREVSLO       RT_INV
               ________      ________      ________      ________      ________
  CONDSLO            9
  RUNSLO            10            11
  TRIALSLO          12            13            14
- PREVRTSL          15            16            17            18
+ PREVSLO           15            16            17            18
  RT_INV             0             0             0             0            19
 
 
@@ -909,7 +909,7 @@ TECHNICAL 1 OUTPUT
 
 
            LAMBDA
-              CONDSLO       RUNSLO        TRIALSLO      PREVRTSL      RT_INV
+              CONDSLO       RUNSLO        TRIALSLO      PREVSLO       RT_INV
               ________      ________      ________      ________      ________
  RT_INV         0.000         0.000         0.000         0.000         1.000
 
@@ -921,28 +921,28 @@ TECHNICAL 1 OUTPUT
 
 
            ALPHA
-              CONDSLO       RUNSLO        TRIALSLO      PREVRTSL      RT_INV
+              CONDSLO       RUNSLO        TRIALSLO      PREVSLO       RT_INV
               ________      ________      ________      ________      ________
                 0.000         0.000         0.000         0.000        -2.661
 
 
            BETA
-              CONDSLO       RUNSLO        TRIALSLO      PREVRTSL      RT_INV
+              CONDSLO       RUNSLO        TRIALSLO      PREVSLO       RT_INV
               ________      ________      ________      ________      ________
  CONDSLO        0.000         0.000         0.000         0.000         0.000
  RUNSLO         0.000         0.000         0.000         0.000         0.000
  TRIALSLO       0.000         0.000         0.000         0.000         0.000
- PREVRTSL       0.000         0.000         0.000         0.000         0.000
+ PREVSLO        0.000         0.000         0.000         0.000         0.000
  RT_INV         0.000         0.000         0.000         0.000         0.000
 
 
            PSI
-              CONDSLO       RUNSLO        TRIALSLO      PREVRTSL      RT_INV
+              CONDSLO       RUNSLO        TRIALSLO      PREVSLO       RT_INV
               ________      ________      ________      ________      ________
  CONDSLO        1.000
  RUNSLO         0.000         1.000
  TRIALSLO       0.000         0.000         1.000
- PREVRTSL       0.000         0.000         0.000         1.000
+ PREVSLO        0.000         0.000         0.000         1.000
  RT_INV         0.000         0.000         0.000         0.000         0.139
 
 
@@ -1093,9 +1093,9 @@ The following plots are available:
   Bayesian posterior parameter trace plots
   Bayesian autocorrelation plots
 
-     Beginning Time:  12:48:29
-        Ending Time:  12:49:55
-       Elapsed Time:  00:01:26
+     Beginning Time:  16:30:37
+        Ending Time:  16:31:54
+       Elapsed Time:  00:01:17
 
 
 
