@@ -51,3 +51,6 @@ Outputs/full_hddm/*
 
 # MH dissertation code and data. On ACI for reference.
 MH_Diss_Analyses/*
+
+# hide output pbs scripts while under construction
+Code/DDM/pbs_outputs/*
