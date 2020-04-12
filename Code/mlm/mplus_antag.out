@@ -1,0 +1,645 @@
+Mplus VERSION 8.4 (Mac)
+MUTHEN & MUTHEN
+04/08/2020   4:31 PM
+
+INPUT INSTRUCTIONS
+
+  TITLE:
+  Antagonismesque factor
+  DATA:
+  FILE = "traits_mplus_ac909afa2c8806c8d01dabbf80b5f562.dat";
+
+  VARIABLE:
+  NAMES = T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm;
+   MISSING=.;
+
+      USEVARIABLES = T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm;
+
+  ANALYSIS:
+
+      ESTIMATOR=BAYES;
+      FBITERATIONS=10000;
+      CHAINS=2;
+      PROCESSORS=4;
+
+  MODEL:
+
+      ! trait model
+      antag BY T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm;
+
+
+  OUTPUT:
+  TECH1 TECH8 STANDARDIZED CINTERVAL;
+  PLOT:
+  TYPE = PLOT2;
+
+
+
+*** WARNING in VARIABLE command
+  Note that only the first 8 characters of variable names are used in the output.
+  Shorten variable names to avoid any confusion.
+*** WARNING in PLOT command
+  Note that only the first 8 characters of variable names are used in plots.
+  If variable names are not unique within the first 8 characters, problems
+  may occur.
+   2 WARNING(S) FOUND IN THE INPUT INSTRUCTIONS
+
+
+
+
+Antagonismesque factor
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                         111
+
+Number of dependent variables                                    4
+Number of independent variables                                  0
+Number of continuous latent variables                            1
+
+Observed dependent variables
+
+  Continuous
+   T_MISTRUST  T_MANIPULA  T_AGGRESSI  T_SELFHARM
+
+Continuous latent variables
+   ANTAG
+
+
+Estimator                                                    BAYES
+Specifications for Bayesian Estimation
+  Point estimate                                            MEDIAN
+  Number of Markov chain Monte Carlo (MCMC) chains               2
+  Random seed for the first chain                                0
+  Starting value information                           UNPERTURBED
+  Algorithm used for Markov chain Monte Carlo           GIBBS(PX1)
+  Fixed number of iterations                                 10000
+  K-th iteration used for thinning                               1
+
+Input data file(s)
+  traits_mplus_ac909afa2c8806c8d01dabbf80b5f562.dat
+Input data format  FREE
+
+
+SUMMARY OF DATA
+
+
+
+COVARIANCE COVERAGE OF DATA
+
+Minimum covariance coverage value   0.100
+
+     Number of missing data patterns             1
+
+
+     PROPORTION OF DATA PRESENT
+
+
+           Covariance Coverage
+              T_MISTRU      T_MANIPU      T_AGGRES      T_SELFHA
+              ________      ________      ________      ________
+ T_MISTRU       1.000
+ T_MANIPU       1.000         1.000
+ T_AGGRES       1.000         1.000         1.000
+ T_SELFHA       1.000         1.000         1.000         1.000
+
+
+
+UNIVARIATE SAMPLE STATISTICS
+
+
+     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS
+
+         Variable/         Mean/     Skewness/   Minimum/ % with                Percentiles
+        Sample Size      Variance    Kurtosis    Maximum  Min/Max      20%/60%    40%/80%    Median
+
+     T_MISTRUST           53.437       0.907      38.780    6.31%      43.659     48.537     50.976
+             111.000     114.421       0.692      85.122    1.80%      55.854     60.732
+     T_MANIPULATIVEN      57.630       0.155      37.500    6.31%      46.875     53.125     59.375
+             111.000     138.951      -0.445      90.625    0.90%      62.500     65.625
+     T_AGGRESSION         52.978       1.205      40.571   12.61%      43.429     46.286     52.000
+             111.000     127.302       1.221      92.000    0.90%      52.000     60.571
+     T_SELFHARM           52.152       1.600      42.692   36.94%      42.692     46.538     46.538
+             111.000     146.272       2.123      96.538    0.90%      50.385     58.077
+
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+     USE THE FBITERATIONS OPTION TO INCREASE THE NUMBER OF ITERATIONS BY A FACTOR
+     OF AT LEAST TWO TO CHECK CONVERGENCE AND THAT THE PSR VALUE DOES NOT INCREASE.
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                              12
+
+Bayesian Posterior Predictive Checking using Chi-Square
+
+          95% Confidence Interval for the Difference Between
+          the Observed and the Replicated Chi-Square Values
+
+                                -11.684            18.420
+
+          Posterior Predictive P-Value              0.309
+
+Information Criteria
+
+          Deviance (DIC)                         3343.460
+          Estimated Number of Parameters (pD)      11.610
+          Bayesian (BIC)                         3376.186
+
+RMSEA (Root Mean Square Error Of Approximation)
+
+          Estimate                           0.108
+          90 Percent C.I.                    0.000  0.218
+          Probability RMSEA <= .05           0.278
+
+CFI/TLI
+
+          CFI                                0.972
+          90 Percent C.I.                    0.882  1.000
+
+          TLI                                0.929
+          90 Percent C.I.                    0.704  1.000
+
+
+
+MODEL RESULTS
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+ ANTAG    BY
+    T_MISTRUST         1.000       0.000      0.000       1.000       1.000
+    T_MANIPULA         1.180       0.265      0.000       0.795       1.809      *
+    T_AGGRESSI         1.080       0.257      0.000       0.706       1.691      *
+    T_SELFHARM         0.988       0.228      0.000       0.632       1.528      *
+
+ Intercepts
+    T_MISTRUST        53.447       1.037      0.000      51.401      55.443      *
+    T_MANIPULA        57.635       1.145      0.000      55.362      59.843      *
+    T_AGGRESSI        52.990       1.093      0.000      50.784      55.087      *
+    T_SELFHARM        52.149       1.180      0.000      49.841      54.464      *
+
+ Variances
+    ANTAG             52.690      17.050      0.000      24.835      92.049      *
+
+ Residual Variances
+    T_MISTRUST        64.585      13.463      0.000      40.983      94.046      *
+    T_MANIPULA        71.244      15.791      0.000      42.714     105.240      *
+    T_AGGRESSI        70.561      14.436      0.000      45.285     101.760      *
+    T_SELFHARM       100.430      17.408      0.000      71.119     138.888      *
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+ ANTAG    BY
+    T_MISTRUST         0.670       0.084      0.000       0.485       0.813      *
+    T_MANIPULA         0.713       0.075      0.000       0.549       0.843      *
+    T_AGGRESSI         0.683       0.077      0.000       0.513       0.812      *
+    T_SELFHARM         0.582       0.085      0.000       0.394       0.728      *
+
+ Intercepts
+    T_MISTRUST         4.914       0.350      0.000       4.260       5.627      *
+    T_MANIPULA         4.776       0.338      0.000       4.142       5.479      *
+    T_AGGRESSI         4.593       0.327      0.000       3.979       5.254      *
+    T_SELFHARM         4.216       0.303      0.000       3.633       4.823      *
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    T_MISTRUST         0.551       0.109      0.000       0.340       0.765      *
+    T_MANIPULA         0.492       0.105      0.000       0.290       0.699      *
+    T_AGGRESSI         0.533       0.102      0.000       0.340       0.737      *
+    T_SELFHARM         0.661       0.096      0.000       0.470       0.845      *
+
+
+STDY Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+ ANTAG    BY
+    T_MISTRUST         0.670       0.084      0.000       0.485       0.813      *
+    T_MANIPULA         0.713       0.075      0.000       0.549       0.843      *
+    T_AGGRESSI         0.683       0.077      0.000       0.513       0.812      *
+    T_SELFHARM         0.582       0.085      0.000       0.394       0.728      *
+
+ Intercepts
+    T_MISTRUST         4.914       0.350      0.000       4.260       5.627      *
+    T_MANIPULA         4.776       0.338      0.000       4.142       5.479      *
+    T_AGGRESSI         4.593       0.327      0.000       3.979       5.254      *
+    T_SELFHARM         4.216       0.303      0.000       3.633       4.823      *
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    T_MISTRUST         0.551       0.109      0.000       0.340       0.765      *
+    T_MANIPULA         0.492       0.105      0.000       0.290       0.699      *
+    T_AGGRESSI         0.533       0.102      0.000       0.340       0.737      *
+    T_SELFHARM         0.661       0.096      0.000       0.470       0.845      *
+
+
+STD Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+ ANTAG    BY
+    T_MISTRUST         7.259       1.166      0.000       4.983       9.594      *
+    T_MANIPULA         8.576       1.214      0.000       6.226      10.987      *
+    T_AGGRESSI         7.844       1.166      0.000       5.577      10.208      *
+    T_SELFHARM         7.177       1.293      0.000       4.663       9.706      *
+
+ Intercepts
+    T_MISTRUST        53.447       1.037      0.000      51.401      55.443      *
+    T_MANIPULA        57.635       1.145      0.000      55.362      59.843      *
+    T_AGGRESSI        52.990       1.093      0.000      50.784      55.087      *
+    T_SELFHARM        52.149       1.180      0.000      49.841      54.464      *
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    T_MISTRUST        64.585      13.463      0.000      40.983      94.046      *
+    T_MANIPULA        71.244      15.791      0.000      42.714     105.240      *
+    T_AGGRESSI        70.561      14.436      0.000      45.285     101.760      *
+    T_SELFHARM       100.430      17.408      0.000      71.119     138.888      *
+
+
+R-SQUARE
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    T_MISTRUST         0.449       0.109      0.000       0.235       0.660
+    T_MANIPULATIVEN    0.508       0.105      0.000       0.301       0.710
+    T_AGGRESSION       0.467       0.102      0.000       0.263       0.660
+    T_SELFHARM         0.339       0.096      0.000       0.155       0.530
+
+
+CREDIBILITY INTERVALS OF MODEL RESULTS
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+ ANTAG    BY
+    T_MISTRUST       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    T_MANIPULA       0.674       0.795       0.848       1.180       1.673       1.809       2.255
+    T_AGGRESSI       0.595       0.706       0.761       1.080       1.556       1.691       2.067
+    T_SELFHARM       0.522       0.632       0.686       0.988       1.411       1.528       1.779
+
+ Intercepts
+    T_MISTRUST      50.800      51.401      51.717      53.447      55.150      55.443      56.024
+    T_MANIPULA      54.622      55.362      55.716      57.635      59.496      59.843      60.551
+    T_AGGRESSI      50.039      50.784      51.195      52.990      54.758      55.087      55.798
+    T_SELFHARM      49.159      49.841      50.225      52.149      54.091      54.464      55.188
+
+ Variances
+    ANTAG           17.125      24.835      28.956      52.690      84.032      92.049     105.709
+
+ Residual Variances
+    T_MISTRUST      33.553      40.983      44.745      64.585      88.532      94.046     105.777
+    T_MANIPULA      27.355      42.714      47.647      71.244      99.070     105.240     117.481
+    T_AGGRESSI      38.563      45.285      49.306      70.561      96.356     101.760     113.816
+    T_SELFHARM      62.424      71.119      75.006     100.430     132.200     138.888     153.625
+
+
+CREDIBILITY INTERVALS OF STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+ ANTAG    BY
+    T_MISTRUST       0.401       0.485       0.520       0.670       0.792       0.813       0.848
+    T_MANIPULA       0.486       0.549       0.578       0.713       0.821       0.843       0.904
+    T_AGGRESSI       0.449       0.513       0.543       0.683       0.794       0.812       0.849
+    T_SELFHARM       0.325       0.394       0.429       0.582       0.706       0.728       0.767
+
+ Intercepts
+    T_MISTRUST       4.061       4.260       4.358       4.914       5.506       5.627       5.886
+    T_MANIPULA       3.958       4.142       4.251       4.776       5.354       5.479       5.700
+    T_AGGRESSI       3.795       3.979       4.070       4.593       5.146       5.254       5.472
+    T_SELFHARM       3.450       3.633       3.727       4.216       4.726       4.823       5.000
+
+ Variances
+    ANTAG            1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    T_MISTRUST       0.281       0.340       0.372       0.551       0.730       0.765       0.838
+    T_MANIPULA       0.183       0.290       0.326       0.492       0.666       0.699       0.763
+    T_AGGRESSI       0.279       0.340       0.369       0.533       0.705       0.737       0.798
+    T_SELFHARM       0.412       0.470       0.501       0.661       0.816       0.845       0.893
+
+
+STDY Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+ ANTAG    BY
+    T_MISTRUST       0.401       0.485       0.520       0.670       0.792       0.813       0.848
+    T_MANIPULA       0.486       0.549       0.578       0.713       0.821       0.843       0.904
+    T_AGGRESSI       0.449       0.513       0.543       0.683       0.794       0.812       0.849
+    T_SELFHARM       0.325       0.394       0.429       0.582       0.706       0.728       0.767
+
+ Intercepts
+    T_MISTRUST       4.061       4.260       4.358       4.914       5.506       5.627       5.886
+    T_MANIPULA       3.958       4.142       4.251       4.776       5.354       5.479       5.700
+    T_AGGRESSI       3.795       3.979       4.070       4.593       5.146       5.254       5.472
+    T_SELFHARM       3.450       3.633       3.727       4.216       4.726       4.823       5.000
+
+ Variances
+    ANTAG            1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    T_MISTRUST       0.281       0.340       0.372       0.551       0.730       0.765       0.838
+    T_MANIPULA       0.183       0.290       0.326       0.492       0.666       0.699       0.763
+    T_AGGRESSI       0.279       0.340       0.369       0.533       0.705       0.737       0.798
+    T_SELFHARM       0.412       0.470       0.501       0.661       0.816       0.845       0.893
+
+
+STD Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+ ANTAG    BY
+    T_MISTRUST       4.138       4.983       5.381       7.259       9.167       9.594      10.282
+    T_MANIPULA       5.477       6.226       6.590       8.576      10.579      10.987      11.842
+    T_AGGRESSI       4.843       5.577       5.967       7.844       9.804      10.208      10.985
+    T_SELFHARM       3.782       4.663       5.072       7.177       9.295       9.706      10.623
+
+ Intercepts
+    T_MISTRUST      50.800      51.401      51.717      53.447      55.150      55.443      56.024
+    T_MANIPULA      54.622      55.362      55.716      57.635      59.496      59.843      60.551
+    T_AGGRESSI      50.039      50.784      51.195      52.990      54.758      55.087      55.798
+    T_SELFHARM      49.159      49.841      50.225      52.149      54.091      54.464      55.188
+
+ Variances
+    ANTAG            1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    T_MISTRUST      33.553      40.983      44.745      64.585      88.532      94.046     105.777
+    T_MANIPULA      27.355      42.714      47.647      71.244      99.070     105.240     117.481
+    T_AGGRESSI      38.563      45.285      49.306      70.561      96.356     101.760     113.816
+    T_SELFHARM      62.424      71.119      75.006     100.430     132.200     138.888     153.625
+
+
+TECHNICAL 1 OUTPUT
+
+
+     PARAMETER SPECIFICATION
+
+
+           NU
+              T_MISTRU      T_MANIPU      T_AGGRES      T_SELFHA
+              ________      ________      ________      ________
+                    1             2             3             4
+
+
+           LAMBDA
+              ANTAG
+              ________
+ T_MISTRU           0
+ T_MANIPU           5
+ T_AGGRES           6
+ T_SELFHA           7
+
+
+           THETA
+              T_MISTRU      T_MANIPU      T_AGGRES      T_SELFHA
+              ________      ________      ________      ________
+ T_MISTRU           8
+ T_MANIPU           0             9
+ T_AGGRES           0             0            10
+ T_SELFHA           0             0             0            11
+
+
+           ALPHA
+              ANTAG
+              ________
+                    0
+
+
+           BETA
+              ANTAG
+              ________
+ ANTAG              0
+
+
+           PSI
+              ANTAG
+              ________
+ ANTAG             12
+
+
+     STARTING VALUES
+
+
+           NU
+              T_MISTRU      T_MANIPU      T_AGGRES      T_SELFHA
+              ________      ________      ________      ________
+               53.437        57.630        52.978        52.152
+
+
+           LAMBDA
+              ANTAG
+              ________
+ T_MISTRU       1.000
+ T_MANIPU       1.000
+ T_AGGRES       1.000
+ T_SELFHA       1.000
+
+
+           THETA
+              T_MISTRU      T_MANIPU      T_AGGRES      T_SELFHA
+              ________      ________      ________      ________
+ T_MISTRU      57.210
+ T_MANIPU       0.000        69.475
+ T_AGGRES       0.000         0.000        63.651
+ T_SELFHA       0.000         0.000         0.000        73.136
+
+
+           ALPHA
+              ANTAG
+              ________
+                0.000
+
+
+           BETA
+              ANTAG
+              ________
+ ANTAG          0.000
+
+
+           PSI
+              ANTAG
+              ________
+ ANTAG          1.000
+
+
+
+     PRIORS FOR ALL PARAMETERS            PRIOR MEAN      PRIOR VARIANCE     PRIOR STD. DEV.
+
+     Parameter 1~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 2~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 3~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 4~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 5~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 6~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 7~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 8~IG(-1.000,0.000)          infinity            infinity            infinity
+     Parameter 9~IG(-1.000,0.000)          infinity            infinity            infinity
+     Parameter 10~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 11~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 12~IG(-1.000,0.000)         infinity            infinity            infinity
+
+
+TECHNICAL 8 OUTPUT
+
+
+   TECHNICAL 8 OUTPUT FOR BAYES ESTIMATION
+
+     CHAIN    BSEED
+     1        0
+     2        285380
+     3        253358
+     4        93468
+
+                     POTENTIAL       PARAMETER WITH
+     ITERATION    SCALE REDUCTION      HIGHEST PSR
+     100              1.135               12
+     200              1.129               3
+     300              1.058               9
+     400              1.106               12
+     500              1.029               12
+     600              1.020               9
+     700              1.023               10
+     800              1.054               6
+     900              1.075               6
+     1000             1.091               5
+     1100             1.055               5
+     1200             1.057               5
+     1300             1.057               5
+     1400             1.022               5
+     1500             1.011               4
+     1600             1.014               7
+     1700             1.023               6
+     1800             1.052               6
+     1900             1.057               6
+     2000             1.046               6
+     2100             1.017               6
+     2200             1.016               6
+     2300             1.014               5
+     2400             1.016               5
+     2500             1.017               5
+     2600             1.020               5
+     2700             1.019               6
+     2800             1.015               6
+     2900             1.011               5
+     3000             1.007               5
+     3100             1.009               5
+     3200             1.008               5
+     3300             1.003               4
+     3400             1.004               4
+     3500             1.005               4
+     3600             1.005               4
+     3700             1.003               4
+     3800             1.003               4
+     3900             1.002               5
+     4000             1.004               5
+     4100             1.005               5
+     4200             1.009               5
+     4300             1.006               5
+     4400             1.006               5
+     4500             1.005               5
+     4600             1.006               5
+     4700             1.014               6
+     4800             1.018               6
+     4900             1.026               5
+     5000             1.026               6
+     5100             1.022               6
+     5200             1.024               6
+     5300             1.023               5
+     5400             1.022               5
+     5500             1.019               5
+     5600             1.017               5
+     5700             1.025               5
+     5800             1.020               5
+     5900             1.024               5
+     6000             1.026               5
+     6100             1.020               5
+     6200             1.021               5
+     6300             1.022               5
+     6400             1.020               5
+     6500             1.021               5
+     6600             1.030               5
+     6700             1.029               5
+     6800             1.027               5
+     6900             1.024               5
+     7000             1.020               5
+     7100             1.021               5
+     7200             1.020               5
+     7300             1.023               5
+     7400             1.025               5
+     7500             1.021               5
+     7600             1.020               5
+     7700             1.017               5
+     7800             1.014               5
+     7900             1.013               5
+     8000             1.013               5
+     8100             1.015               5
+     8200             1.013               5
+     8300             1.011               5
+     8400             1.011               5
+     8500             1.010               5
+     8600             1.007               5
+     8700             1.007               5
+     8800             1.005               5
+     8900             1.007               5
+     9000             1.006               5
+     9100             1.005               5
+     9200             1.006               5
+     9300             1.005               5
+     9400             1.004               5
+     9500             1.003               5
+     9600             1.002               5
+     9700             1.003               2
+     9800             1.002               2
+     9900             1.003               2
+     10000            1.002               2
+
+
+PLOT INFORMATION
+
+The following plots are available:
+
+  Bayesian posterior parameter distributions
+  Bayesian posterior parameter trace plots
+  Bayesian autocorrelation plots
+  Bayesian posterior predictive checking scatterplots
+  Bayesian posterior predictive checking distribution plots
+
+     Beginning Time:  16:31:57
+        Ending Time:  16:31:58
+       Elapsed Time:  00:00:01
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2019 Muthen & Muthen

@@ -1,5 +1,5 @@
 #####synthesize MCMC chains
-setwd("~/Box Sync/DEPENd/Projects/PD_Inhibition_DDM/")
+setwd("~/Box/DEPENd/Projects/PD_Inhibition_DDM/")
 library(dplyr)
 library(psych)
 

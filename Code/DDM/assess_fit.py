@@ -34,15 +34,16 @@ import sys
 ics = 1
 task = 'recent_probes'
 #task = 'flanker'
-full_samples = 1 # denotes the number of samples. 0 is ~2000, and 1 will be full sampling around 20,000 draws.
+full_samples = 0 # denotes the number of samples. 0 is ~2000, and 1 will be full sampling around 20,000 draws.
 nchains = 5
 
 
 # which models need to be checked?
 
 if task == 'flanker':
-    models = ['v_reg','vsv_reg','v_block_reg','v_blocksv_reg','vst_reg','vsvst_reg','v_blockst_reg','v_blocksvst_reg']
-    models = ['v_reg','vsv_reg','v_block_reg','v_blocksv_reg','vsvst_reg']
+    models = ['v_reg','vsv_reg','v_block_reg','v_blocksv_reg','vst_reg','vsvst_reg','v_blockst_reg']#,'v_blocksvst_reg']
+    #models = ['vsvst_reg', 'v_blockst_reg']
+    #models = ['v_reg','vsv_reg','v_block_reg','v_blocksv_reg','vsvst_reg']
 #    models = ['v_blockst_reg','v_blocksvst_reg']
 elif task == 'recent_probes':
     models = ['v_reg','vsv_reg','vst_reg','vsvst_reg']

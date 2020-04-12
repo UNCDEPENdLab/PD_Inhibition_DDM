@@ -1,0 +1,1390 @@
+Mplus VERSION 8.4 (Mac)
+MUTHEN & MUTHEN
+04/08/2020   7:26 PM
+
+INPUT INSTRUCTIONS
+
+  TITLE:
+  Antagonismesque factor and flanker
+  DATA:
+  FILE = "flanker_traits_mplus_2e7eafb6675a90ffa5c133f53b171e5d.dat";
+
+  VARIABLE:
+  NAMES = id T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm correct rt cond
+       block trial trial_z run_trial run_trial_z prev_rt;
+   MISSING=.;
+
+      WITHIN = cond block cond_block prev_rt trial_z run_trial_z;
+      BETWEEN = T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm;
+      USEVARIABLES = id correct cond block prev_rt trial_z run_trial_z
+        T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm cond_block;
+      CLUSTER = id;
+      CATEGORICAL = correct;
+
+  DEFINE:
+
+      cond = cond - 1; ! 0=congruent, 1=incongruent
+      block = block - 1; ! 0=most_incon, 1=most_con
+      cond_block = cond*block; ! 1=most_con, incongruent
+
+  ANALYSIS:
+
+      TYPE=TWOLEVEL RANDOM;
+      ESTIMATOR=BAYES;
+      BITERATIONS=(15000);
+      BCONVERGENCE=.02;
+      CHAINS=2;
+      PROCESSORS=4;
+
+  MODEL:
+
+      %WITHIN%
+      !treat these as fixed only (keep the model sane)
+      correct ON trial_z run_trial_z block cond_block;
+      b_condslo | correct ON cond;
+      b_prevslo | correct ON prev_rt;
+
+      %BETWEEN%
+      [b_condslo b_prevslo]; !slope means
+      b_condslo b_prevslo; !slope variances
+
+      ! trait model
+      antag BY T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm;
+
+      [correct$1]; !person average
+      b_condslo ON antag; !whether antagonism moderates the incongruency -> accuracy relatio
+      b_prevslo ON antag; !whether antagonism moderates the prev_rt -> accuracy relationship
+
+      !allow antag as predictor of overall accuracy
+      correct on antag;
+
+      !correlation of random slopes with each other
+      b_condslo WITH b_prevslo;
+
+  OUTPUT:
+  TECH1 TECH8 STANDARDIZED CINTERVAL;
+  PLOT:
+  TYPE = PLOT2;
+
+
+
+*** WARNING
+  Input line exceeded 90 characters. Some input may be truncated.
+      b_condslo ON antag; !whether antagonism moderates the incongruency -> accuracy relation
+*** WARNING in VARIABLE command
+  Note that only the first 8 characters of variable names are used in the output.
+  Shorten variable names to avoid any confusion.
+*** WARNING in PLOT command
+  Note that only the first 8 characters of variable names are used in plots.
+  If variable names are not unique within the first 8 characters, problems
+  may occur.
+*** WARNING
+  One or more individual-level variables have no variation within a
+  cluster for the following clusters.
+
+     Variable   Cluster IDs with no within-cluster variation
+
+      CORRECT     90 15 20 52 23 11 66 5 86 91 93 95 13 106 107 114
+
+*** WARNING
+  Data set contains cases with missing on x-variables.
+  These cases were not included in the analysis.
+  Number of cases with missing on x-variables:  530
+   5 WARNING(S) FOUND IN THE INPUT INSTRUCTIONS
+
+
+
+
+Antagonismesque factor and flanker
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                       16595
+
+Number of dependent variables                                    5
+Number of independent variables                                  6
+Number of continuous latent variables                            3
+
+Observed dependent variables
+
+  Continuous
+   T_MISTRUST  T_MANIPULA  T_AGGRESSI  T_SELFHARM
+
+  Binary and ordered categorical (ordinal)
+   CORRECT
+
+Observed independent variables
+   COND        BLOCK       PREV_RT     TRIAL_Z     RUN_TRIA    COND_BLO
+
+Continuous latent variables
+   ANTAG       B_CONDSL    B_PREVSL
+
+Variables with special functions
+
+  Cluster variable      ID
+
+  Within variables
+   COND        BLOCK       PREV_RT     TRIAL_Z     RUN_TRIA    COND_BLO
+
+  Between variables
+   T_MISTRU    T_MANIPU    T_AGGRES    T_SELFHA
+
+
+Estimator                                                    BAYES
+Specifications for Bayesian Estimation
+  Point estimate                                            MEDIAN
+  Number of Markov chain Monte Carlo (MCMC) chains               2
+  Random seed for the first chain                                0
+  Starting value information                           UNPERTURBED
+  Algorithm used for Markov chain Monte Carlo           GIBBS(PX1)
+  Convergence criterion                                  0.200D-01
+  Maximum number of iterations                               50000
+  K-th iteration used for thinning                               1
+Link                                                        PROBIT
+
+Input data file(s)
+  flanker_traits_mplus_2e7eafb6675a90ffa5c133f53b171e5d.dat
+Input data format  FREE
+
+
+SUMMARY OF DATA
+
+     Number of clusters                        107
+
+       Size (s)    Cluster ID with Size s
+
+        137        62
+        144        92
+        146        36
+        150        73 45
+        151        35
+        152        110
+        153        90 65 42
+        154        89 15 24 109 46
+        155        57 58 32 33 68 34 82 18 21 22 99 102 105 14 27 113
+        156        37 40 41 8 43 2 19 20 3 48 49 50 51 52 53 54 4 56 9
+                   10 59 60 61 23 63 64 11 66 67 25 69 70 71 72 26 74 75
+                   76 77 78 79 81 12 5 84 85 86 87 88 28 29 91 30 93 94
+                   95 96 97 98 31 100 101 13 103 104 6 106 107 108 1 16
+                   111 112 17 114 38
+
+
+
+COVARIANCE COVERAGE OF DATA
+
+Minimum covariance coverage value   0.100
+
+     Number of missing data patterns             3
+
+
+     PROPORTION OF DATA PRESENT
+
+
+           Covariance Coverage
+              CORRECT       T_MISTRU      T_MANIPU      T_AGGRES      T_SELFHA
+              ________      ________      ________      ________      ________
+ CORRECT        0.983
+ T_MISTRU       0.973         0.991
+ T_MANIPU       0.973         0.991         0.991
+ T_AGGRES       0.973         0.991         0.991         0.991
+ T_SELFHA       0.973         0.991         0.991         0.991         0.991
+ COND           0.983         0.991         0.991         0.991         0.991
+ BLOCK          0.983         0.991         0.991         0.991         0.991
+ PREV_RT        0.983         0.991         0.991         0.991         0.991
+ TRIAL_Z        0.983         0.991         0.991         0.991         0.991
+ RUN_TRIA       0.983         0.991         0.991         0.991         0.991
+ COND_BLO       0.983         0.991         0.991         0.991         0.991
+
+
+           Covariance Coverage
+              COND          BLOCK         PREV_RT       TRIAL_Z       RUN_TRIA
+              ________      ________      ________      ________      ________
+ COND           1.000
+ BLOCK          1.000         1.000
+ PREV_RT        1.000         1.000         1.000
+ TRIAL_Z        1.000         1.000         1.000         1.000
+ RUN_TRIA       1.000         1.000         1.000         1.000         1.000
+ COND_BLO       1.000         1.000         1.000         1.000         1.000
+
+
+           Covariance Coverage
+              COND_BLO
+              ________
+ COND_BLO       1.000
+
+
+UNIVARIATE PROPORTIONS AND COUNTS FOR CATEGORICAL VARIABLES
+
+    CORRECT
+      Category 1    0.032          529.000
+      Category 2    0.968        15777.000
+
+
+
+UNIVARIATE SAMPLE STATISTICS
+
+
+     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS
+
+         Variable/         Mean/     Skewness/   Minimum/ % with                Percentiles
+        Sample Size      Variance    Kurtosis    Maximum  Min/Max      20%/60%    40%/80%    Median
+
+     T_MISTRUST           53.507       0.946      38.780    5.66%      43.659     48.537     50.976
+             106.000     114.254       0.770      85.122    1.89%      55.854     60.732
+     T_MANIPULATIVEN      57.960       0.111      37.500    6.60%      46.875     56.250     59.375
+             106.000     141.165      -0.471      90.625    0.94%      62.500     65.625
+     T_AGGRESSION         52.970       1.230      40.571   12.26%      43.429     46.286     52.000
+             106.000     129.517       1.247      92.000    0.94%      52.000     60.571
+     T_SELFHARM           52.417       1.542      42.692   36.79%      42.692     46.538     46.538
+             106.000     151.057       1.887      96.538    0.94%      50.385     61.923
+     COND                  0.502      -0.007       0.000   49.82%       0.000      0.000      1.000
+           16595.000       0.250      -2.000       1.000   50.18%       1.000      1.000
+     BLOCK                 0.499       0.003       0.000   50.08%       0.000      0.000      0.000
+           16595.000       0.250      -2.000       1.000   49.92%       1.000      1.000
+     PREV_RT               0.394       1.584       0.161    0.01%       0.328      0.362      0.378
+           16595.000       0.008       4.643       0.970    0.01%       0.396      0.446
+     TRIAL_Z               0.009       0.002      -1.700    0.63%      -1.028     -0.336     -0.011
+           16595.000       0.995      -1.205       1.721    0.63%       0.357      1.050
+     RUN_TRIAL_Z           0.043      -0.001      -1.582    2.56%      -0.984     -0.299      0.043
+           16595.000       0.927      -1.202       1.668    2.57%       0.385      1.069
+     COND_BLOCK            0.151       1.954       0.000   84.94%       0.000      0.000      0.000
+           16595.000       0.128       1.818       1.000   15.06%       0.000      0.000
+
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+     USE THE FBITERATIONS OPTION TO INCREASE THE NUMBER OF ITERATIONS BY A FACTOR
+     OF AT LEAST TWO TO CHECK CONVERGENCE AND THAT THE PSR VALUE DOES NOT INCREASE.
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                              26
+
+
+
+MODEL RESULTS
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within Level
+
+ CORRECT    ON
+    TRIAL_Z           -0.002       0.024      0.468      -0.048       0.044
+    RUN_TRIAL_        -0.038       0.024      0.053      -0.085       0.008
+    BLOCK             -0.022       0.080      0.396      -0.179       0.137
+    COND_BLOCK        -0.105       0.101      0.149      -0.301       0.094
+
+Between Level
+
+ ANTAG    BY
+    T_MISTRUST         1.000       0.000      0.000       1.000       1.000
+    T_MANIPULA         1.442       0.546      0.000       0.945       2.942      *
+    T_AGGRESSI         1.303       0.538      0.000       0.843       2.816      *
+    T_SELFHARM         1.117       0.413      0.000       0.672       2.212      *
+
+ B_CONDSLO  ON
+    ANTAG              0.011       0.015      0.206      -0.015       0.043
+
+ B_PREVSLO  ON
+    ANTAG              0.113       0.081      0.036      -0.009       0.305
+
+ CORRECT    ON
+    ANTAG             -0.075       0.036      0.000      -0.166      -0.029      *
+
+ B_CONDSL WITH
+    B_PREVSLO         -0.037       0.114      0.356      -0.312       0.137
+
+ Intercepts
+    T_MISTRUST        53.585       1.015      0.000      51.602      55.572      *
+    T_MANIPULA        58.067       1.169      0.000      55.772      60.347      *
+    T_AGGRESSI        53.058       1.113      0.000      50.893      55.246      *
+    T_SELFHARM        52.494       1.232      0.000      50.089      54.930      *
+    B_CONDSLO         -0.424       0.101      0.000      -0.624      -0.229      *
+    B_PREVSLO          2.278       0.397      0.000       1.573       3.083      *
+
+ Thresholds
+    CORRECT$1         -1.546       0.154      0.000      -1.832      -1.216      *
+
+ Variances
+    ANTAG             38.830      16.390      0.000       9.336      74.229      *
+
+ Residual Variances
+    CORRECT            0.045       0.040      0.000       0.001       0.155      *
+    T_MISTRUST        72.193      14.087      0.000      49.596     104.225      *
+    T_MANIPULA        66.423      15.567      0.000      38.807     100.304      *
+    T_AGGRESSI        68.489      14.417      0.000      43.430     100.194      *
+    T_SELFHARM       109.268      18.902      0.000      77.910     152.371      *
+    B_CONDSLO          0.235       0.062      0.000       0.141       0.385      *
+    B_PREVSLO          0.893       0.402      0.000       0.314       1.823      *
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ B_CONDSLO | CORRECT ON
+    COND              -0.185       0.041      0.000      -0.263      -0.110      *
+
+ B_PREVSLO | CORRECT ON
+    PREV_RT            0.127       0.022      0.000       0.079       0.172      *
+
+ CORRECT    ON
+    TRIAL_Z           -0.002       0.022      0.465      -0.047       0.041
+    RUN_TRIAL_        -0.033       0.022      0.069      -0.077       0.009
+    BLOCK             -0.009       0.040      0.415      -0.097       0.068
+    COND_BLOCK        -0.036       0.034      0.135      -0.105       0.029
+
+Between Level
+
+ ANTAG    BY
+    T_MISTRUST         0.593       0.111      0.000       0.304       0.751      *
+    T_MANIPULA         0.740       0.072      0.000       0.580       0.861      *
+    T_AGGRESSI         0.701       0.075      0.000       0.538       0.828      *
+    T_SELFHARM         0.553       0.090      0.000       0.354       0.706      *
+
+ B_CONDSLO  ON
+    ANTAG              0.134       0.158      0.206      -0.182       0.434
+
+ B_PREVSLO  ON
+    ANTAG              0.593       0.244      0.036      -0.052       0.887
+
+ CORRECT    ON
+    ANTAG             -0.906       0.114      0.000      -0.997      -0.568      *
+
+ B_CONDSL WITH
+    B_PREVSLO         -0.083       0.222      0.356      -0.480       0.397
+
+ Intercepts
+    T_MISTRUST         5.065       0.360      0.000       4.379       5.798      *
+    T_MANIPULA         4.783       0.348      0.000       4.124       5.484      *
+    T_AGGRESSI         4.564       0.328      0.000       3.923       5.207      *
+    T_SELFHARM         4.167       0.310      0.000       3.576       4.784      *
+    B_CONDSLO         -0.854       0.230      0.000      -1.337      -0.440      *
+    B_PREVSLO          1.899       0.512      0.000       1.127       3.104      *
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    CORRECT            0.178       0.176      0.000       0.005       0.678      *
+    T_MISTRUST         0.649       0.119      0.000       0.437       0.908      *
+    T_MANIPULA         0.453       0.104      0.000       0.258       0.663      *
+    T_AGGRESSI         0.508       0.102      0.000       0.314       0.711      *
+    T_SELFHARM         0.694       0.096      0.000       0.501       0.875      *
+    B_CONDSLO          0.977       0.053      0.000       0.811       1.000      *
+    B_PREVSLO          0.649       0.224      0.000       0.212       0.997      *
+
+
+STDY Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ B_CONDSLO | CORRECT ON
+    COND              -0.370       0.082      0.000      -0.525      -0.220      *
+
+ B_PREVSLO | CORRECT ON
+    PREV_RT            2.023       0.367      0.000       1.234       2.737      *
+
+ CORRECT    ON
+    TRIAL_Z           -0.002       0.022      0.465      -0.047       0.041
+    RUN_TRIAL_        -0.034       0.023      0.069      -0.080       0.009
+    BLOCK             -0.019       0.081      0.415      -0.194       0.135
+    COND_BLOCK        -0.101       0.094      0.135      -0.294       0.082
+
+Between Level
+
+ ANTAG    BY
+    T_MISTRUST         0.593       0.111      0.000       0.304       0.751      *
+    T_MANIPULA         0.740       0.072      0.000       0.580       0.861      *
+    T_AGGRESSI         0.701       0.075      0.000       0.538       0.828      *
+    T_SELFHARM         0.553       0.090      0.000       0.354       0.706      *
+
+ B_CONDSLO  ON
+    ANTAG              0.134       0.158      0.206      -0.182       0.434
+
+ B_PREVSLO  ON
+    ANTAG              0.593       0.244      0.036      -0.052       0.887
+
+ CORRECT    ON
+    ANTAG             -0.906       0.114      0.000      -0.997      -0.568      *
+
+ B_CONDSL WITH
+    B_PREVSLO         -0.083       0.222      0.356      -0.480       0.397
+
+ Intercepts
+    T_MISTRUST         5.065       0.360      0.000       4.379       5.798      *
+    T_MANIPULA         4.783       0.348      0.000       4.124       5.484      *
+    T_AGGRESSI         4.564       0.328      0.000       3.923       5.207      *
+    T_SELFHARM         4.167       0.310      0.000       3.576       4.784      *
+    B_CONDSLO         -0.854       0.230      0.000      -1.337      -0.440      *
+    B_PREVSLO          1.899       0.512      0.000       1.127       3.104      *
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    CORRECT            0.178       0.176      0.000       0.005       0.678      *
+    T_MISTRUST         0.649       0.119      0.000       0.437       0.908      *
+    T_MANIPULA         0.453       0.104      0.000       0.258       0.663      *
+    T_AGGRESSI         0.508       0.102      0.000       0.314       0.711      *
+    T_SELFHARM         0.694       0.096      0.000       0.501       0.875      *
+    B_CONDSLO          0.977       0.053      0.000       0.811       1.000      *
+    B_PREVSLO          0.649       0.224      0.000       0.212       0.997      *
+
+
+STD Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ B_CONDSLO | CORRECT ON
+    COND              -0.416       0.090      0.000      -0.593      -0.252      *
+
+ B_PREVSLO | CORRECT ON
+    PREV_RT            2.148       0.405      0.000       1.328       2.969      *
+
+ CORRECT    ON
+    TRIAL_Z           -0.002       0.024      0.465      -0.049       0.043
+    RUN_TRIAL_        -0.036       0.024      0.069      -0.086       0.010
+    BLOCK             -0.020       0.086      0.415      -0.205       0.144
+    COND_BLOCK        -0.107       0.100      0.135      -0.312       0.087
+
+Between Level
+
+ ANTAG    BY
+    T_MISTRUST         6.231       1.372      0.000       3.055       8.616      *
+    T_MANIPULA         8.953       1.222      0.000       6.646      11.425      *
+    T_AGGRESSI         8.122       1.178      0.000       5.885      10.503      *
+    T_SELFHARM         6.937       1.363      0.000       4.271       9.633      *
+
+ B_CONDSLO  ON
+    ANTAG              0.134       0.158      0.206      -0.182       0.434
+
+ B_PREVSLO  ON
+    ANTAG              0.593       0.244      0.036      -0.052       0.887
+
+ CORRECT    ON
+    ANTAG             -0.458       0.148      0.000      -0.760      -0.181      *
+
+ B_CONDSL WITH
+    B_PREVSLO         -0.083       0.222      0.356      -0.480       0.397
+
+ Intercepts
+    T_MISTRUST        53.585       1.015      0.000      51.602      55.572      *
+    T_MANIPULA        58.067       1.169      0.000      55.772      60.347      *
+    T_AGGRESSI        53.058       1.113      0.000      50.893      55.246      *
+    T_SELFHARM        52.494       1.232      0.000      50.089      54.930      *
+    B_CONDSLO         -0.854       0.230      0.000      -1.337      -0.440      *
+    B_PREVSLO          1.899       0.512      0.000       1.127       3.104      *
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    CORRECT            0.045       0.040      0.000       0.001       0.155      *
+    T_MISTRUST        72.193      14.087      0.000      49.596     104.225      *
+    T_MANIPULA        66.423      15.567      0.000      38.807     100.304      *
+    T_AGGRESSI        68.489      14.417      0.000      43.430     100.194      *
+    T_SELFHARM       109.268      18.902      0.000      77.910     152.371      *
+    B_CONDSLO          0.977       0.053      0.000       0.811       1.000      *
+    B_PREVSLO          0.649       0.224      0.000       0.212       0.997      *
+
+
+R-SQUARE
+
+Within-Level R-Square Averaged Across Clusters
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    CORRECT            0.108       0.015      0.000       0.083       0.139
+
+Between Level
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    CORRECT            0.822       0.176      0.000       0.322       0.995
+    T_MISTRUST         0.351       0.119      0.000       0.092       0.563
+    T_MANIPULATIVEN    0.547       0.104      0.000       0.337       0.742
+    T_AGGRESSION       0.492       0.102      0.000       0.289       0.685
+    T_SELFHARM         0.306       0.096      0.000       0.125       0.499
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    B_CONDSLO          0.023       0.053      0.000       0.000       0.189
+    B_PREVSLO          0.351       0.224      0.000       0.003       0.788
+
+
+CREDIBILITY INTERVALS OF MODEL RESULTS
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    TRIAL_Z         -0.064      -0.048      -0.041      -0.002       0.037       0.044       0.059
+    RUN_TRIAL_      -0.099      -0.085      -0.077      -0.038       0.001       0.008       0.021
+    BLOCK           -0.225      -0.179      -0.150      -0.022       0.112       0.137       0.176
+    COND_BLOCK      -0.357      -0.301      -0.269      -0.105       0.063       0.094       0.156
+
+ Thresholds
+    CORRECT$1       -1.942      -1.832      -1.793      -1.546      -1.289      -1.216      -1.135
+
+Between Level
+
+ ANTAG    BY
+    T_MISTRUST       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    T_MANIPULA       0.816       0.945       1.010       1.442       2.467       2.942       4.588
+    T_AGGRESSI       0.721       0.843       0.901       1.303       2.253       2.816       4.396
+    T_SELFHARM       0.552       0.672       0.736       1.117       1.864       2.212       3.248
+
+ B_CONDSL ON
+    ANTAG           -0.026      -0.015      -0.011       0.011       0.036       0.043       0.063
+
+ B_PREVSL ON
+    ANTAG           -0.042      -0.009       0.008       0.113       0.255       0.305       0.468
+
+ CORRECT  ON
+    ANTAG           -0.257      -0.166      -0.141      -0.075      -0.034      -0.029      -0.018
+
+ B_CONDSL WITH
+    B_PREVSLO       -0.445      -0.312      -0.256      -0.037       0.111       0.137       0.194
+
+ Intercepts
+    T_MISTRUST      50.953      51.602      51.928      53.585      55.264      55.572      56.232
+    T_MANIPULA      55.012      55.772      56.152      58.067      59.987      60.347      61.021
+    T_AGGRESSI      50.204      50.893      51.243      53.058      54.902      55.246      55.954
+    T_SELFHARM      49.310      50.089      50.484      52.494      54.524      54.930      55.673
+    B_CONDSLO       -0.691      -0.624      -0.590      -0.424      -0.261      -0.229      -0.166
+    B_PREVSLO        1.396       1.573       1.662       2.278       2.965       3.083       3.276
+
+ Thresholds
+    CORRECT$1       -1.942      -1.832      -1.793      -1.546      -1.289      -1.216      -1.135
+
+ Variances
+    ANTAG            3.872       9.336      13.922      38.830      67.954      74.229      88.113
+
+ Residual Variances
+    CORRECT          0.001       0.001       0.003       0.045       0.132       0.155       0.193
+    T_MISTRUST      43.984      49.596      52.766      72.193      98.292     104.225     119.036
+    T_MANIPULA      28.606      38.807      43.457      66.423      94.198     100.304     112.924
+    T_AGGRESSI      35.001      43.430      47.382      68.489      94.315     100.194     112.257
+    T_SELFHARM      69.233      77.910      82.678     109.268     144.283     152.371     168.855
+    B_CONDSLO        0.120       0.141       0.154       0.235       0.356       0.385       0.446
+    B_PREVSLO        0.212       0.314       0.381       0.893       1.638       1.823       2.348
+
+
+CREDIBILITY INTERVALS OF STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    TRIAL_Z          0.000      -0.047       0.000      -0.002       0.000       0.041       0.000
+    RUN_TRIAL_       0.000      -0.077       0.000      -0.033       0.000       0.009       0.000
+    BLOCK            0.000      -0.097       0.000      -0.009       0.000       0.068       0.000
+    COND_BLOCK       0.000      -0.105       0.000      -0.036       0.000       0.029       0.000
+
+Between Level
+
+ ANTAG    BY
+    T_MISTRUST       0.191       0.304       0.367       0.593       0.732       0.751       0.786
+    T_MANIPULA       0.525       0.580       0.610       0.740       0.843       0.861       0.899
+    T_AGGRESSI       0.475       0.538       0.566       0.701       0.808       0.828       0.864
+    T_SELFHARM       0.290       0.354       0.389       0.553       0.684       0.706       0.747
+
+ B_CONDSL ON
+    ANTAG           -0.274      -0.182      -0.131       0.134       0.388       0.434       0.519
+
+ B_PREVSL ON
+    ANTAG           -0.247      -0.052       0.056       0.593       0.854       0.887       0.933
+
+ CORRECT  ON
+    ANTAG           -0.999      -0.997      -0.994      -0.906      -0.652      -0.568      -0.369
+
+ B_CONDSL WITH
+    B_PREVSLO       -0.577      -0.480      -0.420      -0.083       0.309       0.397       0.561
+
+ Intercepts
+    T_MISTRUST       4.181       4.379       4.491       5.065       5.673       5.798       6.029
+    T_MANIPULA       3.934       4.124       4.224       4.783       5.372       5.484       5.704
+    T_AGGRESSI       3.731       3.923       4.028       4.564       5.108       5.207       5.424
+    T_SELFHARM       3.385       3.576       3.671       4.167       4.688       4.784       4.987
+    B_CONDSLO       -1.490      -1.337      -1.256      -0.854      -0.503      -0.440      -0.316
+    B_PREVSLO        0.953       1.127       1.229       1.899       2.860       3.104       3.650
+
+ Variances
+    ANTAG            1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    CORRECT          0.002       0.005       0.013       0.178       0.574       0.678       0.864
+    T_MISTRUST       0.381       0.437       0.465       0.649       0.865       0.908       0.963
+    T_MANIPULA       0.192       0.258       0.290       0.453       0.628       0.663       0.725
+    T_AGGRESSI       0.252       0.314       0.347       0.508       0.680       0.711       0.774
+    T_SELFHARM       0.442       0.501       0.532       0.694       0.849       0.875       0.915
+    B_CONDSLO        0.729       0.811       0.848       0.977       1.000       1.000       1.000
+    B_PREVSLO        0.129       0.212       0.271       0.649       0.989       0.997       1.000
+
+
+STDY Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    TRIAL_Z          0.000      -0.047       0.000      -0.002       0.000       0.041       0.000
+    RUN_TRIAL_       0.000      -0.080       0.000      -0.034       0.000       0.009       0.000
+    BLOCK            0.000      -0.194       0.000      -0.019       0.000       0.135       0.000
+    COND_BLOCK       0.000      -0.294       0.000      -0.101       0.000       0.082       0.000
+
+Between Level
+
+ ANTAG    BY
+    T_MISTRUST       0.191       0.304       0.367       0.593       0.732       0.751       0.786
+    T_MANIPULA       0.525       0.580       0.610       0.740       0.843       0.861       0.899
+    T_AGGRESSI       0.475       0.538       0.566       0.701       0.808       0.828       0.864
+    T_SELFHARM       0.290       0.354       0.389       0.553       0.684       0.706       0.747
+
+ B_CONDSL ON
+    ANTAG           -0.274      -0.182      -0.131       0.134       0.388       0.434       0.519
+
+ B_PREVSL ON
+    ANTAG           -0.247      -0.052       0.056       0.593       0.854       0.887       0.933
+
+ CORRECT  ON
+    ANTAG           -0.999      -0.997      -0.994      -0.906      -0.652      -0.568      -0.369
+
+ B_CONDSL WITH
+    B_PREVSLO       -0.577      -0.480      -0.420      -0.083       0.309       0.397       0.561
+
+ Intercepts
+    T_MISTRUST       4.181       4.379       4.491       5.065       5.673       5.798       6.029
+    T_MANIPULA       3.934       4.124       4.224       4.783       5.372       5.484       5.704
+    T_AGGRESSI       3.731       3.923       4.028       4.564       5.108       5.207       5.424
+    T_SELFHARM       3.385       3.576       3.671       4.167       4.688       4.784       4.987
+    B_CONDSLO       -1.490      -1.337      -1.256      -0.854      -0.503      -0.440      -0.316
+    B_PREVSLO        0.953       1.127       1.229       1.899       2.860       3.104       3.650
+
+ Variances
+    ANTAG            1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    CORRECT          0.002       0.005       0.013       0.178       0.574       0.678       0.864
+    T_MISTRUST       0.381       0.437       0.465       0.649       0.865       0.908       0.963
+    T_MANIPULA       0.192       0.258       0.290       0.453       0.628       0.663       0.725
+    T_AGGRESSI       0.252       0.314       0.347       0.508       0.680       0.711       0.774
+    T_SELFHARM       0.442       0.501       0.532       0.694       0.849       0.875       0.915
+    B_CONDSLO        0.729       0.811       0.848       0.977       1.000       1.000       1.000
+    B_PREVSLO        0.129       0.212       0.271       0.649       0.989       0.997       1.000
+
+
+STD Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    TRIAL_Z          0.000      -0.049       0.000      -0.002       0.000       0.043       0.000
+    RUN_TRIAL_       0.000      -0.086       0.000      -0.036       0.000       0.010       0.000
+    BLOCK            0.000      -0.205       0.000      -0.020       0.000       0.144       0.000
+    COND_BLOCK       0.000      -0.312       0.000      -0.107       0.000       0.087       0.000
+
+Between Level
+
+ ANTAG    BY
+    T_MISTRUST       1.968       3.055       3.731       6.231       8.243       8.616       9.387
+    T_MANIPULA       5.881       6.646       6.998       8.953      11.012      11.425      12.243
+    T_AGGRESSI       5.183       5.885       6.252       8.122      10.103      10.503      11.325
+    T_SELFHARM       3.466       4.271       4.699       6.937       9.177       9.633      10.646
+
+ B_CONDSL ON
+    ANTAG           -0.274      -0.182      -0.131       0.134       0.388       0.434       0.519
+
+ B_PREVSL ON
+    ANTAG           -0.247      -0.052       0.056       0.593       0.854       0.887       0.933
+
+ CORRECT  ON
+    ANTAG           -0.860      -0.760      -0.711      -0.458      -0.221      -0.181      -0.111
+
+ B_CONDSL WITH
+    B_PREVSLO       -0.577      -0.480      -0.420      -0.083       0.309       0.397       0.561
+
+ Intercepts
+    T_MISTRUST      50.953      51.602      51.928      53.585      55.264      55.572      56.232
+    T_MANIPULA      55.012      55.772      56.152      58.067      59.987      60.347      61.021
+    T_AGGRESSI      50.204      50.893      51.243      53.058      54.902      55.246      55.954
+    T_SELFHARM      49.310      50.089      50.484      52.494      54.524      54.930      55.673
+    B_CONDSLO       -1.490      -1.337      -1.256      -0.854      -0.503      -0.440      -0.316
+    B_PREVSLO        0.953       1.127       1.229       1.899       2.860       3.104       3.650
+
+ Variances
+    ANTAG            1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    CORRECT          0.001       0.001       0.003       0.045       0.132       0.155       0.193
+    T_MISTRUST      43.984      49.596      52.766      72.193      98.292     104.225     119.036
+    T_MANIPULA      28.606      38.807      43.457      66.423      94.198     100.304     112.924
+    T_AGGRESSI      35.001      43.430      47.382      68.489      94.315     100.194     112.257
+    T_SELFHARM      69.233      77.910      82.678     109.268     144.283     152.371     168.855
+    B_CONDSLO        0.729       0.811       0.848       0.977       1.000       1.000       1.000
+    B_PREVSLO        0.129       0.212       0.271       0.649       0.989       0.997       1.000
+
+
+TECHNICAL 1 OUTPUT
+
+
+     PARAMETER SPECIFICATION FOR WITHIN
+
+
+           TAU
+              CORRECT$
+              ________
+                    0
+
+
+           NU
+              CORRECT       COND          BLOCK         PREV_RT       TRIAL_Z
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           NU
+              RUN_TRIA      COND_BLO
+              ________      ________
+                    0             0
+
+
+           LAMBDA
+              CORRECT       COND          BLOCK         PREV_RT       TRIAL_Z
+              ________      ________      ________      ________      ________
+ CORRECT            0             0             0             0             0
+ COND               0             0             0             0             0
+ BLOCK              0             0             0             0             0
+ PREV_RT            0             0             0             0             0
+ TRIAL_Z            0             0             0             0             0
+ RUN_TRIA           0             0             0             0             0
+ COND_BLO           0             0             0             0             0
+
+
+           LAMBDA
+              RUN_TRIA      COND_BLO
+              ________      ________
+ CORRECT            0             0
+ COND               0             0
+ BLOCK              0             0
+ PREV_RT            0             0
+ TRIAL_Z            0             0
+ RUN_TRIA           0             0
+ COND_BLO           0             0
+
+
+           THETA
+              CORRECT       COND          BLOCK         PREV_RT       TRIAL_Z
+              ________      ________      ________      ________      ________
+ CORRECT            0
+ COND               0             0
+ BLOCK              0             0             0
+ PREV_RT            0             0             0             0
+ TRIAL_Z            0             0             0             0             0
+ RUN_TRIA           0             0             0             0             0
+ COND_BLO           0             0             0             0             0
+
+
+           THETA
+              RUN_TRIA      COND_BLO
+              ________      ________
+ RUN_TRIA           0
+ COND_BLO           0             0
+
+
+           ALPHA
+              CORRECT       COND          BLOCK         PREV_RT       TRIAL_Z
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           ALPHA
+              RUN_TRIA      COND_BLO
+              ________      ________
+                    0             0
+
+
+           BETA
+              CORRECT       COND          BLOCK         PREV_RT       TRIAL_Z
+              ________      ________      ________      ________      ________
+ CORRECT            0             0             1             0             2
+ COND               0             0             0             0             0
+ BLOCK              0             0             0             0             0
+ PREV_RT            0             0             0             0             0
+ TRIAL_Z            0             0             0             0             0
+ RUN_TRIA           0             0             0             0             0
+ COND_BLO           0             0             0             0             0
+
+
+           BETA
+              RUN_TRIA      COND_BLO
+              ________      ________
+ CORRECT            3             4
+ COND               0             0
+ BLOCK              0             0
+ PREV_RT            0             0
+ TRIAL_Z            0             0
+ RUN_TRIA           0             0
+ COND_BLO           0             0
+
+
+           PSI
+              CORRECT       COND          BLOCK         PREV_RT       TRIAL_Z
+              ________      ________      ________      ________      ________
+ CORRECT            0
+ COND               0             0
+ BLOCK              0             0             0
+ PREV_RT            0             0             0             0
+ TRIAL_Z            0             0             0             0             0
+ RUN_TRIA           0             0             0             0             0
+ COND_BLO           0             0             0             0             0
+
+
+           PSI
+              RUN_TRIA      COND_BLO
+              ________      ________
+ RUN_TRIA           0
+ COND_BLO           0             0
+
+
+     PARAMETER SPECIFICATION FOR BETWEEN
+
+
+           TAU
+              CORRECT$
+              ________
+                   26
+
+
+           NU
+              CORRECT       T_MISTRU      T_MANIPU      T_AGGRES      T_SELFHA
+              ________      ________      ________      ________      ________
+                    0             5             6             7             8
+
+
+           LAMBDA
+              ANTAG         B_CONDSL      B_PREVSL      CORRECT
+              ________      ________      ________      ________
+ CORRECT            0             0             0             0
+ T_MISTRU           0             0             0             0
+ T_MANIPU           9             0             0             0
+ T_AGGRES          10             0             0             0
+ T_SELFHA          11             0             0             0
+
+
+           THETA
+              CORRECT       T_MISTRU      T_MANIPU      T_AGGRES      T_SELFHA
+              ________      ________      ________      ________      ________
+ CORRECT            0
+ T_MISTRU           0            12
+ T_MANIPU           0             0            13
+ T_AGGRES           0             0             0            14
+ T_SELFHA           0             0             0             0            15
+
+
+           ALPHA
+              ANTAG         B_CONDSL      B_PREVSL      CORRECT
+              ________      ________      ________      ________
+                    0            16            17             0
+
+
+           BETA
+              ANTAG         B_CONDSL      B_PREVSL      CORRECT
+              ________      ________      ________      ________
+ ANTAG              0             0             0             0
+ B_CONDSL          18             0             0             0
+ B_PREVSL          19             0             0             0
+ CORRECT           20             0             0             0
+
+
+           PSI
+              ANTAG         B_CONDSL      B_PREVSL      CORRECT
+              ________      ________      ________      ________
+ ANTAG             21
+ B_CONDSL           0            22
+ B_PREVSL           0            23            24
+ CORRECT            0             0             0            25
+
+
+     STARTING VALUES FOR WITHIN
+
+
+           TAU
+              CORRECT$
+              ________
+                0.000
+
+
+           NU
+              CORRECT       COND          BLOCK         PREV_RT       TRIAL_Z
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           NU
+              RUN_TRIA      COND_BLO
+              ________      ________
+                0.000         0.000
+
+
+           LAMBDA
+              CORRECT       COND          BLOCK         PREV_RT       TRIAL_Z
+              ________      ________      ________      ________      ________
+ CORRECT        1.000         0.000         0.000         0.000         0.000
+ COND           0.000         1.000         0.000         0.000         0.000
+ BLOCK          0.000         0.000         1.000         0.000         0.000
+ PREV_RT        0.000         0.000         0.000         1.000         0.000
+ TRIAL_Z        0.000         0.000         0.000         0.000         1.000
+ RUN_TRIA       0.000         0.000         0.000         0.000         0.000
+ COND_BLO       0.000         0.000         0.000         0.000         0.000
+
+
+           LAMBDA
+              RUN_TRIA      COND_BLO
+              ________      ________
+ CORRECT        0.000         0.000
+ COND           0.000         0.000
+ BLOCK          0.000         0.000
+ PREV_RT        0.000         0.000
+ TRIAL_Z        0.000         0.000
+ RUN_TRIA       1.000         0.000
+ COND_BLO       0.000         1.000
+
+
+           THETA
+              CORRECT       COND          BLOCK         PREV_RT       TRIAL_Z
+              ________      ________      ________      ________      ________
+ CORRECT        0.000
+ COND           0.000         0.000
+ BLOCK          0.000         0.000         0.000
+ PREV_RT        0.000         0.000         0.000         0.000
+ TRIAL_Z        0.000         0.000         0.000         0.000         0.000
+ RUN_TRIA       0.000         0.000         0.000         0.000         0.000
+ COND_BLO       0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              RUN_TRIA      COND_BLO
+              ________      ________
+ RUN_TRIA       0.000
+ COND_BLO       0.000         0.000
+
+
+           ALPHA
+              CORRECT       COND          BLOCK         PREV_RT       TRIAL_Z
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              RUN_TRIA      COND_BLO
+              ________      ________
+                0.000         0.000
+
+
+           BETA
+              CORRECT       COND          BLOCK         PREV_RT       TRIAL_Z
+              ________      ________      ________      ________      ________
+ CORRECT        0.000         0.000         0.000         0.000         0.000
+ COND           0.000         0.000         0.000         0.000         0.000
+ BLOCK          0.000         0.000         0.000         0.000         0.000
+ PREV_RT        0.000         0.000         0.000         0.000         0.000
+ TRIAL_Z        0.000         0.000         0.000         0.000         0.000
+ RUN_TRIA       0.000         0.000         0.000         0.000         0.000
+ COND_BLO       0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              RUN_TRIA      COND_BLO
+              ________      ________
+ CORRECT        0.000         0.000
+ COND           0.000         0.000
+ BLOCK          0.000         0.000
+ PREV_RT        0.000         0.000
+ TRIAL_Z        0.000         0.000
+ RUN_TRIA       0.000         0.000
+ COND_BLO       0.000         0.000
+
+
+           PSI
+              CORRECT       COND          BLOCK         PREV_RT       TRIAL_Z
+              ________      ________      ________      ________      ________
+ CORRECT        1.000
+ COND           0.000         0.125
+ BLOCK          0.000         0.000         0.125
+ PREV_RT        0.000         0.000         0.000         0.004
+ TRIAL_Z        0.000         0.000         0.000         0.000         0.497
+ RUN_TRIA       0.000         0.000         0.000         0.000         0.000
+ COND_BLO       0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              RUN_TRIA      COND_BLO
+              ________      ________
+ RUN_TRIA       0.464
+ COND_BLO       0.000         0.064
+
+
+     STARTING VALUES FOR BETWEEN
+
+
+           TAU
+              CORRECT$
+              ________
+               -1.886
+
+
+           NU
+              CORRECT       T_MISTRU      T_MANIPU      T_AGGRES      T_SELFHA
+              ________      ________      ________      ________      ________
+                0.000        53.476        57.907        52.925        52.420
+
+
+           LAMBDA
+              ANTAG         B_CONDSL      B_PREVSL      CORRECT
+              ________      ________      ________      ________
+ CORRECT        0.000         0.000         0.000         1.000
+ T_MISTRU       1.000         0.000         0.000         0.000
+ T_MANIPU       1.000         0.000         0.000         0.000
+ T_AGGRES       1.000         0.000         0.000         0.000
+ T_SELFHA       1.000         0.000         0.000         0.000
+
+
+           THETA
+              CORRECT       T_MISTRU      T_MANIPU      T_AGGRES      T_SELFHA
+              ________      ________      ________      ________      ________
+ CORRECT        0.000
+ T_MISTRU       0.000        56.955
+ T_MANIPU       0.000         0.000        70.258
+ T_AGGRES       0.000         0.000         0.000        64.299
+ T_SELFHA       0.000         0.000         0.000         0.000        75.837
+
+
+           ALPHA
+              ANTAG         B_CONDSL      B_PREVSL      CORRECT
+              ________      ________      ________      ________
+                0.000         0.000         0.000         0.000
+
+
+           BETA
+              ANTAG         B_CONDSL      B_PREVSL      CORRECT
+              ________      ________      ________      ________
+ ANTAG          0.000         0.000         0.000         0.000
+ B_CONDSL       0.000         0.000         0.000         0.000
+ B_PREVSL       0.000         0.000         0.000         0.000
+ CORRECT        0.000         0.000         0.000         0.000
+
+
+           PSI
+              ANTAG         B_CONDSL      B_PREVSL      CORRECT
+              ________      ________      ________      ________
+ ANTAG          1.000
+ B_CONDSL       0.000         1.000
+ B_PREVSL       0.000         0.000         1.000
+ CORRECT        0.000         0.000         0.000         1.000
+
+
+
+     PRIORS FOR ALL PARAMETERS            PRIOR MEAN      PRIOR VARIANCE     PRIOR STD. DEV.
+
+     Parameter 1~N(0.000,5.000)              0.0000              5.0000              2.2361
+     Parameter 2~N(0.000,5.000)              0.0000              5.0000              2.2361
+     Parameter 3~N(0.000,5.000)              0.0000              5.0000              2.2361
+     Parameter 4~N(0.000,5.000)              0.0000              5.0000              2.2361
+     Parameter 5~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 6~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 7~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 8~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 9~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 10~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 11~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 12~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 13~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 14~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 15~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 16~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 17~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 18~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 19~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 20~N(0.000,5.000)             0.0000              5.0000              2.2361
+     Parameter 21~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 22~IW(1.000,3)              infinity            infinity            infinity
+     Parameter 23~IW(0.000,3)              infinity            infinity            infinity
+     Parameter 24~IW(1.000,3)              infinity            infinity            infinity
+     Parameter 25~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 26~N(0.000,5.000)             0.0000              5.0000              2.2361
+
+
+TECHNICAL 8 OUTPUT
+
+
+   TECHNICAL 8 OUTPUT FOR BAYES ESTIMATION
+
+     CHAIN    BSEED
+     1        0
+     2        285380
+     3        253358
+     4        93468
+
+                     POTENTIAL       PARAMETER WITH
+     ITERATION    SCALE REDUCTION      HIGHEST PSR
+     100              2.105               20
+     200              1.997               19
+     300              3.067               19
+     400              1.640               17
+     500              1.745               17
+     600              1.501               17
+     700              1.497               17
+     800              1.575               20
+     900              1.378               20
+     1000             1.146               24
+     1100             1.148               24
+     1200             1.226               24
+     1300             1.288               17
+     1400             1.213               24
+     1500             1.251               26
+     1600             1.313               26
+     1700             1.409               24
+     1800             1.399               26
+     1900             1.428               26
+     2000             1.451               26
+     2100             1.594               26
+     2200             1.634               26
+     2300             1.565               26
+     2400             1.343               17
+     2500             1.276               24
+     2600             1.283               24
+     2700             1.303               24
+     2800             1.314               24
+     2900             1.253               24
+     3000             1.219               24
+     3100             1.176               24
+     3200             1.171               19
+     3300             1.188               20
+     3400             1.227               20
+     3500             1.306               20
+     3600             1.366               20
+     3700             1.373               20
+     3800             1.274               19
+     3900             1.265               20
+     4000             1.277               20
+     4100             1.255               20
+     4200             1.234               20
+     4300             1.217               20
+     4400             1.203               20
+     4500             1.217               19
+     4600             1.230               19
+     4700             1.214               19
+     4800             1.215               19
+     4900             1.188               19
+     5000             1.168               19
+     5100             1.139               20
+     5200             1.094               19
+     5300             1.074               19
+     5400             1.066               19
+     5500             1.057               20
+     5600             1.041               20
+     5700             1.046               20
+     5800             1.039               20
+     5900             1.023               20
+     6000             1.022               20
+     6100             1.017               20
+     6200             1.017               20
+     6300             1.016               20
+     6400             1.016               22
+     6500             1.015               22
+     6600             1.012               22
+     6700             1.011               25
+     6800             1.011               22
+     6900             1.012               22
+     7000             1.012               22
+     7100             1.015               1
+     7200             1.023               1
+     7300             1.028               1
+     7400             1.037               26
+     7500             1.052               26
+     7600             1.072               26
+     7700             1.081               26
+     7800             1.093               26
+     7900             1.114               26
+     8000             1.138               26
+     8100             1.153               26
+     8200             1.163               26
+     8300             1.179               26
+     8400             1.188               26
+     8500             1.193               26
+     8600             1.186               26
+     8700             1.182               26
+     8800             1.168               26
+     8900             1.129               26
+     9000             1.117               26
+     9100             1.117               26
+     9200             1.112               26
+     9300             1.115               26
+     9400             1.109               26
+     9500             1.107               26
+     9600             1.100               26
+     9700             1.082               26
+     9800             1.063               26
+     9900             1.056               9
+     10000            1.053               9
+     10100            1.057               1
+     10200            1.061               9
+     10300            1.065               9
+     10400            1.068               9
+     10500            1.067               9
+     10600            1.060               9
+     10700            1.058               9
+     10800            1.053               9
+     10900            1.046               9
+     11000            1.042               9
+     11100            1.045               9
+     11200            1.044               9
+     11300            1.040               9
+     11400            1.036               9
+     11500            1.033               9
+     11600            1.035               9
+     11700            1.039               9
+     11800            1.038               9
+     11900            1.041               9
+     12000            1.039               9
+     12100            1.038               9
+     12200            1.038               9
+     12300            1.041               9
+     12400            1.038               9
+     12500            1.028               9
+     12600            1.025               9
+     12700            1.023               9
+     12800            1.022               9
+     12900            1.022               9
+     13000            1.022               9
+     13100            1.021               9
+     13200            1.022               9
+     13300            1.020               9
+     13400            1.023               9
+     13500            1.025               9
+     13600            1.031               9
+     13700            1.033               9
+     13800            1.036               9
+     13900            1.041               9
+     14000            1.046               9
+     14100            1.045               9
+     14200            1.045               9
+     14300            1.043               9
+     14400            1.044               20
+     14500            1.043               20
+     14600            1.043               20
+     14700            1.044               20
+     14800            1.046               20
+     14900            1.046               20
+     15000            1.043               20
+     15100            1.039               20
+     15200            1.040               20
+     15300            1.043               20
+     15400            1.044               20
+     15500            1.042               20
+     15600            1.049               20
+     15700            1.051               20
+     15800            1.050               20
+     15900            1.049               20
+     16000            1.049               20
+     16100            1.048               20
+     16200            1.046               20
+     16300            1.042               20
+     16400            1.040               20
+     16500            1.040               20
+     16600            1.039               20
+     16700            1.039               26
+     16800            1.044               26
+     16900            1.047               26
+     17000            1.049               26
+     17100            1.048               26
+     17200            1.055               26
+     17300            1.062               26
+     17400            1.061               26
+     17500            1.059               26
+     17600            1.056               26
+     17700            1.053               26
+     17800            1.046               26
+     17900            1.042               26
+     18000            1.042               20
+     18100            1.046               20
+     18200            1.049               20
+     18300            1.051               20
+     18400            1.049               20
+     18500            1.046               20
+     18600            1.045               20
+     18700            1.045               20
+     18800            1.046               20
+     18900            1.050               20
+     19000            1.052               20
+     19100            1.050               20
+     19200            1.049               20
+     19300            1.046               20
+     19400            1.043               20
+     19500            1.042               20
+     19600            1.041               20
+     19700            1.041               20
+     19800            1.042               20
+     19900            1.043               20
+     20000            1.043               20
+     20100            1.042               20
+     20200            1.040               20
+     20300            1.036               20
+     20400            1.032               20
+
+
+PLOT INFORMATION
+
+The following plots are available:
+
+  Sample proportions
+  Bayesian posterior parameter distributions
+  Bayesian posterior parameter trace plots
+  Bayesian autocorrelation plots
+  Bayesian prior parameter distributions
+
+     Beginning Time:  19:26:38
+        Ending Time:  19:30:11
+       Elapsed Time:  00:03:33
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2019 Muthen & Muthen

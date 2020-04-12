@@ -8,7 +8,7 @@ output:
     thumbnails: true
     lightbox: true
     gallery: false
-    
+
 ---
 
 ```{r setup, include=FALSE}
@@ -17,13 +17,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 #specify that chunks should run relative to the root working directory (may need to be changed per user)
 # knitr::opts_knit$set(root.dir = "/Users/nth7/PD_Inhibition_DDM")
-knitr::opts_knit$set(root.dir = "/Users/natehall/github_repos/PD_Inhibition_DDM/")
+# knitr::opts_knit$set(root.dir = "/Users/natehall/github_repos/PD_Inhibition_DDM/")
+setwd("~/github_repos/PD_Inhibition_DDM")
+knitr::opts_knit$set(root.dir = getwd())
 
-# setwd("~/PD_Inhibition_DDM")
+setwd("~/github_repos/PD_Inhibition_DDM")
 
 #load necessary packages
-if (!require(easypackages)) { install.packages("easypackages"); library(easypackages) }
-packages("ggplot2", "dplyr", "tidyr", "sas7bdat", "psych", "cowplot", "beepr", "retimes", "lme4", "MuMIn", "jtools", "lmerTest", "interactions")
+
+pacman::p_load("ggplot2", "dplyr", "tidyr", "sas7bdat", "psych", "cowplot", "beepr", "retimes", "lme4", "MuMIn", "jtools", "lmerTest", "interactions")
 
 create_plots <- FALSE
 ```
@@ -57,11 +59,11 @@ if (!file.exists("Data/R_Originals/flanker_raw.RData")) {
   load("Data/R_Originals/flanker_raw.RData")
 }
 
-alldat <- read.csv("Data/alldat.csv")
-# names(alldat)
+load("Data/preprocessed/SNAP_all_scored_final.RData")
 
-SNAPz <- alldat %>% select(matches("Subject"), contains("Z_")) %>% select(-Z_VRIN, -Z_TRIN, -Z_DRIN, -Z_RareVirtues, -Z_Deviance, -Z_InvalidityIndex, -Z_BackDeviance)
-SNAPt <- alldat %>% select(matches("Subject"), starts_with("T_")) %>% select(-T_VRIN, -T_TRIN, -T_DRIN, -T_RareVirtues, -T_Deviance, -T_InvalidityIndex, -T_BackDeviance, -T_MeanGoRT_5, -T_MeanGoRT_1, -T_MeanGoRT_7,-T_MeanGoRT_3, -T_MeanGoRT)
+
+SNAPz <- SNAP_all_scored %>% select(matches("subject"), contains("Z_")) %>% select(-Z_VRIN, -Z_TRIN, -Z_DRIN, -Z_RareVirtues, -Z_Deviance, -Z_InvalidityIndex, -Z_BackDeviance)
+# SNAPt <- SNAP_all_scored %>% select(matches("subject"), starts_with("T_")) %>% select(-T_VRIN, -T_TRIN, -T_DRIN, -T_RareVirtues, -T_Deviance, -T_InvalidityIndex, -T_BackDeviance, -T_MeanGoRT_5, -T_MeanGoRT_1, -T_MeanGoRT_7,-T_MeanGoRT_3, -T_MeanGoRT)
 ```
 
 The basic structure of the raw data is as follows:
@@ -93,48 +95,6 @@ table(flanker$Procedure)
 table(flanker$CongruentBlock)
 table(flanker$TrialSlide_RESP)
 
-##scratch
-
-# cong_check <- ifelse(flanker$Central == flanker$Flanker,0,1 )
-# table(cong_check == flanker$Incongruent)
-# table(flanker$Procedure)
-# table(flanker$CongruentBlock)
-# table(flanker$TrialSlide_RESP)
-# 
-# head(data.frame(flanker))
-# 
-# diff <- flanker$TrialSlide_RTTime - flanker$TrialSlide_OnsetTime
-# head(diff)
-# head(flanker$TrialSlide_RT)
-# 
-# table(flanker$TrialSlide_DurationError) #not sure what this means
-# 
-# table(flanker$Block)
-# length(table(flanker$Block)) #trial number?
-# 
-# table(flanker$Subject) 
-# length(table(flanker$Subject)) #okay so these check out
-# 
-# acc_check <- ifelse(flanker$TrialSlide_CRESP == flanker$TrialSlide_RESP, 1,0)
-# table(acc_check)
-# 
-# table(flanker$TrialSlide_ACC)
-# 
-# length(acc_check)
-# length(flanker$TrialSlide_ACC)
-# 
-# flanker$Correct
-# 
-# 
-# data.frame(flanker[which(is.na(flanker$TrialSlide_ACC)),])
-# 
-# table(flanker$CongruentTrials_Cycle)
-# length(table(flanker$CongruentTrials_Sample))
-# table(flanker$CongruentTrials)
-# 
-# table(flanker$computer) #no idea...
-
-
 ```
 
 
@@ -158,7 +118,7 @@ for(r in 1:nrow(flanker)){
 }                                                                                
 
 
-flank <- flanker %>% select(- Clock_StartTimeOfDay, -SessionDate, -SessionTime, -Block, -CongruentTrials, -CongruentTrials_Cycle, -CongruentTrials_Sample, -IncongruentTrials, -IncongruentTrials_Cycle,  -IncongruentTrials_Sample, -Procedure, -Running, -TrialSlide_DurationError, -TrialSlide_OnsetDelay, -TrialSlide_OnsetTime, -TrialSlide_RTTime, -computer) 
+flank <- flanker %>% select(- Clock_StartTimeOfDay, -SessionDate, -SessionTime, -Block, -CongruentTrials, -CongruentTrials_Cycle, -CongruentTrials_Sample, -IncongruentTrials, -IncongruentTrials_Cycle,  -IncongruentTrials_Sample, -Procedure, -Running, -TrialSlide_DurationError, -TrialSlide_OnsetDelay, -TrialSlide_OnsetTime, -TrialSlide_RTTime, -computer)
 attr(flank, "column.info") <- NULL
 str(flank)
 ```
@@ -168,34 +128,34 @@ str(flank)
 
 1. Verify the expected number of trials and blocks per subject: 160 total, 4 blocks, 70/30 within block
 
-```{r}
+```{r,echo=FALSE}
 table(flanker$Block)
-length(table(flanker$Block)) 
+length(table(flanker$Block))
 length(unique(flank$Subject))
-table(flanker$Subject) 
+table(flanker$Subject)
 
 # check blocking structure ------------------------------------------------
 
 for(sub in unique(flanker$Subject)){
   df <- flanker %>% filter(Subject == sub) %>% data.frame()
   stopifnot(nrow(df) == 160)
-  
+
   con <- df$CongruentTrials_Cycle
   con <- con[!is.nan(con)]
-  
+
   stopifnot(all(table(con) == 40))
-  
+
   icon <- df$CongruentTrials_Cycle
   icon <- con[!is.nan(icon)]
-  
+
   stopifnot(all(table(icon) == 40))
-  
+
   #check congruent and incongruent block proportions
   for(cyc in 1:2){
     con1 <- df %>% filter(CongruentTrials_Cycle == cyc)
     t <- as.numeric(table(con1$Incongruent))
     stopifnot(t[1]/(sum(t)) == 0.7)
-    
+
     con1 <- df %>% filter(IncongruentTrials_Cycle == cyc)
     t <- as.numeric(table(con1$Incongruent))
     stopifnot(t[1]/(sum(t)) == 0.3)
@@ -209,36 +169,8 @@ for(sub in unique(flanker$Subject)){
 2 Screen for excessively low accuracies (50% or lower), especially on incongruent trials. After discussion as a lab, potentially drop participants.
 
 ```{r}
-summaries_tot <- flank %>% group_by(Subject) %>% summarise(Subject_ACC = as.numeric(table(TrialSlide_ACC)[2])/(as.numeric(table(TrialSlide_ACC)[2])+as.numeric(table(TrialSlide_ACC)[1]))) 
-summaries_con <- flank %>% group_by(Subject, Incongruent)%>% summarise(Subject_ACC_con = as.numeric(table(TrialSlide_ACC)[2])/(as.numeric(table(TrialSlide_ACC)[2])+as.numeric(table(TrialSlide_ACC)[1]))) 
-
-
-
-# commented to not muck up the makrdown but if interested can uncomment and run.
-
-# for (i in which(is.na(summaries_tot$Subject_ACC))) {
-#   df <- summaries_tot[i,]
-#   
-#   sub <- df$Subject
-#   # con <- df$Incongruent
-#   
-#   s <- flank %>% filter(Subject == sub)
-#   print(table(s[,c("TrialSlide_ACC")]))
-#   
-#   
-# }
-# 
-# for (i in which(is.na(summaries$Subject_ACC_con))) {
-#   df <- summaries[i,]
-# 
-#   sub <- df$Subject
-#   con <- df$Incongruent
-# 
-#   s <- flank %>% filter(Subject == sub)
-#   print(table(s[,c("TrialSlide_ACC", "Incongruent")]))
-# 
-# 
-# }
+summaries_tot <- flank %>% group_by(Subject) %>% dplyr::summarise(Subject_ACC = as.numeric(table(TrialSlide_ACC)[2])/(as.numeric(table(TrialSlide_ACC)[2])+as.numeric(table(TrialSlide_ACC)[1])))
+summaries_con <- flank %>% group_by(Subject, Incongruent)%>% dplyr::summarise(Subject_ACC_con = as.numeric(table(TrialSlide_ACC)[2])/(as.numeric(table(TrialSlide_ACC)[2])+as.numeric(table(TrialSlide_ACC)[1])))
 
 #appears to be driven by conditions where subjects were perfect (note the 0 in the congruent inaccurate cell, could be incongruent inaccurate cell or both. Manually set these to 1)
 summaries_con$Subject_ACC_con[which(is.na(summaries_con$Subject_ACC_con))] <- 1
@@ -246,127 +178,164 @@ summaries_tot$Subject_ACC[which(is.na(summaries_tot$Subject_ACC))] <- 1
 
 hist(summaries_con$Subject_ACC_con)
 
-problem_accs <- summaries_con %>% filter(Subject_ACC_con <= .8) %>% arrange(Subject_ACC_con) %>% print()
+problem_accs <- summaries_con %>% dplyr::filter(Subject_ACC_con <= .6) %>% arrange(Subject_ACC_con) %>% print()
 
 
-badsubs_cong <- unique(problem_accs$Subject)
+## initialize data frame with every subject and substitute codes for subjects who need to be excluded from all model fitting and some who will be left out for sensitivity analyses
+exclude_df <- SNAP_all_scored %>% select(subject, exclude_SNAP) %>% mutate(exclude_flanker = 0) %>% rename(Subject = subject)
+exclude_df$exclude_flanker <- if_else(exclude_df$Subject %in% c(7,44,47,55,83), 1, #exclude from all flanker analyses. 44 is missing data on flanker but has personality and other task data
+                                      if_else(exclude_df$Subject %in% c(14,62,38), 2,  # the "maybe" folks. These people will get dropped when running on the cleanest sample but their inclusion could be fine given shrinkage properties of HDDM.
+                                              0 #c lean subjects
+                                      ))
 
+```
+
+```{r, echo=FALSE}
+# commented to not muck up the makrdown but if interested can uncomment and run.
+
+# for (i in which(is.na(summaries_tot$Subject_ACC))) {
+#   df <- summaries_tot[i,]
+#
+#   sub <- df$Subject
+#   # con <- df$Incongruent
+#
+#   s <- flank %>% filter(Subject == sub)
+#   print(table(s[,c("TrialSlide_ACC")]))
+#
+#
+# }
+#
+# for (i in which(is.na(summaries_con$Subject_ACC_con))) {
+#   df <- summaries_con[i,]
+#
+#   sub <- df$Subject
+#   con <- df$Incongruent
+#
+#   s <- flank %>% filter(Subject == sub)
+#   print(table(s[,c("TrialSlide_ACC", "Incongruent")]))
+#
+#
+# }
 ```
 
 
 3. Compute and display (as table) summary statistics for accuracy by subject and block.
-```{r}
-summaries_abba <- flank %>% group_by(Subject, ABBA) %>% summarise(Subject_ACC_abba = as.numeric(table(TrialSlide_ACC)[2])/(as.numeric(table(TrialSlide_ACC)[2])+as.numeric(table(TrialSlide_ACC)[1]))) 
+```{r, echo=FALSE}
+summaries_abba <- flank %>% group_by(Subject, ABBA) %>% dplyr::summarise(Subject_ACC_abba = as.numeric(table(TrialSlide_ACC)[2])/(as.numeric(table(TrialSlide_ACC)[2])+as.numeric(table(TrialSlide_ACC)[1])))
 
 summaries_abba$Subject_ACC_abba <- ifelse(is.na(summaries_abba$Subject_ACC_abba),1,summaries_abba$Subject_ACC_abba)
-which(is.na(summaries_abba$Subject_ACC_con))
 hist(summaries_abba$Subject_ACC_abba)
+# which(is.na(summaries_abba$Subject_ACC_con))
+
 
 bad_blocks <- summaries_abba %>% filter(Subject_ACC_abba <= .6) %>% arrange(Subject_ACC_abba)
 # print(bad_blocks)
 
-badsubs_abba <- unique(bad_blocks$Subject)
-badsubs_tot <- unique(c(badsubs_cong, badsubs_abba))  # subjects with either poor accuracy on a given block or on incongruent trials
-
-
-badsubs_abba
-badsubs_cong #adds 62, wonder 
+# badsubs_abba <- unique(bad_blocks$Subject)
+# badsubs_tot <- unique(c(badsubs_cong, badsubs_abba))  # subjects with either poor accuracy on a given block or on incongruent trials
+#
+# save(badsubs_tot, file = "Data/cache/acc_drop_flanker.RData")
+#
+#
+#
+# badsubs_abba
+# badsubs_cong #adds 62, wonder what the deal is here. Regardless, just stick with ABBA for now.
 
 summaries_abba <- summaries_abba %>% mutate(Incongruent = ifelse(grepl("A",ABBA), 0,1)) %>% left_join(summaries_con, by = c("Subject", "Incongruent")) %>% left_join(summaries_tot, by = "Subject") #%>% arrange("Subject_ACC")
-summaries_abba %>% filter(Subject %in% badsubs_tot)
+summaries_abba #%>% filter(Subject %in% badsubs_tot)
 
 # unclear why ABBA and congruent/incongruent split are so different. perhaps return to this later?
 
 ```
-3.1 Are the bad subjects elevated on certain personality traits? If they are more trait impulsive, if they're on the borderline there may be an argument for keeping them.
+<!-- 3.1 Are the bad subjects elevated on certain personality traits? If they are more trait impulsive, if they're on the borderline there may be an argument for keeping them. -->
 
-```{r}
-if(create_plots){
-  # png("Figures/bad_subject_SNAP_histograms.png")#, width = 11, height = 8)
-  pdf("Figures/bad_subject_SNAP_histograms.pdf", width = 11, height = 8)
-  for(s in names(SNAPz)[-1]){
-    x <- SNAPz %>% filter(Subject %in% badsubs_tot) %>% na.omit()%>% select(s, "Subject")#%>% mutate(clr = letters[1:nrow(.)]) #%>% as.matrix() # 38 doesnt have SNAP
-    x$Subject <- as.factor(x$Subject)
-    x[,s] <- jitter(x[,s])
-    p <- ggplot(SNAPz, aes_string(x = s)) + geom_histogram() + geom_vline(data = x, aes_string(xintercept = s, color = "Subject"), linetype = "dotted", size = 1)
-    plot(p)
-  }
-  dev.off()
-}
-```
-```{r, out.width = "85%"}
-knitr::include_graphics(path.expand("/Users/natehall/github_repos/PD_Inhibition_DDM/Figures/bad_subject_SNAP_histograms.png")) ### this causes the knit to bomb, which is driving me mad.
-# exists("/Users/nth7/PD_Inhibition_DDM/Figures/bad_subject_SNAP_histograms.pdf") ## FALSE... -___-
-# list.files("/Users/nth7/PD_Inhibition_DDM/Figures")
-```
+<!-- ```{r, echo=FALSE} -->
+<!-- if(create_plots){ -->
+<!--   # png("Figures/bad_subject_SNAP_histograms.png")#, width = 11, height = 8) -->
+<!--   pdf("Figures/bad_subject_SNAP_histograms.pdf", width = 11, height = 8) -->
+<!--   for(s in names(SNAPz)[-1]){ -->
+<!--     x <- SNAPz %>% filter(Subject %in% badsubs_tot) %>% na.omit()%>% select(s, "Subject")#%>% mutate(clr = letters[1:nrow(.)]) #%>% as.matrix() # 38 doesnt have SNAP -->
+<!--     x$Subject <- as.factor(x$Subject) -->
+<!--     x[,s] <- jitter(x[,s]) -->
+<!--     p <- ggplot(SNAPz, aes_string(x = s)) + geom_histogram() + geom_vline(data = x, aes_string(xintercept = s, color = "Subject"), linetype = "dotted", size = 1) -->
+<!--     plot(p) -->
+<!--   } -->
+<!--   dev.off() -->
+<!-- } -->
+<!-- ``` -->
+<!-- ```{r, out.width = "85%", ev} -->
+<!-- knitr::include_graphics(path.expand("/Users/natehall/github_repos/PD_Inhibition_DDM/Figures/bad_subject_SNAP_histograms.png")) ### this causes the knit to bomb, which is driving me mad. -->
+<!-- # exists("/Users/nth7/PD_Inhibition_DDM/Figures/bad_subject_SNAP_histograms.pdf") ## FALSE... -___- -->
+<!-- # list.files("/Users/nth7/PD_Inhibition_DDM/Figures") -->
+<!-- ``` -->
 
-Long story short is that these folks seem to occupy well-populated portions of the distributions of SNAP variables. So it is probably fine to stay on the safe side and exclude all (7) of these folks.
+<!-- Long story short is that these folks seem to occupy well-populated portions of the distributions of SNAP variables. So it is probably fine to stay on the safe side and exclude all (7) of these folks. -->
 
-```{r}
-flank_acc_trim <- flank %>% filter(!Subject %in% badsubs_tot)
-length(unique(flank_acc_trim$Subject))
+```{r, eval=FALSE}
+# since we are not removing any data just yet (instead storing coded values in a data frame) we can drop the filtering out of poor subjects.
 
-#we lose 7 folks for being highly inaccurate on incongruent trials
+# flank_trim <- flank %>% filter(!Subject %in% badsubs_tot)
+# length(unique(flank_trim$Subject))
 ```
 
 
 4. Identify unbelievably fast RTs < 100ms. Recode both RT and accuracy to NA. Consider different options for long outliers (e.g. censoring vs winsorizing)
 
 ```{r}
-# str(flank_acc_trim)
-flank_acc_trim <- flank_acc_trim %>% rename(`rt` = `TrialSlide_RT`)
+# str(flank_trim)
+flank <- flank %>% rename(`rt` = `TrialSlide_RT`)
 
-flank_acc_trim <- flank_acc_trim %>% mutate(group_Amean_rt = mean(rt, na.rm = TRUE),
-                                            group_Hmean_rt = harmonic.mean(rt, na.rm = TRUE),
-                                            group_SD_rt = sd(rt, na.rm = TRUE)) %>% mutate(group_SD3Amean_rt_high = group_Amean_rt + 3*group_SD_rt,
-                                                                                            group_SD3Amean_rt_low = group_Amean_rt - 3*group_SD_rt,
-                                                                                            group_SD3AHmean_rt_high = group_Hmean_rt + 3*group_SD_rt,
-                                                                                            group_SD3AHmean_rt_low = group_Hmean_rt - 3*group_SD_rt) %>%
+flank <- flank %>% mutate(group_Amean_rt = mean(rt, na.rm = TRUE),
+                          group_Hmean_rt = harmonic.mean(rt, na.rm = TRUE),
+                          group_SD_rt = sd(rt, na.rm = TRUE)) %>% mutate(group_SD3Amean_rt_high = group_Amean_rt + 3*group_SD_rt,
+                                                                         group_SD3Amean_rt_low = group_Amean_rt - 3*group_SD_rt,
+                                                                         group_SD3AHmean_rt_high = group_Hmean_rt + 3*group_SD_rt,
+                                                                         group_SD3AHmean_rt_low = group_Hmean_rt - 3*group_SD_rt) %>%
   group_by(Incongruent) %>% mutate(group_conAmean_rt = mean(rt, na.rm = TRUE),
-                                            group_conHmean_rt = harmonic.mean(rt, na.rm = TRUE),
-                                            group_conSD_rt = sd(rt, na.rm = TRUE)) %>% mutate(group_conSD3Amean_rt_high = group_conAmean_rt + 3*group_conSD_rt,
-                                                                                            group_conSD3Amean_rt_low = group_conAmean_rt - 3*group_conSD_rt,
-                                                                                            group_conSD3AHmean_rt_high = group_conHmean_rt + 3*group_conSD_rt,
-                                                                                            group_conSD3AHmean_rt_low = group_conHmean_rt - 3*group_conSD_rt) %>%  ungroup() %>%
+                                   group_conHmean_rt = harmonic.mean(rt, na.rm = TRUE),
+                                   group_conSD_rt = sd(rt, na.rm = TRUE)) %>% mutate(group_conSD3Amean_rt_high = group_conAmean_rt + 3*group_conSD_rt,
+                                                                                     group_conSD3Amean_rt_low = group_conAmean_rt - 3*group_conSD_rt,
+                                                                                     group_conSD3AHmean_rt_high = group_conHmean_rt + 3*group_conSD_rt,
+                                                                                     group_conSD3AHmean_rt_low = group_conHmean_rt - 3*group_conSD_rt) %>%  ungroup() %>%
   group_by(Subject) %>% mutate(Amean_rt = mean(rt, na.rm = TRUE),
                                Hmean_rt = harmonic.mean(rt, na.rm = TRUE),
                                SD_rt = sd(rt, na.rm = TRUE)) %>% mutate(SD3Amean_rt_high = Amean_rt + 3*SD_rt,
-                                                                         SD3Amean_rt_low = Amean_rt - 3*SD_rt,
-                                                                         SD3AHmean_rt_high = Hmean_rt + 3*SD_rt,
-                                                                         SD3AHmean_rt_low = Hmean_rt - 3*SD_rt) %>% 
+                                                                        SD3Amean_rt_low = Amean_rt - 3*SD_rt,
+                                                                        SD3AHmean_rt_high = Hmean_rt + 3*SD_rt,
+                                                                        SD3AHmean_rt_low = Hmean_rt - 3*SD_rt) %>%
   group_by(Subject, Incongruent) %>% mutate(con_Amean_rt = mean(rt, na.rm = TRUE),
                                             con_Hmean_rt = harmonic.mean(rt, na.rm = TRUE),
                                             con_SD_rt = sd(rt, na.rm = TRUE)) %>% mutate(con_SD3Amean_rt_high = con_Amean_rt + 3*con_SD_rt,
-                                                                                          con_SD3Amean_rt_low = con_Amean_rt - 3*con_SD_rt,
-                                                                                          con_SD3AHmean_rt_high = con_Hmean_rt + 3*con_SD_rt,
-                                                                                          con_SD3AHmean_rt_low = con_Hmean_rt - 3*con_SD_rt)
+                                                                                         con_SD3Amean_rt_low = con_Amean_rt - 3*con_SD_rt,
+                                                                                         con_SD3AHmean_rt_high = con_Hmean_rt + 3*con_SD_rt,
+                                                                                         con_SD3AHmean_rt_low = con_Hmean_rt - 3*con_SD_rt)
 
 if(create_plots){
-  pdf("Figures/subject_rt_dists_raw.pdf", width = 11, height = 8)
-  
+  pdf("Figures/flanker_descriptives/subject_rt_dists_raw.pdf", width = 11, height = 8)
+
   #plot group first
-  x <- ggplot(flank_acc_trim, aes(x = rt)) + geom_histogram() + 
-    geom_vline(xintercept = unique(flank_acc_trim$group_Hmean_rt)) +
-    geom_vline(xintercept = unique(flank_acc_trim$group_SD3AHmean_rt_low), color = "red") +
-    geom_vline(xintercept = unique(flank_acc_trim$group_SD3AHmean_rt_high), color = "red") + xlim(0,1000) +
+  x <- ggplot(flank, aes(x = rt)) + geom_histogram() +
+    geom_vline(xintercept = unique(flank$group_Hmean_rt)) +
+    geom_vline(xintercept = unique(flank$group_SD3AHmean_rt_low), color = "red") +
+    geom_vline(xintercept = unique(flank$group_SD3AHmean_rt_high), color = "red") + xlim(0,1000) +
     labs(title = "Harmonic mean and 3 SD over/under, whole group")
-  
-  y <- ggplot(flank_acc_trim, aes(x = rt)) + geom_histogram() + 
-    geom_vline(xintercept = unique(flank_acc_trim$group_Amean_rt)) +
-    geom_vline(xintercept = unique(flank_acc_trim$group_SD3Amean_rt_low), color = "red") +
-    geom_vline(xintercept = unique(flank_acc_trim$group_SD3Amean_rt_high), color = "red") + xlim(0,1000) +
+
+  y <- ggplot(flank, aes(x = rt)) + geom_histogram() +
+    geom_vline(xintercept = unique(flank$group_Amean_rt)) +
+    geom_vline(xintercept = unique(flank$group_SD3Amean_rt_low), color = "red") +
+    geom_vline(xintercept = unique(flank$group_SD3Amean_rt_high), color = "red") + xlim(0,1000) +
     labs(title = "Arithmetic mean and 3 SD over/under, whole group")
-  
+
   plot_grid(x,y, ncol = 1)
-  for(s in unique(flank_acc_trim$Subject)){
-    df <- flank_acc_trim %>% filter(Subject == s)
+  for(s in unique(flank$Subject)){
+    df <- flank %>% filter(Subject == s)
     dfi <- filter(df, Incongruent == 1); dfc <- filter(df, Incongruent == 0)
-    
+
     x_low <- max(0,min((unique(df$SD3AHmean_rt_low)-50), (unique(df$SD3Amean_rt_low) -50), (range(df$rt, na.rm = TRUE)[1]) - 50))
     x_high <- min(1000,max((unique(df$SD3AHmean_rt_high)+50), (unique(df$SD3Amean_rt_high) +50), (range(df$rt, na.rm = TRUE)[2]) + 50))
-    
-    
-    by_sub_harm <- ggplot(df, aes(x = rt)) + geom_histogram(bins = 40) + 
+
+
+    by_sub_harm <- ggplot(df, aes(x = rt)) + geom_histogram(bins = 40) +
       geom_vline(xintercept = unique(dfc$group_Amean_rt), color = "black", linetype = "dotted") +
       geom_vline(xintercept = unique(df$group_SD3Amean_rt_low), color = "black", linetype = "dotted") +
       geom_vline(xintercept = unique(df$group_SD3Amean_rt_high), color = "black", linetype = "dotted") +
@@ -375,17 +344,17 @@ if(create_plots){
       geom_vline(xintercept = unique(df$SD3AHmean_rt_high), color = "red") + xlim(x_low, x_high) +
       labs(title = paste0("Subject ",s),subtitle = "Harmonic mean and 3 SD over/under, per subject")
     # plot(x)
-    
-    by_sub_art <- ggplot(df, aes(x = rt)) + geom_histogram(bins = 40) + 
+
+    by_sub_art <- ggplot(df, aes(x = rt)) + geom_histogram(bins = 40) +
       geom_vline(xintercept = unique(df$Amean_rt)) +
       geom_vline(xintercept = unique(df$SD3Amean_rt_low), color = "red") +
-      geom_vline(xintercept = unique(df$SD3Amean_rt_high), color = "red") + 
+      geom_vline(xintercept = unique(df$SD3Amean_rt_high), color = "red") +
       geom_vline(xintercept = unique(dfc$group_Amean_rt), color = "black", linetype = "dotted") +
       geom_vline(xintercept = unique(df$group_SD3Amean_rt_low), color = "black", linetype = "dotted") +
       geom_vline(xintercept = unique(df$group_SD3Amean_rt_high), color = "black", linetype = "dotted") + xlim(x_low, x_high) +
       labs(title = paste0("Subject ",s),subtitle = "Arimetic mean and 3 SD over/under, per subject")
-    
-    by_sub_incon_harm <- ggplot(dfi, aes(x = rt)) + geom_histogram(bins = 40) + 
+
+    by_sub_incon_harm <- ggplot(dfi, aes(x = rt)) + geom_histogram(bins = 40) +
       geom_vline(xintercept = unique(dfi$Hmean_rt), color = "gray", linetype = "dotted") +
       geom_vline(xintercept = unique(df$SD3AHmean_rt_low), color = "gray", linetype = "dotted") +
       geom_vline(xintercept = unique(df$SD3AHmean_rt_high), color = "gray", linetype = "dotted") +
@@ -396,8 +365,8 @@ if(create_plots){
       geom_vline(xintercept = unique(dfi$con_SD3AHmean_rt_low), color = "red") +
       geom_vline(xintercept = unique(dfi$con_SD3AHmean_rt_high), color = "red") + xlim(x_low, x_high) +
       labs(title = paste0("Subject ",s, " incongruent trials"),subtitle = "Harmonic mean and 3 SD over/under, per subjectfor ONLY incongruent trials")
-    
-    by_sub_incon_art <- ggplot(dfi, aes(x = rt)) + geom_histogram(bins = 40) + 
+
+    by_sub_incon_art <- ggplot(dfi, aes(x = rt)) + geom_histogram(bins = 40) +
       geom_vline(xintercept = unique(dfi$Amean_rt), color = "gray", linetype = "dotted") +
       geom_vline(xintercept = unique(df$SD3Amean_rt_low), color = "gray", linetype = "dotted") +
       geom_vline(xintercept = unique(df$SD3Amean_rt_high), color = "gray", linetype = "dotted") +
@@ -408,9 +377,9 @@ if(create_plots){
       geom_vline(xintercept = unique(dfi$con_SD3Amean_rt_low), color = "red") +
       geom_vline(xintercept = unique(dfi$con_SD3Amean_rt_high), color = "red") + xlim(x_low, x_high) +
       labs(title = paste0("Subject ",s, " incongruent trials"),subtitle = "Arithmetic mean and 3 SD over/under, per subject for ONLY incongruent trials")
-    
-    
-    by_sub_con_harm <- ggplot(dfc, aes(x = rt)) + geom_histogram(bins = 40) + 
+
+
+    by_sub_con_harm <- ggplot(dfc, aes(x = rt)) + geom_histogram(bins = 40) +
       geom_vline(xintercept = unique(dfc$Hmean_rt), color = "gray", linetype = "dotted") +
       geom_vline(xintercept = unique(df$SD3AHmean_rt_low), color = "gray", linetype = "dotted") +
       geom_vline(xintercept = unique(df$SD3AHmean_rt_high), color = "gray", linetype = "dotted") +
@@ -421,8 +390,8 @@ if(create_plots){
       geom_vline(xintercept = unique(dfc$con_SD3AHmean_rt_low), color = "red") +
       geom_vline(xintercept = unique(dfc$con_SD3AHmean_rt_high), color = "red") + xlim(x_low, x_high) +
       labs(title = paste0("Subject ",s, " congruent trials"),subtitle = "Harmonic mean and 3 SD over/under, per subject for ONLY congruent trials")
-    
-    by_sub_con_art <- ggplot(dfc, aes(x = rt)) + geom_histogram(bins = 40) + 
+
+    by_sub_con_art <- ggplot(dfc, aes(x = rt)) + geom_histogram(bins = 40) +
       geom_vline(xintercept = unique(dfc$Amean_rt), color = "gray", linetype = "dotted") +
       geom_vline(xintercept = unique(df$SD3Amean_rt_low), color = "gray", linetype = "dotted") +
       geom_vline(xintercept = unique(df$SD3Amean_rt_high), color = "gray", linetype = "dotted") +
@@ -433,12 +402,25 @@ if(create_plots){
       geom_vline(xintercept = unique(dfc$con_SD3Amean_rt_low), color = "red") +
       geom_vline(xintercept = unique(dfc$con_SD3Amean_rt_high), color = "red") + xlim(x_low, x_high) +
       labs(title = paste0("Subject ",s, " congruent trials"),subtitle = "Arithmetic mean and 3 SD over/under, per subject for ONLY congruent trials")
-    
-    
+
+
     x <- plot_grid(by_sub_harm,  by_sub_con_harm, by_sub_incon_harm,by_sub_art,by_sub_con_art,  by_sub_incon_art)
     plot(x)
-    
+
   }
+  dev.off()
+
+  pdf("Figures/flanker_descriptives/condition_rt_pointrange.pdf", width = 11, height = 8)
+
+  temp_exclude <- flank %>% left_join(exclude_df, by = "Subject")
+  cond_summaries_full <- temp_exclude %>% filter(exclude_SNAP == 0 && exclude_flanker !=1) %>%
+    group_by(Incongruent, CongruentBlock) %>% summarise(SEM = sd(rt, na.rm = TRUE)/sqrt(length(which(!is.na(rt)))),rt = harmonic.mean(rt) )
+
+  cond_summaries_full <- cond_summaries_full %>% mutate(Condition = paste0(Incongruent, CongruentBlock))
+  cond_summaries_full$Condition <- factor(cond_summaries_full$Condition,labels = c("Incongruent Block Congruent Stim", "Congruent Block Congruent Stim", "Congruent Block Incongruent Stim", "Incongruent Block Incongruent Stim"))
+  # ,labels = c("Incongruent Block Congruent Stim", "Congruent Block Congruent Stim", "Congruent Block Incongruent Stim", "Incongruent Block Incongruent Stim")))
+  point_plot <- ggplot(cond_summaries_full, aes(x = rt, y = Condition)) + geom_point() + geom_pointrange(mapping=aes(x=rt, y=Condition, xmin=rt-2*SEM, xmax=rt+2*SEM)) + theme_bw() + labs(title = "Flanker")
+  print(point_plot)
   dev.off()
 }
 
@@ -446,25 +428,25 @@ if(create_plots){
 # Dillon et al (2015): 150 or if the log-transformed RT exceeded the participant’s mean ± 3S.D., computed separately for congruent and incongruent stimuli
 # Grange & Rydon-Grange (preprint): 250 and 1500
 
-range(flank_acc_trim$rt,na.rm = TRUE) # my hunch is that NA trials are timeouts where the subject did not respond within 1000 msec. 
-quantile(flank_acc_trim$rt, na.rm = TRUE, probs = c(0,.05,.1, .9, .95,.99,1))
+range(flank$rt,na.rm = TRUE) # my hunch is that NA trials are timeouts where the subject did not respond within 1000 msec.
+quantile(flank$rt, na.rm = TRUE, probs = c(0,.05,.1, .9, .95,.99,1))
 
 perc.rank <- function(x, xo)  length(x[x <= xo])/length(x)*100
 
-perc.rank(flank_acc_trim$rt, 250); #length(flank_acc_trim$Subject) * perc.rank(flank_acc_trim$rt, 150)/100
-perc.rank(flank_acc_trim$rt, 200); #length(flank_acc_trim$Subject) * perc.rank(flank_acc_trim$rt, 250)/100
+perc.rank(flank$rt, 250); #length(flank$Subject) * perc.rank(flank$rt, 150)/100
+perc.rank(flank$rt, 200); #length(flank$Subject) * perc.rank(flank$rt, 250)/100
 
-length(which(flank_acc_trim$rt <= 250));length(which(flank_acc_trim$rt <= 250))/length(flank_acc_trim$Correct)
-length(which(flank_acc_trim$rt <= 200));length(which(flank_acc_trim$rt <= 200))/length(flank_acc_trim$Correct) #too lenient
+length(which(flank$rt <= 250));length(which(flank$rt <= 250))/length(flank$Correct)
+length(which(flank$rt <= 200));length(which(flank$rt <= 200))/length(flank$Correct) #too lenient
 ```
 
-I think a principled manner of dealing with outliers in this data is to exclude (set to NA) trials that are below 250 ms. This is incredibly fast, and at the level of the whole sample, these occupy the 1.8th percentile. In practice this captures 1.3% of RTs, pretty harmless. Seems like this is reasonable and is in line with Grange and Rydon-Grange (preprint) and removes a reasonable number of RTs (223). I like the long RT-cleaning procedure of Dillon et. al., (2015), but think we can winsorize those values to +3 SD computed by subject and calculated independently for incongruent and congruent. Reason why I think this is totally defensible is that it seems like eprime logged the trial as NA if the subject didn't respond within 1000 ms, and I think it is reasonable to expect that those RTs that are under 1 sec still reflect task engagement and cognitive processing, and the light winsorizing procedure should just clean up statistical inference. Objections? 
+I think a principled manner of dealing with outliers in this data is to exclude (set to NA) trials that are below 250 ms. This is incredibly fast, and at the level of the whole sample, these occupy the 1.8th percentile. In practice this captures 1.3% of RTs, pretty harmless. Seems like this is reasonable and is in line with Grange and Rydon-Grange (preprint) and removes a reasonable number of RTs (223). I like the long RT-cleaning procedure of Dillon et. al., (2015), but think we can winsorize those values to +3 SD computed by subject and calculated independently for incongruent and congruent. Reason why I think this is totally defensible is that it seems like eprime logged the trial as NA if the subject didn't respond within 1000 ms, and I think it is reasonable to expect that those RTs that are under 1 sec still reflect task engagement and cognitive processing, and the light winsorizing procedure should just clean up statistical inference. Objections?
 
 In fact, let's check out the distributions of congruent and incongruent 3 SDs above harmonic mean, visual inspection indicates that this tends to capture central tendencies better.
 
 ```{r cong incong 3SD Hmean dists}
-flank_acc_trim <- data.frame(flank_acc_trim)
-subject_sd3 <- flank_acc_trim %>% group_by(Subject, Incongruent ) %>% summarise(winsorize = unique(con_SD3AHmean_rt_high))
+flank <- data.frame(flank)
+subject_sd3 <- flank %>% group_by(Subject, Incongruent ) %>% dplyr::summarise(winsorize = unique(con_SD3AHmean_rt_high))
 
 x <- ggplot(data = subject_sd3, aes(x = winsorize)) + geom_histogram() + facet_wrap(~Incongruent)
 plot(x)
@@ -472,17 +454,17 @@ plot(x)
 Okay, so on second thought, this may not be a good idea, since there are a significant number of folks that have values that are 3SDs above the harmonic mean that are less than 500-600ish. This seems pretty severe. Rather, let's see if we can use the whole group harmonic mean + 3SD as a marker. This would leave subjects alone that are reliably responding in a sane range.
 
 ```{r}
-perc.rank(flank_acc_trim$rt, 700)
-table(flank_acc_trim$group_SD3AHmean_rt_high)
-table(flank_acc_trim$group_conSD3AHmean_rt_high)
-length(which(flank_acc_trim$rt >= flank_acc_trim$group_SD3AHmean_rt_high)); length(which(flank_acc_trim$rt >= flank_acc_trim$group_SD3AHmean_rt_high))/length(flank_acc_trim$Subject)
-length(which(flank_acc_trim$rt >= flank_acc_trim$group_conSD3AHmean_rt_high)); length(which(flank_acc_trim$rt >= flank_acc_trim$group_conSD3AHmean_rt_high))/length(flank_acc_trim$Subject)
+perc.rank(flank$rt, 700)
+table(flank$group_SD3AHmean_rt_high)
+table(flank$group_conSD3AHmean_rt_high)
+length(which(flank$rt >= flank$group_SD3AHmean_rt_high)); length(which(flank$rt >= flank$group_SD3AHmean_rt_high))/length(flank$Subject)
+length(which(flank$rt >= flank$group_conSD3AHmean_rt_high)); length(which(flank$rt >= flank$group_conSD3AHmean_rt_high))/length(flank$Subject)
 ```
 This seems much more sane theoretically, but is also data-driven. We will winsorize long rts based on group-level estimates for what value is 3SDs above the harmonic mean for all congruent and all inconruent trials for all subjects, estimated separately. This leaves us winsorizing 328 (2% of total trials across subjects). I like this.
 
 ```{r perform RT cleaning}
-str(flank_acc_trim)
-flank_cleaned <- flank_acc_trim  
+str(flank)
+flank_cleaned <- flank  
 flank_cleaned$rt <- ifelse(flank_cleaned$rt <= 250, NA, flank_cleaned$rt) # drop short RTs
 flank_cleaned$rt <- ifelse(flank_cleaned$rt >= flank_cleaned$group_conSD3AHmean_rt_high, flank_cleaned$group_conSD3AHmean_rt_high, flank_cleaned$rt) # winsorize long RTs by group-level congruent vs incongruent.
 ```
@@ -492,10 +474,15 @@ flank_cleaned$rt <- ifelse(flank_cleaned$rt >= flank_cleaned$group_conSD3AHmean_
 5. Compute and display (as table) summary statistics for RT by subject and block. May need to leverage harmonic mean (Ratcliff) or ex-Gaussian fitted statistics to get a sense of averages (given positive skew of RTs).
 
 ```{r}
-summaries_rt <- flank_cleaned %>% group_by(Subject, Incongruent,CongruentBlock) %>% summarise(amean = mean(rt, na.rm = TRUE),
+summaries_rt <- flank_cleaned %>% group_by(Subject, Incongruent,CongruentBlock) %>% dplyr::summarise(amean = mean(rt, na.rm = TRUE),
                                                                        sd = sd(rt, na.rm = TRUE),
-                                                                       hmean = harmonic.mean(rt))#,
-                                                                       
+                                                                       hmean = harmonic.mean(rt)) #%>% ungroup()
+
+
+summaries_group <- flank_cleaned %>% group_by(Incongruent, CongruentBlock) %>% dplyr::summarise(gmean = harmonic.mean(rt, na.rm = TRUE),
+                                                                                                gsd = sd(rt, na.rm = TRUE),
+                                                                                                gmeansd = gmean+(3*gsd))
+
 
 
 cor(summaries_rt$amean, summaries_rt$hmean)
@@ -505,8 +492,8 @@ cor(summaries_rt$amean, summaries_rt$hmean)
 6. Screen for unlikely RT means between subjects, separating incongruent and congruent trials. For example, if the congruent sample average is ~250ms and one subject has a mean ~750ms, is this plausible? If not, discuss and potentially drop.
 
 ```{r}
-summaries_rt <- summaries_rt %>% group_by(Incongruent, CongruentBlock) %>% mutate(g_mean = mean(hmean), g_sd = sd(hmean), g_meansd = g_mean + 3*g_sd)
-summaries_rt
+# summaries_rt <- summaries_rt %>% group_by(Incongruent, CongruentBlock) %>% mutate(g_mean = mean(hmean), g_sd = sd(hmean), g_meansd = g_mean + 3*g_sd)
+# summaries_rt
 p <- ggplot(summaries_rt, aes(x = hmean)) + geom_histogram()   + facet_grid(Incongruent ~ CongruentBlock) #+ geom_vline(xintercept = summaries_rt$g_mean, color = "red")
 plot(p)
 
@@ -514,15 +501,18 @@ plot(p)
 
 summaries_rt %>% group_by(Subject) %>% mutate(sub_mean = mean(hmean)) %>% arrange(-hmean)
 
-#90 looks like they are way out on incongruent-incongruent, but a few other folks are generally pretty high. 
+#90 looks like they are way out on incongruent-incongruent, but a few other folks are generally pretty high.
 
 # summaries_rt %>% filter(Subject != 90) %>% group_by(Subject) %>% mutate(sub_mean = mean(hmean)) %>% arrange(-hmean)
 p <- ggplot(filter(summaries_rt, !Subject %in% c(90, 111,15)), aes(x = hmean)) + geom_histogram()   + facet_grid(Incongruent ~ CongruentBlock) #+ geom_vline(xintercept = summaries_rt$g_mean, color = "red")
 plot(p)
 
 #to look at this more formally just take those subjects that have combinations of stimulus type (cong vs incongr) and block type (most cong vs most incong)
-summaries_rt %>% filter(hmean >= g_meansd)
+slow_subs  <- summaries_rt %>% filter(hmean >= g_meansd)
+slow_subs
 
+badsubs_rt <- unique(slow_subs$Subject)
+save(badsubs_rt, file = "Data/cache/rt_drop_flanker.RData")
 ```
 
 I'd say we're justified in dropping these folks given that both 15 and 111 are greater than 3SDs above the mean RT for the crossed stimulus type and block type cells (even after winsorizing). 90 is whacky bc they are so far out on the incong-incong combination. I'd say this warrants us booting them in order to be conservative.
@@ -533,40 +523,38 @@ length(unique(flank_cleaned$Subject)) #down to 101
 ```
 
 
-8. Check for subjects with a high number of NA trials. Could be due to RTs and accuracies that are not properly recorded (NA), or could be an unbelievably fast outlier. Consider removing subjects with a high number of NAs 
+8. Check for subjects with a high number of NA trials. Could be due to RTs and accuracies that are not properly recorded (NA), or could be an unbelievably fast outlier. Consider removing subjects with a high number of NAs
 ```{r}
 
 
 
-nas_persub <- flank_cleaned %>% group_by(Subject) %>% summarise(na.counts_sub = length(which(is.na(rt)))) %>% arrange(-na.counts_sub)
+nas_persub <- flank_cleaned %>% group_by(Subject) %>% dplyr::summarise(na.counts_sub = length(which(is.na(rt)))) %>% arrange(-na.counts_sub)
 
 table(nas_persub$na.counts_sub)
 hist(unique(nas_persub$na.counts_sub))
 
-# I mean, 11 and 12 are pretty different than the rest but overall dont seem all that damning across all 160 trials. 12/160 = 7.5% trials dropped. that's not all that  bad in my mind. We can look at these folks to see if they are on the slow/fast/inaccurate side.
-
 head(nas_persub)
 summaries_rt %>% filter(Subject %in% c(92,36))
 
-#these subjects are on the fast side, I'd say they're fine to stay.
+#these subjects are on the fast side, I'd say they're fine to stay, though 35/160 trials is getting up there.
 
 
 
 
 #scratch from earlier code.
-# 
+#
 # x <- data.frame(flanker[which(is.na(flanker$TrialSlide_ACC)),])
 # sort(table(x$Subject))  ##worst offender has 25/160 or .15625 of trials with an NA RT or ACC.
 # hist(table(x$Subject))
-# 
-# 
+#
+#
 # flank_na.rm <- flank[-which(is.na(flank$TrialSlide_ACC)),]
-# 
+#
 # # table(flank_na.rm$Block)
 # # length(table(flank_na.rm$Block))
 # # length(unique(flank_na.rm$Subject))
 # sort(table(flank_na.rm$Subject))
-# 
+#
 # #looks like 47 and 62 are the most concerning, perhaps falling asleep/ not paying attention?
 ```
 
@@ -578,10 +566,10 @@ str(flank_cleaned)
 ### N.B. for stimulus coding my assumption is that the Z that we calculate will bias subject towards choosing congruent or incongruent rather than L or R. I think this makes more conceptual sense,
 
 flank_stimCode <- flank_cleaned %>% mutate(response = ifelse(.$Incongruent == 0,
-                                           ifelse(.$TrialSlide_ACC == 1, 0, #incongruent, participant correctly responded incongruent
-                                                  1 #incongruent, participant incorrectly responded congruent
-                                                  ), ifelse(.$TrialSlide_ACC == 1, 1, #congruent, participant correctly responded congruent
-                                                            0))) #congruent, participant incorrectly responded incongruent
+                                                             ifelse(.$TrialSlide_ACC == 1, 0, #incongruent, participant correctly responded incongruent
+                                                                    1 #incongruent, participant incorrectly responded congruent
+                                                             ), ifelse(.$TrialSlide_ACC == 1, 1, #congruent, participant correctly responded congruent
+                                                                       0))) #congruent, participant incorrectly responded incongruent
 
 flank_stimCode <- flank_stimCode %>% select(Subject, TrialSlide_ACC, rt, Incongruent, CongruentBlock, ABBA, response) %>% group_by(Subject, ABBA) %>% mutate(prev_stim = lag(Incongruent,n = 1, default = 0), trial_block = seq(1,length(Subject), 1)) %>% group_by(Subject) %>%# mutate(trial_sub = seq(1,length(Subject),1))%>% ungroup() %>%
   left_join(SNAPz, by = "Subject") %>% na.omit() %>% rename(`stim` = `Incongruent`, `subj_idx` = `Subject`) %>% select(-ABBA, -prev_stim)
@@ -591,9 +579,8 @@ flank_stimCode$rt <- flank_stimCode$rt/1000
 save(flank_stimCode, file = "Data/preprocessed/flank_stimCode.RData")
 write.csv(flank_stimCode, file = "Data/preprocessed/flank_stimCode.csv", row.names = FALSE)
 
-flank_accCode <- flank_stimCode %>% select(-response) %>% rename(`response` = `TrialSlide_ACC`) #accuracy is what is being modelled in this case. We can revisit the idea of including Z later.
+flankCode <- flank_stimCode %>% select(-response) %>% rename(`response` = `TrialSlide_ACC`) #accuracy is what is being modelled in this case. We can revisit the idea of including Z later.
 
-save(flank_accCode, file = "Data/preprocessed/flank_accCode.RData")
-write.csv(flank_accCode, file = "Data/preprocessed/flank_accCode.csv", row.names = FALSE)
+save(flankCode, file = "Data/preprocessed/flankCode.RData")
+write.csv(flankCode, file = "Data/preprocessed/flankCode.csv", row.names = FALSE)
 ```
-

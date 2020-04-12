@@ -1,0 +1,82 @@
+TITLE:
+Antagonismesque factor and flanker
+DATA:
+FILE = "flanker_traits_mplus_acc9670d91dd3acb83a112c75a20acf1.dat";
+ 
+VARIABLE:
+NAMES = id T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm rt cond block trial
+     trial_z rt_inv run_trial run_trial_z prev_rt; 
+ MISSING=.;
+ 
+    WITHIN = cond block cond_block prev_rt trial_z run_trial_z;
+    BETWEEN = T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm;
+    USEVARIABLES = id rt_inv cond block prev_rt trial_z run_trial_z 
+      T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm cond_block;
+    CLUSTER = id;
+  
+DEFINE:
+
+    cond = cond - 1; ! 0=congruent, 1=incongruent
+    block = block - 1; ! 0=most_incon, 1=most_con
+    cond_block = cond*block; ! 1=most_con, incongruent
+  
+ANALYSIS:
+
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    FBITERATIONS=10000;
+    CHAINS=2;
+    PROCESSORS=4;
+  
+MODEL:
+
+    %WITHIN%
+    rt_inv ON block cond_block;
+    condslo | rt_inv ON cond;
+    runslo | rt_inv ON run_trial_z;
+    trialslo | rt_inv ON trial_z;
+    prevslo | rt_inv ON prev_rt;
+    
+    %BETWEEN%
+    
+    !means of random slopes
+    [condslo];
+    [runslo];
+    [trialslo];
+    [prevslo];
+    
+    !variances of random slopes
+    condslo;
+    runslo;
+    trialslo;
+    prevslo;
+    
+    !slope correlations (removed because all n.s.)
+    !condslo runslo trialslo prevslo WITH
+    !   condslo runslo trialslo prevslo;
+    
+    [rt_inv]; !mean average inverse RT
+    
+    ! trait model
+    antag BY T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm;
+
+    ! trait moderates flanker performance -- incongruency effect and stickiness of RT
+    condslo ON antag;
+    prevslo ON antag;
+    
+    !N.B. Leaving out the association of antag with rt_inv omits a hugely important relationship
+    !  on the between level and will lead to bizarre problems -- like factor loadings near zero
+    
+    !allow antag as a predictor of average RT
+    rt_inv ON antag;
+    
+    ! let factor correlate with other variables on the between level
+    ! omitting this for now because it leads to estimation problems at times and when added individually, these are highly n.s.
+    !antag WITH runslo;
+    !antag WITH trialslo;
+    
+  
+OUTPUT:
+TECH1 TECH8 STANDARDIZED CINTERVAL;
+PLOT:
+TYPE = PLOT2;
