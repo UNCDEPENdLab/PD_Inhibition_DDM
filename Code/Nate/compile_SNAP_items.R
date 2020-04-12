@@ -28,7 +28,7 @@ if(file.exists(file.path(basedir,"Data/R_Originals/SNAP_all.csv"))){
   
 }
 
-# names(SNAP_all)
+source("Code/Functions/percentage_checks.R")
 
 output <- percentage_checks(SNAP_all, "subject") %>% select(subj, perc_sums) %>% rename(subject = subj) %>% mutate(perc_sum_rank = 1:nrow(.))
 
@@ -60,7 +60,13 @@ vdf %>% arrange(-abs(Z_TRIN)) %>% head(10)
 vdf %>% arrange(-abs(Z_VRIN)) %>% head(10)
 
 # From Patrick et al (2002) MPQ-BF paper: a) VRIN above 3, b) TRIN above 3.21, c) VRIN above 2 and TRIN above 2.28
-# I'm going to vote for dropping the two subjects that satisfy condition c) (e.g 51 and 100), and the one subject that had an invalidity index above 3.16 bc they seem a little whack (e.g.23).
+# I'm going to vote for dropping the two subjects that satisfy condition c) (e.g 51 and 100),
+# and the one subject that had an invalidity index above 3.16 bc their scores on this scale, which is derived via all other invalidity scales is markedly different than the rest of the distribution (e.g.23).
 
-SNAP_all_scored$exclude_SNAP <- ifelse(SNAP_all_scored$subject %in% c(23,51,100), 1, 0); save(SNAP_all_scored, file = file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RData"))
-SNAP_all$exclude_SNAP <- ifelse(SNAP_all$subject %in% c(23,51,100), 1, 0); save(SNAP_all_scored, file = file.path(basedir, "Data/preprocessed/SNAP_all_item_level_final.RData"))
+
+SNAP_all_scored$exclude_SNAP <- ifelse(SNAP_all_scored$subject %in% c(23,51,100), 1, 0); 
+
+save(SNAP_all_scored, file = file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RData"))
+
+SNAP_all$exclude_SNAP <- ifelse(SNAP_all$subject %in% c(23,51,100), 1, 0); 
+save(SNAP_all_scored, file = file.path(basedir, "Data/preprocessed/SNAP_all_item_level_final.RData"))
