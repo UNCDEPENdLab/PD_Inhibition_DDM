@@ -1,0 +1,111 @@
+
+R version 3.6.0 (2019-04-26) -- "Planting of a Tree"
+Copyright (C) 2019 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> 
+> # try running an Rscript that submits an array of qsubs using qsub -v --------
+> 
+> 
+> 
+> wt <- 1
+> rawdf <- "/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Data/preprocessed/flanker_accCode.csv"
+> out <- "/gpfs/group/mnh5174/default/Nate/HDDM_outputs_PD_Inhibition/samp1000/flanker/clean_sample"
+> task <- "flanker"
+> nchains <- 10
+> nburn <- 100
+> nsamp <- 1000
+> models <- c("v" , 'vsv', 'v_block', 'v_blocksv', 'vst', 'vsvst', 'v_blockst', "v_blocksvst")
+> 
+> pacman::p_load(tidyverse)
+> initialize <- TRUE
+> 
+> # very first time: initialize log
+> if (initialize) {
++   job_info_log <- data.frame(job_id = 0, TASK = "initialize", MODEL = "initialize", NCHAINS = 0, NBURN = 0, NSAMP = 0, DAY_SUB = Sys.Date(), TIME_SUB = Sys.time(), qsub_string = "initialize")
++   write.csv(job_info_log, "PD_Inhibition_DDM_job_info_log.csv")
++   
++ }
+> 
+> 
+> for (m in models) {
++   job_info_log <- read.csv("PD_Inhibition_DDM_job_info_log.csv") %>% select(-X)
++   
++   job_id <- paste0("DDM_job_",job_info_log$job_id[nrow(job_info_log)] + 1)
++     
++   # 4/9/20: per MH suggestion, run atomic python script that simply parallelizes over nchains, this ensures that the scheduler does not need to allocate a single job across nodes.
++   cmd <- paste0("qsub -l nodes=1:ppn=",nchains," -l walltime=4:00:00 -N ",job_id, " -A mnh5174_c_g_sc_default -v ", #NODES=",nodes,
++     #",PPN=",ppn,
++     #",WT=", wt,
++     #",JOB_ID_NH=",job_id,
++     "DF=",rawdf,
++     ",OUTDIR=",out,
++     ",TASK=",task,
++     ",MODELS='", m, "'",
++     ",NCHAINS=", as.character(nchains),
++     ",NBURN=", as.character(nburn),
++     ",NSAMP=", as.character(nsamp),
++     " qsub_inhibition_ddm_args.bash")
++   
++   job_info <- data.frame(job_id = job_info_log$job_id[nrow(job_info_log)] + 1, TASK = task, MODEL = m, NCHAINS = nchains, NBURN = nburn, NSAMP = nsamp, DAY_SUB = as.character(Sys.Date()), TIME_SUB = as.character(Sys.time()), qsub_string = cmd)
++   
++   job_info_log <- rbind(job_info_log, job_info)
++   write.csv(job_info_log, "PD_Inhibition_DDM_job_info_log.csv")
++   
++   cat(cmd, "\n")
++   system(cmd)
++ }
+qsub -l nodes=1:ppn=10 -l walltime=4:00:00 -N DDM_job_1 -A mnh5174_c_g_sc_default -v DF=/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Data/preprocessed/flanker_accCode.csv,OUTDIR=/gpfs/group/mnh5174/default/Nate/HDDM_outputs_PD_Inhibition/samp1000/flanker/clean_sample,TASK=flanker,MODELS='v',NCHAINS=10,NBURN=100,NSAMP=1000 qsub_inhibition_ddm_args.bash 
+Job options fit within the PI reservation.
+17822662.torque01.util.production.int.aci.ics.psu.edu
+qsub -l nodes=1:ppn=10 -l walltime=4:00:00 -N DDM_job_2 -A mnh5174_c_g_sc_default -v DF=/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Data/preprocessed/flanker_accCode.csv,OUTDIR=/gpfs/group/mnh5174/default/Nate/HDDM_outputs_PD_Inhibition/samp1000/flanker/clean_sample,TASK=flanker,MODELS='vsv',NCHAINS=10,NBURN=100,NSAMP=1000 qsub_inhibition_ddm_args.bash 
+Job options fit within the PI reservation.
+17822664.torque01.util.production.int.aci.ics.psu.edu
+qsub -l nodes=1:ppn=10 -l walltime=4:00:00 -N DDM_job_3 -A mnh5174_c_g_sc_default -v DF=/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Data/preprocessed/flanker_accCode.csv,OUTDIR=/gpfs/group/mnh5174/default/Nate/HDDM_outputs_PD_Inhibition/samp1000/flanker/clean_sample,TASK=flanker,MODELS='v_block',NCHAINS=10,NBURN=100,NSAMP=1000 qsub_inhibition_ddm_args.bash 
+Job options fit within the PI reservation.
+17822665.torque01.util.production.int.aci.ics.psu.edu
+qsub -l nodes=1:ppn=10 -l walltime=4:00:00 -N DDM_job_4 -A mnh5174_c_g_sc_default -v DF=/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Data/preprocessed/flanker_accCode.csv,OUTDIR=/gpfs/group/mnh5174/default/Nate/HDDM_outputs_PD_Inhibition/samp1000/flanker/clean_sample,TASK=flanker,MODELS='v_blocksv',NCHAINS=10,NBURN=100,NSAMP=1000 qsub_inhibition_ddm_args.bash 
+Job options fit within the PI reservation.
+17822666.torque01.util.production.int.aci.ics.psu.edu
+qsub -l nodes=1:ppn=10 -l walltime=4:00:00 -N DDM_job_5 -A mnh5174_c_g_sc_default -v DF=/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Data/preprocessed/flanker_accCode.csv,OUTDIR=/gpfs/group/mnh5174/default/Nate/HDDM_outputs_PD_Inhibition/samp1000/flanker/clean_sample,TASK=flanker,MODELS='vst',NCHAINS=10,NBURN=100,NSAMP=1000 qsub_inhibition_ddm_args.bash 
+Job options fit within the PI reservation.
+17822667.torque01.util.production.int.aci.ics.psu.edu
+qsub -l nodes=1:ppn=10 -l walltime=4:00:00 -N DDM_job_6 -A mnh5174_c_g_sc_default -v DF=/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Data/preprocessed/flanker_accCode.csv,OUTDIR=/gpfs/group/mnh5174/default/Nate/HDDM_outputs_PD_Inhibition/samp1000/flanker/clean_sample,TASK=flanker,MODELS='vsvst',NCHAINS=10,NBURN=100,NSAMP=1000 qsub_inhibition_ddm_args.bash 
+Job options fit within the PI reservation.
+17822668.torque01.util.production.int.aci.ics.psu.edu
+qsub -l nodes=1:ppn=10 -l walltime=4:00:00 -N DDM_job_7 -A mnh5174_c_g_sc_default -v DF=/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Data/preprocessed/flanker_accCode.csv,OUTDIR=/gpfs/group/mnh5174/default/Nate/HDDM_outputs_PD_Inhibition/samp1000/flanker/clean_sample,TASK=flanker,MODELS='v_blockst',NCHAINS=10,NBURN=100,NSAMP=1000 qsub_inhibition_ddm_args.bash 
+Job options fit within the PI reservation.
+17822670.torque01.util.production.int.aci.ics.psu.edu
+qsub -l nodes=1:ppn=10 -l walltime=4:00:00 -N DDM_job_8 -A mnh5174_c_g_sc_default -v DF=/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Data/preprocessed/flanker_accCode.csv,OUTDIR=/gpfs/group/mnh5174/default/Nate/HDDM_outputs_PD_Inhibition/samp1000/flanker/clean_sample,TASK=flanker,MODELS='v_blocksvst',NCHAINS=10,NBURN=100,NSAMP=1000 qsub_inhibition_ddm_args.bash 
+Job options fit within the PI reservation.
+17822671.torque01.util.production.int.aci.ics.psu.edu
+> 
+> 
+> 
+> 
+> 
+> # command <- shQuote(paste0("qsub -v NODES=\"",nodes,"\",PPN=\"",ppn, "\" test_script.bash"))
+> # system(command)
+> # paste0('qsub -v NODES=\"',nodes),'\",PPN'=,ppn)
+> # 
+> # paste0('qsub -v NODES=\"',nodes,'\",PPN=\"',ppn,"\" test_script.bash")
+> 
+> proc.time()
+   user  system elapsed 
+ 13.152   1.254  35.428 
