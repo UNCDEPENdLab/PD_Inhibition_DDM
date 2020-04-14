@@ -126,6 +126,12 @@ for(nsamp in nsamples){
       figuredir <- file.path(basedir,"Figures",nsamp, task, subs)
       outdir <- file.path(basedir, "Outputs", "posterior_summaries", nsamp, task, subs)
       
+      for(mod in names(parameterizations[[task]])){
+        parameterizations[[task]][["traces"]] <- paste0(diagnosdir, "/",mod, "_traces.csv")
+        parameterizations[[task]][["gelman-rubin"]] <- paste0(diagnosdir, "/gr_",mod,".csv")
+      }
+      
+      
       suff_stats_all_pipelines[[nsamp]][[task]][[subs]] <-  hddm_posterior_diagnostics(diagnosdir, parameterizations[[task]], outdir, allowCache = TRUE)
     }
   }

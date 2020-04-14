@@ -9,7 +9,7 @@ diagnostic_plot <- function(post, label){
                                      diagnostic = "all")
   
   
-  
+  # browser()
   
   auto <- data.frame(autocorrelation = as.numeric(autocorr(postMCMC, 0:100)), lag = 0:100)
   
