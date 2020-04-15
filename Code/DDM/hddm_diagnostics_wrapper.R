@@ -125,14 +125,17 @@ for(nsamp in nsamples){
       diagnosdir <- file.path(hddm_outputdir,nsamp, task, subs, "diagnostics")
       figuredir <- file.path(basedir,"Figures",nsamp, task, subs)
       outdir <- file.path(basedir, "Outputs", "posterior_summaries", nsamp, task, subs)
+      DIC_path <- file.path(diagnosdir, "dics_all.csv")
       
       for(mod in names(parameterizations[[task]])){
         parameterizations[[task]][["traces"]] <- paste0(diagnosdir, "/",mod, "_traces.csv")
         parameterizations[[task]][["gelman-rubin"]] <- paste0(diagnosdir, "/gr_",mod,".csv")
+        parameterizations[[task]][["outdir"]] <- outdir
+        parameterizations[[task]][["figuredir"]] <- figuredir
       }
       
       
-      suff_stats_all_pipelines[[nsamp]][[task]][[subs]] <-  hddm_posterior_diagnostics(diagnosdir, parameterizations[[task]], outdir, allowCache = TRUE)
+      suff_stats_all_pipelines[[nsamp]][[task]][[subs]] <-  hddm_posterior_diagnostics(parameterizations[[task]], DICs = DIC_path, v_contrasts = TRUE)
     }
   }
 }
