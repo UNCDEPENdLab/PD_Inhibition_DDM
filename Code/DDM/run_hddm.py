@@ -160,7 +160,7 @@ st = {'model': "st ~ 1", 'link_func': lambda x: x}
 if task == 'flanker':
     
     v = {'model': "v ~ 1  + C(stim, Treatment(0))", 'link_func': lambda x: x}
-    v_block = {'model': "v ~ 1  + C(stim, Treatment(0)) * C(CongruentBlock, Treatment(0))", 'link_func': lambda x: x}
+    v_block = {'model': "v ~ 1  + C(stim, Treatment(0)) * C(block, Treatment(0))", 'link_func': lambda x: x}
     
     ##### create dict to index that includes different combinations of the design matrices from above
     
