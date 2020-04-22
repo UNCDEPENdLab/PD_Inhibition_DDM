@@ -7,7 +7,7 @@
 basedir <- "~/github_repos/PD_Inhibition_DDM/"
 
 if (!require(pacman)) { install.packages("pacman"); library(pacman) }
-p_load(car, brms, nlme, lme4, loo, readr,tidyverse, emmeans, cowplot, glmmTMB, bbmle, broom)
+p_load(car, brms, nlme, lme4, loo, readr,tidyverse, emmeans, cowplot, glmmTMB, bbmle, broom, psych)
 
 
 load(file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RData")) 
@@ -625,7 +625,7 @@ g9 <- ggplot(accuracies, aes(y=p_acc_NoGo_SevenGo)) + geom_boxplot() + ggtitle("
 plot_grid(g1, g2, g4,g6, g8, nrow=1)
 plot_grid(g3, g5, g7, g9, nrow=1)
 #exclusion subjects from dissertation
-accuracies %>% filter(id %in% c(7, 14, 36, 38, 47, 55, 62, 83)) %>% select(id, starts_with("p_acc"))
+# accuracies %>% filter(id %in% c(7, 14, 36, 38, 47, 55, 62, 83)) %>% select(id, starts_with("p_acc"))
 
 accuracies %>% select(id, starts_with("p_acc")) %>% arrange(p_acc)
 accuracies %>% select(id, starts_with("p_acc")) %>% arrange(p_acc_Go_OneGo)
@@ -732,7 +732,7 @@ test[which(is.na(test$rt_inv_trim_grp)),c("rt", "rt_inv_trim_grp", "stim_cond", 
 test %>% filter(is.na(rt_inv_trim_grp)) %>% nrow()
 test %>% filter(is.na(rt)) %>% nrow()
 test %>% filter(is.na(rt_trim_grp)) %>% nrow()
-test %>% filter(is.na(rt_winsor)) %>% nrow()
+test %>% filter(is.na(rt_winsor_grp)) %>% nrow()
 test %>% filter(is.na(rt_trim_grp)) %>% pull(rt) %>% hist(main="RTs dropped by group trim")
 
 # raw RT distributions
@@ -814,7 +814,7 @@ gng <- gng %>% mutate(
   ))
 
 # good news is that subjects with a high number of RAs have already been flagged above, I dont see the need to flag anyone else as problematic.
-gng <- test %>% select(id, Block, stim_cond, trial, rt_log_trim_grp) %>% right_join(gng, by = c("id", "Block", "stim_cond", "trial")) %>% 
+gng <- test %>% select(id, Block, stim_cond, trial, rt_log_trim_grp, rt_trim_grp) %>% right_join(gng, by = c("id", "Block", "stim_cond", "trial")) %>% 
   mutate(rt_log_trim_grp = ifelse(rt == 0,0, rt_log_trim_grp)) #this simply transforms -Inf values for nogo trials back to 0. These are "true" no-gos.
 
 
@@ -823,6 +823,8 @@ gng <- test %>% select(id, Block, stim_cond, trial, rt_log_trim_grp) %>% right_j
 # detach("package:plyr", unload=TRUE, force = TRUE, character.only = TRUE)
 # ssubs <- gng %>% dplyr::filter(trial == 1) 
 # xtabs(~exclude_go_nogo, ssubs)
+
+gng_SNAP <- gng %>% left_join(select(SNAP_all_scored, id, exclude_SNAP))
 
 # combine all exclusion information and see if folks need to be dropped listwise?
 exclude_all <- flanker_SNAP %>% filter(trial == 1) %>% select(id, exclude_flanker, exclude_SNAP) %>% full_join(select(filter(recent_probes_SNAP, trial ==1), id, exclude_recent_probes)) %>% full_join(select(filter(gng_SNAP, trial ==1), id, exclude_go_nogo)) %>% arrange(id) %>% print(n = 112)
@@ -870,6 +872,7 @@ flanker <- flanker_SNAP %>% mutate(
                                 `44` = 3,
                                 `51` = 3,
                                 `100` = 3,
+                                .default = exclude_flanker
   ))
 
 recent_probes <- recent_probes_SNAP %>% mutate(
@@ -879,6 +882,7 @@ recent_probes <- recent_probes_SNAP %>% mutate(
                                       `44` = 3,
                                       `51` = 3,
                                       `100` = 3,
+                                      .default = exclude_recent_probes
   ))
 gng <- go_nogo <- gng_SNAP %>% mutate(
   exclude_go_nogo =dplyr::recode(id,
@@ -887,15 +891,16 @@ gng <- go_nogo <- gng_SNAP %>% mutate(
                                 `44` = 3,
                                 `51` = 3,
                                 `100` = 3,
+                                .default = exclude_go_nogo
   ))
 
 
 
-# RT distributions for clean and full sample  -----------------------------
+# RT distributions for clean and full sample: GNG  -----------------------------
 
-gng_SNAP <- gng %>% left_join(select(SNAP_all_scored, id, exclude_SNAP))
 
-gng_full <- dplyr::filter(gng_SNAP, exclude_SNAP ==0, !is.na(exclude_SNAP), exclude_go_nogo != 3, stim == "Go")
+
+gng_full <- dplyr::filter(gng, exclude_SNAP ==0, !is.na(exclude_SNAP), exclude_go_nogo != 3, stim == "Go")
 gng_mean_ci_conditions_full <- summarySEwithin(data = gng_full, measurevar = "rt", withinvars = "cond", idvar = "id", na.rm = TRUE)
 full_n  <- length(unique(gng_full$id))
 
@@ -905,7 +910,7 @@ gng_point_full <- ggplot(gng_mean_ci_conditions_full, aes(x = rt_norm, y = cond)
   labs(y = "Condition", x = "Reaction Time (msec)",title = paste0("gng task full sample: N=", full_n))
 
 
-gng_clean <- dplyr::filter(gng_SNAP, exclude_SNAP ==0, exclude_go_nogo ==0)
+gng_clean <- dplyr::filter(gng, exclude_SNAP ==0, exclude_go_nogo ==0)
 gng_mean_ci_conditions_clean <- summarySEwithin(data = gng_clean, measurevar = "rt", withinvars = "cond", idvar = "id", na.rm = TRUE)
 
 clean_n <- length(unique(gng_clean$id))
@@ -937,4 +942,66 @@ plot_grid(gng_point_clean, gng_point_full, ncol = 1)
 
 
 
+
+
+
+
+# final look and rename vars if need be -----------------------------------
+
+##### flanker
+
+#only drop the folks that are definitely not usable.
+flanker_full <- flanker %>% filter(exclude_flanker != 3) %>% select(id, correct, rt_trim_grp, cond, block, block_number,trial_z, rt_inv_trim_grp, block_number, run_trial, run_trial_z, prev_rt, prev_rt_inv) %>%
+  dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp, stim = cond) %>% write.csv(file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/flanker_full_accCode.csv", row.names = FALSE)
+
+# filter NA RTs as well
+flanker_full_nafilt <- flanker %>% filter(exclude_flanker != 3, !is.na(rt)) %>% select(id, correct, rt_trim_grp, cond, block, block_number,trial_z, rt_inv_trim_grp, block_number, run_trial, run_trial_z, prev_rt, prev_rt_inv) %>%
+  dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp, stim = cond) %>% write.csv(file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/flanker_full_nafilt_accCode.csv", row.names = FALSE)
+
+#drop the questionable folks too
+flanker_clean <- flanker %>% filter(exclude_flanker == 0) %>% select(id, correct, rt_trim_grp, cond, block, block_number,trial_z, rt_inv_trim_grp, block_number, run_trial, run_trial_z, prev_rt, prev_rt_inv) %>%
+  dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp, stim = cond) %>% write.csv(file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/flanker_clean_accCode.csv", row.names = FALSE)
+
+# filter NA RTs as well
+flanker_clean_nafilt <- flanker %>% filter(exclude_flanker == 0, !is.na(rt)) %>% select(id, correct, rt_trim_grp, cond, block, block_number,trial_z, rt_inv_trim_grp, block_number, run_trial, run_trial_z, prev_rt, prev_rt_inv) %>%
+  dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp, stim = cond) %>% write.csv(file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/flanker_clean_nafilt_accCode.csv", row.names = FALSE)
+
+
+
+
+##### recent_probes
+
+#only drop the folks that are definitely not usable.
+recent_probes_full <- recent_probes %>% filter(exclude_recent_probes != 3) %>% select(id, correct, rt_trim_grp, stim, cond, trial_z, rt_log_trim_grp, prev_rt) %>%
+  dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp) %>% write.csv(file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/recent_probes_full_accCode.csv", row.names = FALSE)
+
+# filter NA RTs as well
+recent_probes_full_nafilt <- recent_probes %>% filter(exclude_recent_probes != 3, !is.na(rt))%>% select(id, correct, rt_trim_grp, stim, cond, trial_z, rt_log_trim_grp, prev_rt) %>%
+  dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp) %>% write.csv(file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/recent_probes_full_nafilt_accCode.csv", row.names = FALSE)
+
+#drop the questionable folks too
+recent_probes_clean <- recent_probes %>% filter(exclude_recent_probes == 0) %>% select(id, correct, rt_trim_grp, stim, cond, trial_z, rt_log_trim_grp, prev_rt) %>%
+  dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp) %>% write.csv(file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/recent_probes_clean_accCode.csv", row.names = FALSE)
+
+# filter NA RTs as well
+recent_probes_clean_nafilt <- recent_probes %>% filter(exclude_recent_probes == 0, !is.na(rt)) %>% select(id, correct, rt_trim_grp, stim, cond, trial_z, rt_log_trim_grp, prev_rt) %>%
+  dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp) %>% write.csv(file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/recent_probes_clean_nafilt_accCode.csv", row.names = FALSE)
+
+##### go_nogo
+
+#only drop the folks that are definitely not usable.
+go_nogo_full <- go_nogo %>% filter(exclude_go_nogo != 3) %>% select(id, correct, rt_trim_grp, cond, stim, cond, stim_cond, trial_z, rt_log_trim_grp, prev_rt, block_trial) %>%
+  dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp) %>% write.csv(file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/go_nogo_full_accCode.csv", row.names = FALSE)
+
+# filter NA RTs as well
+go_nogo_full_nafilt <- go_nogo %>% filter(exclude_go_nogo != 3, !is.na(rt))%>% select(id, correct, rt_trim_grp, cond, stim, cond, stim_cond, trial_z, rt_log_trim_grp, prev_rt, block_trial) %>%
+  dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp) %>% write.csv(file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/go_nogo_full_nafilt_accCode.csv", row.names = FALSE)
+
+#drop the questionable folks too
+go_nogo_clean <- go_nogo %>% filter(exclude_go_nogo == 0) %>% select(id, correct, rt_trim_grp, cond, stim, cond, stim_cond, trial_z, rt_log_trim_grp, prev_rt, block_trial) %>%
+  dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp) %>% write.csv(file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/go_nogo_clean_accCode.csv", row.names = FALSE)
+
+# filter NA RTs as well
+go_nogo_clean_nafilt <- go_nogo %>% filter(exclude_go_nogo == 0, !is.na(rt)) %>% select(id, correct, rt_trim_grp, cond, stim, cond, stim_cond, trial_z, rt_log_trim_grp, prev_rt, block_trial) %>%
+  dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp) %>% write.csv(file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/go_nogo_clean_nafilt_accCode.csv", row.names = FALSE)
 
