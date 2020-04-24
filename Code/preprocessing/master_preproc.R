@@ -826,39 +826,70 @@ gng <- test %>% select(id, Block, stim_cond, trial, rt_log_trim_grp, rt_trim_grp
 
 gng_SNAP <- gng %>% left_join(select(SNAP_all_scored, id, exclude_SNAP))
 
+
+# 2/24/20. MPQ cleaning is done, load and include these folks.
+load(file.path(basedir,"Data/preprocessed/MPQ_all_scored_final.RData"))
+
+MPQ_all_scored <- dplyr::rename(MPQ_all_scored, id = subject)
+flanker_SNAP <- flanker_SNAP %>% left_join(select(MPQ_all_scored, id, exclude_MPQ), by = "id")
+recent_probes_SNAP <- recent_probes_SNAP %>% left_join(select(MPQ_all_scored, id, exclude_MPQ), by = "id")
+gng_SNAP <- gng_SNAP %>% left_join(select(MPQ_all_scored, id, exclude_MPQ), by = "id")
+
+
 # combine all exclusion information and see if folks need to be dropped listwise?
-exclude_all <- flanker_SNAP %>% filter(trial == 1) %>% select(id, exclude_flanker, exclude_SNAP) %>% full_join(select(filter(recent_probes_SNAP, trial ==1), id, exclude_recent_probes)) %>% full_join(select(filter(gng_SNAP, trial ==1), id, exclude_go_nogo)) %>% arrange(id) %>% print(n = 112)
+exclude_all <- flanker_SNAP %>% filter(trial == 1) %>% select(id, exclude_flanker, exclude_SNAP,exclude_MPQ) %>% full_join(select(filter(recent_probes_SNAP, trial ==1), id, exclude_recent_probes, exclude_SNAP, exclude_MPQ)) %>% full_join(select(filter(gng_SNAP, trial ==1), id, exclude_go_nogo)) %>% arrange(id) %>% print(n = 112)
 
 
+exclude_all %>% filter(is.na(exclude_MPQ) | exclude_MPQ ==1 )
+MPQ_all_scored %>% filter(id %in% c(7,44,48,82,85))
 
 # if SNAP profile is bad, dont include in any estimations -----------------
 
- 
-exclude_all %>% filter(exclude_SNAP != 0 | is.na(exclude_SNAP))
+
+exclude_all %>% filter(exclude_SNAP != 0 | is.na(exclude_SNAP) | is.na(exclude_MPQ) | exclude_MPQ == 1)
+exclude_all %>% filter(!(exclude_SNAP != 0 | is.na(exclude_SNAP) | is.na(exclude_MPQ) | exclude_MPQ == 1)) %>% print(n = 112)
+
+# Invalidity indices for all personality (e.g. listwise) dropped subjects. I'm generally okay with this.
+SNAP_all_scored %>% full_join(MPQ_all_scored, by = "id") %>% select(id, contains("VRIN"), contains("TRIN"), Z_InvalidityIndex ) %>% select(!starts_with("T_")) %>% 
+  filter(id %in% c(7,23,38,48,51,82,85,100)) %>%
+  dplyr::rename(Z_VRIN_SNAP = Z_VRIN.x,
+                Z_VRIN_MPQ = Z_VRIN.y,
+                Z_TRIN_SNAP = Z_TRIN.x,
+                Z_TRIN_MPQ = Z_TRIN.y,) %>% select(-VRIN, -TRIN) %>% arrange(id)
 
 exclude_all <- exclude_all %>% mutate(
   exclude_flanker=dplyr::recode(id,
+                                `7` = 3, 
                                 `23` = 3, 
                                 `38` = 3,
-                                `44` = 3,
+                                `44` = 3, # this is only bc it is missing, do not drop for other tasks.
+                                `48` = 3, 
                                 `51` = 3,
+                                `82` = 3, 
+                                `85` = 3, 
                                 `100` = 3, 
                                 .default = exclude_flanker
   ),
   exclude_recent_probes=dplyr::recode(id,
+                                      `7` = 3, 
                                       `23` = 3, 
                                       `38` = 3,
-                                      `44` = 3,
+                                      `48` = 3, 
                                       `51` = 3,
-                                      `100` = 3,
+                                      `82` = 3, 
+                                      `85` = 3, 
+                                      `100` = 3, 
                                       .default = exclude_recent_probes
   ),
   
   exclude_go_nogo=dplyr::recode(id,
+                                `7` = 3, 
                                 `23` = 3, 
                                 `38` = 3,
-                                `44` = 3,
+                                `48` = 3, 
                                 `51` = 3,
+                                `82` = 3, 
+                                `85` = 3, 
                                 `100` = 3,
                                 .default = exclude_go_nogo
   ))
@@ -867,31 +898,40 @@ exclude_all <- exclude_all %>% mutate(
 
 flanker <- flanker_SNAP %>% mutate(
   exclude_flanker=dplyr::recode(id,
+                                `7` = 3, 
                                 `23` = 3, 
                                 `38` = 3,
-                                `44` = 3,
+                                `48` = 3, 
                                 `51` = 3,
+                                `82` = 3, 
+                                `85` = 3, 
                                 `100` = 3,
                                 .default = exclude_flanker
   ))
 
 recent_probes <- recent_probes_SNAP %>% mutate(
   exclude_recent_probes=dplyr::recode(id,
+                                      `7` = 3, 
                                       `23` = 3, 
                                       `38` = 3,
-                                      `44` = 3,
+                                      `48` = 3, 
                                       `51` = 3,
+                                      `82` = 3, 
+                                      `85` = 3, 
                                       `100` = 3,
                                       .default = exclude_recent_probes
   ))
 gng <- go_nogo <- gng_SNAP %>% mutate(
   exclude_go_nogo =dplyr::recode(id,
-                                `23` = 3, 
-                                `38` = 3,
-                                `44` = 3,
-                                `51` = 3,
-                                `100` = 3,
-                                .default = exclude_go_nogo
+                                 `7` = 3, 
+                                 `23` = 3, 
+                                 `38` = 3,
+                                 `48` = 3, 
+                                 `51` = 3,
+                                 `82` = 3, 
+                                 `85` = 3, 
+                                 `100` = 3,
+                                 .default = exclude_go_nogo
   ))
 
 

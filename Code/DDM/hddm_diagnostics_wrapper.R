@@ -16,7 +16,7 @@ pacman::p_load(tidyverse)
 
 # initialize large parameterization list ----------------------------------
 
-##generated a 3-deep list that takes the structure [[task]][[parameterization]][[group/subjs]] that is utilized internally in the function when extracting and relabelling subject and group level posteriors.
+##generated a 3-deep list that takes the structure [[task]][[parameterization]][[group/subjs]] that is utilized internally in the function when extracting and relabeling subject and group level posteriors.
 
 ## modify if alternate parameterizations are fit
 parameterizations <- list()

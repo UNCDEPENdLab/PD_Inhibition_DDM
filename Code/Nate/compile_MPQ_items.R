@@ -5,6 +5,8 @@
 pacman::p_load(tidyverse, sas7bdat, assertr)
 
 basedir <- "~/github_repos/PD_Inhibition_DDM"; setwd(basedir)
+R.utils::sourceDirectory(paste0(basedir, "/Code/Functions"))
+
 
 mpq_1 <- read.sas7bdat(file.path(basedir,"MH_Diss_Analyses/Data/mpq_1.sas7bdat")) %>% select(id, starts_with("MPQ_")) %>% dplyr::rename(subject = id); nrow(mpq_1)
 mpq_2 <- read.sas7bdat(file.path(basedir,"MH_Diss_Analyses/Data/mpq_2.sas7bdat"))%>% select(id, starts_with("MPQ_")) %>% dplyr::rename(subject = id); nrow(mpq_2)
@@ -34,3 +36,10 @@ mpq_percs %>% arrange(perc_sums)
 # datadir <- paste0(basedir, "/Data/")
 # alldat <- read.csv(paste0(datadir, "alldat.csv"))
 # names(alldat)
+
+
+
+# calculate VRIN and TRIN -------------------------------------------------
+
+
+
