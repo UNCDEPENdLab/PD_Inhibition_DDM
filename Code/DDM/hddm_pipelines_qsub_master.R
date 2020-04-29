@@ -23,7 +23,7 @@ nsamples <- paste0("samp",c(#1000,
   2000, 
   #5000, 
   10000))#, 20000, 40000, 80000))
-tasks <- c("flanker")#, "recent_probes")#, "go_nogo")
+tasks <- c("flanker", "recent_probes")#, "go_nogo")
 full_sample <- c("clean_sample", "full_sample")
 wt_scaling_factor <- .01
 nburn_percentile <- .2

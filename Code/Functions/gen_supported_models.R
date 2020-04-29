@@ -105,6 +105,14 @@ supported_models <- list(flanker = c('v',
                                      'v_stimblock_runtrial_prev_rt_sv_st',
                                      'v_block_trial_runtrial_prev_rt_sv_st',
                                      'v_stimblock_trial_runtrial_prev_rt_sv_st'),
-                         recent_probes = c("v", "vst", "vsv", "vsvst"))
+                         recent_probes = c("v", 
+                                           "v_st", 
+                                           "v_sv",
+                                           "v_sv_st",
+                                           "v_cond", 
+                                           "v_cond_st", 
+                                           "v_cond_sv",
+                                           "v_cond_sv_st",
+                                           ))
 return(supported_models)
 }
