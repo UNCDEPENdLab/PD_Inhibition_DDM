@@ -974,10 +974,11 @@ plot_grid(gng_point_clean, gng_point_full, ncol = 1)
 
 
 
+## convert RT to seconds, HDDM expects double as input but gets an integer if left in number of milliseconds. plus this should set up go/nogo analyses to see 999 as a true no-go response.
 
-
-
-
+flanker <- flanker %>% mutate(rt = rt*.001)
+recent_probes <- recent_probes %>% mutate(rt = rt*.001)
+go_nogo <- go_nogo %>% mutate(rt = rt*.001)
 
 
 
@@ -995,7 +996,7 @@ flanker_full <- flanker %>% filter(exclude_flanker != 3) %>% select(id, correct,
   dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp, stim = cond) %>% 
   mutate(stimblock = ifelse(as.character(stim) == "incongruent", paste0(stim, "_", block), as.character(stim))) # descriptives indicate that perhaps block only matters for incongruent stimuli, thus, create a contrast that lumps congruent together but separates stimulus by block for incongruent
 
-write.csv(flanker_full, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/flanker_full_accCode.csv", row.names = FALSE)
+write.csv(flanker_full, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/flanker_full_sample_accCode.csv", row.names = FALSE)
 
 # filter NA RTs as well
 flanker_full_nafilt <- flanker %>% filter(exclude_flanker != 3) %>% select(id, correct, rt_trim_grp, cond, block, block_number,trial_z, trial,  rt_inv_trim_grp, block_number, run_trial, run_trial_z, trial,  prev_rt, prev_rt_inv) %>%
@@ -1003,14 +1004,14 @@ flanker_full_nafilt <- flanker %>% filter(exclude_flanker != 3) %>% select(id, c
   mutate(stimblock = ifelse(as.character(stim) == "incongruent", paste0(stim, "_", block), as.character(stim))) %>% #descriptives indicate that perhaps block only matters for incongruent stimuli, thus, create a contrast that lumps congruent together but separates stimulus by block for incongruent
   filter(!is.na(rt)) # N.B. these need to be filtered out after changing the name of group-trimmed rt to rt for analysis.
 
-write.csv(flanker_full_nafilt, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/flanker_full_nafilt_accCode.csv", row.names = FALSE)
+write.csv(flanker_full_nafilt, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/flanker_full_sample_nafilt_accCode.csv", row.names = FALSE)
 
 #drop the questionable folks too
 flanker_clean <- flanker %>% filter(exclude_flanker == 0) %>% select(id, correct, rt_trim_grp, cond, block, block_number,trial_z, trial,  rt_inv_trim_grp, block_number, run_trial, run_trial_z, trial,  prev_rt, prev_rt_inv) %>%
   dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp, stim = cond) %>% 
   mutate(stimblock = ifelse(as.character(stim) == "incongruent", paste0(stim, "_", block), as.character(stim))) #descriptives indicate that perhaps block only matters for incongruent stimuli, thus, create a contrast that lumps congruent together but separates stimulus by block for incongruent
   
-write.csv(flanker_clean, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/flanker_clean_accCode.csv", row.names = FALSE)
+write.csv(flanker_clean, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/flanker_clean_sample_accCode.csv", row.names = FALSE)
 
 # filter NA RTs as well
 flanker_clean_nafilt <- flanker %>% filter(exclude_flanker == 0) %>% select(id, correct, rt_trim_grp, cond, block, block_number,trial_z, trial,  rt_inv_trim_grp, block_number, run_trial, run_trial_z, trial,  prev_rt, prev_rt_inv) %>%
@@ -1018,7 +1019,7 @@ flanker_clean_nafilt <- flanker %>% filter(exclude_flanker == 0) %>% select(id, 
   mutate(stimblock = ifelse(as.character(stim) == "incongruent", paste0(stim, "_", block), as.character(stim))) %>% #descriptives indicate that perhaps block only matters for incongruent stimuli, thus, create a contrast that lumps congruent together but separates stimulus by block for incongruent
   filter(!is.na(rt)) # N.B. these need to be filtered out after changing the name of group-trimmed rt to rt for analysis.
   
-write.csv(flanker_clean_nafilt, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/flanker_clean_nafilt_accCode.csv", row.names = FALSE)
+write.csv(flanker_clean_nafilt, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/flanker_clean_sample_nafilt_accCode.csv", row.names = FALSE)
 
 
 
@@ -1029,26 +1030,26 @@ write.csv(flanker_clean_nafilt, file = "~/github_repos/PD_Inhibition_DDM/Data/pr
 recent_probes_full <- recent_probes %>% filter(exclude_recent_probes != 3) %>% select(id, correct, rt_trim_grp, stim, cond, trial_z, trial,  rt_log_trim_grp, prev_rt) %>%
   dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp) 
 
-write.csv(recent_probes_full, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/recent_probes_full_accCode.csv", row.names = FALSE)
+write.csv(recent_probes_full, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/recent_probes_full_sample_accCode.csv", row.names = FALSE)
 
 # filter NA RTs as well
 recent_probes_full_nafilt <- recent_probes %>% filter(exclude_recent_probes != 3)%>% select(id, correct, rt_trim_grp, stim, cond, trial_z, trial,  rt_log_trim_grp, prev_rt) %>%
   dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp) %>% 
   filter(!is.na(rt))
   
-write.csv(recent_probes_full_nafilt, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/recent_probes_full_nafilt_accCode.csv", row.names = FALSE)
+write.csv(recent_probes_full_nafilt, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/recent_probes_full_sample_nafilt_accCode.csv", row.names = FALSE)
 
 #drop the questionable folks too
 recent_probes_clean <- recent_probes %>% filter(exclude_recent_probes == 0) %>% select(id, correct, rt_trim_grp, stim, cond, trial_z, trial,  rt_log_trim_grp, prev_rt) %>%
   dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp)
 
-write.csv(recent_probes_clean, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/recent_probes_clean_accCode.csv", row.names = FALSE)
+write.csv(recent_probes_clean, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/recent_probes_clean_sample_accCode.csv", row.names = FALSE)
 
 # filter NA RTs as well
 recent_probes_clean_nafilt <- recent_probes %>% filter(exclude_recent_probes == 0) %>% select(id, correct, rt_trim_grp, stim, cond, trial_z, trial,  rt_log_trim_grp, prev_rt) %>%
   dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp) %>% filter(!is.na(rt))
 
-write.csv(recent_probes_clean_nafilt, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/recent_probes_clean_nafilt_accCode.csv", row.names = FALSE)
+write.csv(recent_probes_clean_nafilt, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/recent_probes_clean_sample_nafilt_accCode.csv", row.names = FALSE)
 
 ##### go_nogo
 
@@ -1056,25 +1057,25 @@ write.csv(recent_probes_clean_nafilt, file = "~/github_repos/PD_Inhibition_DDM/D
 go_nogo_full <- go_nogo %>% filter(exclude_go_nogo != 3) %>% select(id, correct, rt_trim_grp, cond, stim, cond, stim_cond, trial_z, trial,  rt_log_trim_grp, prev_rt, block_trial) %>%
   dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp) 
 
-write.csv(go_nogo_full, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/go_nogo_full_accCode.csv", row.names = FALSE)
+write.csv(go_nogo_full, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/go_nogo_full_sample_accCode.csv", row.names = FALSE)
 
 # filter NA RTs as well
 go_nogo_full_nafilt <- go_nogo %>% filter(exclude_go_nogo != 3) %>% select(id, correct, rt_trim_grp, cond, stim, cond, stim_cond, trial_z, trial,  rt_log_trim_grp, prev_rt, block_trial) %>%
   dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp) %>%
   filter(!is.na(rt))
 
-write.csv(go_nogo_full_nafilt, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/go_nogo_full_nafilt_accCode.csv", row.names = FALSE)
+write.csv(go_nogo_full_nafilt, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/go_nogo_full_sample_nafilt_accCode.csv", row.names = FALSE)
 
 #drop the questionable folks too
 go_nogo_clean <- go_nogo %>% filter(exclude_go_nogo == 0) %>% select(id, correct, rt_trim_grp, cond, stim, cond, stim_cond, trial_z, trial,  rt_log_trim_grp, prev_rt, block_trial) %>%
   dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp) 
 
-write.csv(go_nogo_clean, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/go_nogo_clean_accCode.csv", row.names = FALSE)
+write.csv(go_nogo_clean, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/go_nogo_clean_sample_accCode.csv", row.names = FALSE)
 
 # filter NA RTs as well
 go_nogo_clean_nafilt <- go_nogo %>% filter(exclude_go_nogo == 0) %>% select(id, correct, rt_trim_grp, cond, stim, cond, stim_cond, trial_z, trial,  rt_log_trim_grp, prev_rt, block_trial) %>%
   dplyr::rename(subj_idx = id, response = correct, rt = rt_trim_grp) %>%
   filter(!is.na(rt))
 
-write.csv(go_nogo_clean_nafilt, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/go_nogo_clean_nafilt_accCode.csv", row.names = FALSE)
+write.csv(go_nogo_clean_nafilt, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/go_nogo_clean_sample_nafilt_accCode.csv", row.names = FALSE)
 
