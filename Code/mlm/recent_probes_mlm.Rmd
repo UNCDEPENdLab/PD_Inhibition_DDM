@@ -1,0 +1,315 @@
+---
+title: "Recent Probes MLMs"
+subtitle: "PD Inhibition Project"
+author: "Nate Hall and Michael Hallquist"
+date: "25 Apr 2020"
+output:
+  html_document:
+    code_folding: show
+    df_print: default
+    mathjax: default
+    number_sections: no
+    theme: spacelab
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+    fig_width: 9 
+    fig_height: 6 
+  pdf_document:
+    code_folding: hide
+    df_print: default
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+---
+
+
+```{r setup, include=FALSE}
+if (!require(pacman)) { install.packages("pacman"); library(pacman) }
+p_load(car, brms, nlme, lme4, loo, readr, tidyverse, emmeans, cowplot, glmmTMB, bbmle, broom, lattice)
+knitr::opts_chunk$set(echo = TRUE) #print code by default
+#knitr::opts_chunk$set(cache.path = "../../Outputs/flanker_mlms/")
+options(digits=3)
+options(width = 140)
+```
+
+# Load pre-cleaned data
+
+In master_preproc.R, I determined to use the log-transformed RT distribution to fit to the data based on a group-based trimming procedure with all RTs > 3SD for group-level RT by condition being used as a criterion for dropping and any RTs <350 ms being dropped. This data set removes subjects with invalid personality profiles and subjects with undeniably flawed RT data (which in the case of the recent probes data isn't anyone outside of the personality-dropped folks). Thus, we retain the core 104 subjects for analysis.
+
+```{r}
+recent_probes <- read.csv("~/github_repos/PD_Inhibition_DDM/Data/preprocessed/recent_probes_full_accCode.csv") %>% tibble()
+str(recent_probes); length(unique(recent_probes$subj_idx))
+
+# re-order for simplicity of interpretation. Easier to consider non-conflict trials a baseline, that rts then deviate from as a result of conflict.
+recent_probes$stim <- factor(recent_probes$stim, levels = c("positive", "negative_unfamiliar", "negative_familiar", "negative_highly_familiar", "negative_rc"))
+recent_probes$cond <- factor(recent_probes$cond, levels = c("no_conflict", "conflict"))
+```
+Below is closely borrowed from MNH's flanker_mlm.Rmd. 
+
+
+# Frequentist MLMs using maximum likelihood and no explicit temporal covariance
+
+
+
+## m1: random intercept of subject, CS structure wrt trial
+
+starting point in ML: random intercept of subject, compount symmetry residual correlation structure wrt trial
+
+```{r m1, cache=TRUE}
+m1 <- lme(rt_log_trim_grp ~ trial_z + stim, random = ~ 1 | subj_idx,
+          correlation=corCompSymm(form=~trial|subj_idx), na.action = na.exclude, 
+          data = recent_probes, method='ML')
+
+summary(m1)
+emmeans(m1, ~stim)
+x <- data.frame(emmeans(m1, ~stim))
+# 
+# ggplot(x, aes(y = stim, x = emmean)) + 
+#   geom_point(shape = 21, size = 2, fill = "black") +
+#   geom_errorbar(width = 0, aes(xmin = lower.CL, xmax=upper.CL))
+
+  
+```
+
+## m2: simple random intercept model
+
+Compound symmetry is already captured above by a simple variance component (G-side),
+which is why the CS correlation is zero in a model that has both.
+
+This is discussed here: https://m-clark.github.io/mixed-models-with-R/extensions.html
+
+Go back to a simple random intercept model.
+
+```{r m2, cache=TRUE}
+m2 <- lme(rt_log_trim_grp ~ trial_z + stim, random = ~ 1 | subj_idx,
+          na.action = na.exclude, 
+          data = recent_probes, method='ML', control = lmeControl(opt="optim"))
+
+summary(m2)
+anova(m1, m2)
+emmeans(m2, ~stim)
+
+#same log likelihood!
+cat("LL(m1) - LL(m2)\n")
+logLik(m1) - logLik(m2)
+```
+
+## m3: R-side only CS model
+
+Verify that an R-side only compound symmetry model matches variance component random intercept model. Need to use `gls` for this.
+
+```{r m3, cache=TRUE}
+#Here's the R-side only model with compound symmetry (no random intercept)
+#this should also yield identical fit statistics -- just a reparameterization of the same approach
+m3 <- gls(rt_log_trim_grp ~ trial_z + stim, correlation=corCompSymm(form=~trial|subj_idx), na.action = na.exclude, 
+          data = recent_probes, method='ML')
+
+anova(m2, m3)
+cat("LL(m3) - LL(m2)\n")
+logLik(m3) - logLik(m2)
+
+#look at model-predicted residual correlation structure
+
+#R.a <- getVarCov(dental.lme.a,type="conditional",individual=1)
+rcov <- getVarCov(m3, type="conditional", individual=1) #covariance matrix
+rcorr <- cov2cor(getVarCov(m3, type="conditional",individual=1)) #residual correlation matrix for subj 1
+
+#V_i <- getVarCov(m3, type="marginal", individual=1)
+```
+
+*Conclusion*: Confirmed that m1, m2, and m3 are isomorphic with each other. The conceptually simplest model is m2, the random intercept only model. 
+Use this as the benchmark for increasingly complex models below
+
+## m4: random intercept of subject, rather than split by exact trial type can try and simplify by looking at conflict vs no conflict
+
+```{r m4, cache=TRUE}
+m4 <- lme(rt_log_trim_grp ~ trial_z + cond, random=~1|subj_idx,
+          na.action = na.exclude,
+          data = recent_probes, method='ML')
+
+summary(m4)
+#getVarCov(m4, "random.effects")
+
+anova(m2, m4)
+```
+Looks like these models are roughly equivalent in their fit to the data, suggesting that perhaps the type of conflict does not quite matter but more the mere presence of cognitive interference significantly prolongs RTs. 
+
+## m5: allowing both cond and stim to have random intercepts within subject. E.g. heterogenous L2 random intercepts
+
+```{r m5:7, cache=TRUE}
+m5 <- lme(rt_log_trim_grp ~ trial_z + stim, 
+          random = list(subj_idx = pdDiag(~stim)),
+          na.action = na.exclude,
+          data = recent_probes, method='ML')
+
+m6 <- lme(rt_log_trim_grp ~ trial_z + cond, 
+          random = list(subj_idx = pdDiag(~cond)),
+          na.action = na.exclude,
+          data = recent_probes, method='ML')
+
+summary(m5)
+summary(m6)
+#getVarCov(m4, "random.effects")
+
+anova(m4,m6)
+anova(m2,m5)
+
+m7 <- lme(rt_log_trim_grp ~ trial_z + stim, 
+          random = list(subj_idx = pdDiag(~cond)),
+          na.action = na.exclude,
+          data = recent_probes, method='ML')
+
+summary(m7)
+anova(m5,m7)
+anova(m7, m6)
+```
+these are different parameterizations of the same model (or at least very close), though m6 with random intercepts estimated per subject and per condition provides the most parsimonious fit. I'd vote for moving forward with m6.
+
+```{r}
+vv <- ranef(m6)
+# dotplot(ranef(m6))
+plot(vv)
+vv %>% pivot_longer(cols = everything()) %>% ggplot(aes(x=name, y=value)) + geom_boxplot() + labs(y="ranef", x="effect")
+
+estimated_ranef <- data.frame(
+  conflict = vv[,"(Intercept)"] + vv[,"condconflict"],
+  no_conflict = vv[,"(Intercept)"] #incongruent is reference condition
+) %>% plot()
+```
+
+## m8: Heterogenous L1 variance for conditions, subject-specific intercept (homogenous) at L2 (similar to flanker m7).
+
+This simply moves heterogeneous residuals for condition from G to R-side, (e.g. heterogeneity in condition residuals is the same across subjects)
+
+```{r m8, cache = TRUE}
+m8 <- lme(rt_log_trim_grp ~ trial_z + cond, 
+          weights = varIdent(form = ~1|cond),
+          random = ~1|subj_idx,
+          na.action = na.exclude,
+          data = recent_probes, method='ML')
+
+summary(m8)
+anova(m6,m8)
+AICtab(m8, m6, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+These seem nearly identical, which makes me think it's preferable to favor m8, as it fixes L2 resids to be homogenous with respect to condition. Seems simpler if estimating G-side resid variance by subject doesnt lend a hand in model fit... I think that's right?
+
+## m9 add fixed effect for prev_rt to winning model
+
+Seems a good a time as ever to include AR1 effects (or RT "Stickiness")
+
+```{r m9, cache= TRUE}
+
+m9 <- lme(rt_log_trim_grp ~ trial_z + cond + prev_rt, 
+          weights = varIdent(form = ~1|cond),
+          random = ~1|subj_idx,
+          na.action = na.exclude,
+          data = recent_probes, method='ML')
+
+summary(m9)
+# anova(m8, m9)
+
+AICtab(m8, m9, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+Looks like it doesn't add much, this could maybe be due to the nature of the task. For example RTs are longest on this task meaning perhaps due to active maintenance required on this task. If participants are continually refreshing their WM buffer, it seems that trials may truly be more independent than on flanker and gng, which may have a sort of "momentum" to them.
+
+For now, continue with random effects and perhaps re-introduce later in the model building procedure once random effects are parsed more finely. Though because of MNH's comments around the fixed effects of his modeling efforts remaining relatively the same throughout his model building procedure, perhaps this truly is an effect that we may not care all that much about, esp if it just complicates our thinking later.
+
+## m10 allow L1 and L2 heterogeneity in condition resid
+
+```{r m10, cache=TRUE}
+
+m10 <- lme(rt_log_trim_grp ~ trial_z + cond, 
+          weights = varIdent(form = ~1|cond),
+          random = list(subj_idx = pdDiag(~cond)),
+          na.action = na.exclude,
+          data = recent_probes, method='ML')
+
+summary(m10)
+anova(m8, m10)
+AICtab(m8, m9, m10, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+
+looks like we're fine with keeping residual variance associated with condition on the R-side
+
+## m11: add random slope of trial
+
+```{r m11, cache=TRUE}
+m11 <- lme(rt_log_trim_grp ~ trial_z + cond, 
+          weights = varIdent(form = ~1|cond),
+          random = ~1 + trial_z | subj_idx,
+          na.action = na.exclude,
+          data = recent_probes, method='ML')
+
+summary(m11)
+anova(m8,m11)
+```
+Looks like it does by quite a bit!
+
+## m12: random slope of condition
+
+```{r m12, cache=TRUE}
+m12 <- lme(rt_log_trim_grp ~ trial_z + cond, 
+          weights = varIdent(form = ~1|cond),
+          random = ~1 + trial_z + cond| subj_idx,
+          na.action = na.exclude,
+          data = recent_probes, method='ML',control = lmeControl(opt="optim"))
+
+summary(m12)
+anova(m11,m12)
+AICtab(m11,m12, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+very modest change in model fit, could see it going either way, but in the spirit of capturing nuisance variation I say why not keep m12 which is only slightly more complicated but adds a tiny bit.
+
+## m13: interaction of fixed effects?
+
+```{r m13, cache=TRUE}
+m13 <- lme(rt_log_trim_grp ~ trial_z * cond, 
+          weights = varIdent(form = ~1|cond),
+          random = ~1 + trial_z + cond| subj_idx,
+          na.action = na.exclude,
+          data = recent_probes, method='ML',control = lmeControl(opt="optim"))
+
+summary(m13)
+anova(m12, m13)
+
+```
+okay, good that's to be expected.
+
+## m14: ixn of random slopes
+
+```{r m14, cache=TRUE}
+m14 <- lme(rt_log_trim_grp ~ trial_z + cond, 
+          weights = varIdent(form = ~1|cond),
+          random = ~1 + trial_z * cond| subj_idx,
+          na.action = na.exclude,
+          data = recent_probes, method='ML',control = lmeControl(opt="optim"))
+
+summary(m14)
+anova(m12, m14)
+
+```
+sounds good.
+
+## m15: try prev_rt one more time.
+
+```{r m15, cache=TRUE}
+m15 <- lme(rt_log_trim_grp ~ trial_z + cond + prev_rt, 
+          weights = varIdent(form = ~1|cond),
+          random = ~1 + trial_z + cond| subj_idx,
+          na.action = na.exclude,
+          data = recent_probes, method='ML',control = lmeControl(opt="optim"))
+
+summary(m15)
+AICtab(m15,m12, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
+okay, yep definitely not :) 
+
+m12 seems very close to right even if we're not carving nature right at its joints. try one more and call it a day for now. Better to try porting this to trait analysis, brms, and MPLUS.
+
+
+
+
+

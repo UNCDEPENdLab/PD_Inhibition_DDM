@@ -122,9 +122,8 @@ hddm_posterior_diagnostics <- function(models, # list with structure [[model]][[
           group_pdf_str <- ifelse(output_specifiers[1] == "",
                                   paste0(figuredir,"/group_diagnostics_",mod,".pdf"),
                                   paste0(figuredir,"/group_diagnostics_",mod, "_", output_specifiers[1],".pdf"))
-          
+          # browser()
           pdf(file =group_pdf_str, width =11, height =8)
-          # pdf(file = "~/Desktop/Sophie_group_traces.pdf", width = 11, height = 8 )
           for(i in names(group_traces)){
             p <- diagnostic_plot(group_traces[,i], i)
             print(p)
