@@ -17,7 +17,7 @@ pdata <- read.csv("~/github_dirs/PD_Inhibition_DDM/Data/summarydat.csv") %>% dpl
 # may need to alter to be more extensible (in terms of wrangling so that getting everything you want
 # potential room to have this be true across tasks (i.e., multiple fixed effects/random effects to allow for examining condition effects across tasks)
 #n.b. this approach of combinging tasks may not be as preferable as a latent variable approach so that should be an explicit conversation
-traces <- read.csv("v_reg_traces.csv") %>% dplyr::select(contains("subj")) %>% 
+traces <- read.csv("v_reg_traces.csv.gz") %>% dplyr::select(contains("subj")) %>% 
   mutate(trace = 1:nrow(.))  %>% gather(key = "key", value = "value", -trace) %>% 
   mutate(key = gsub("_C\\.stim\\.\\.Treatment\\.0\\.\\.\\.T\\.1\\.", "C", key)) %>% #this particularly may need to become more extensible
   mutate(key = gsub("_Intercept", "Int", key)) %>%
@@ -36,7 +36,7 @@ p_vars <- names(pdata)[grepl("MPQ|T_", names(pdata))]
 # Loop over personality varaibles and append to list ----------------------
 
 ##set up iter number and number of chains
-iter_num = 1000
+iter_num =1000
 chains_n = 3
 
 outputs <- list()
@@ -55,20 +55,20 @@ v_out <- brm(
   mean | se(se) ~ pvar*key + (1|subj), 
   prior = c(set_prior("normal(0, 2)", coef = "pvar")),
             iter = iter_num, chains = chains_n,
-  data = dplyr::filter(traces_tmp, str_detect(key, "^v")),
+  data = dplyr::filter(traces_tmp, str_detect(key, "^v"))
 )
 a_out <- brm(
   mean | se(se) ~ pvar + (1|subj), 
   prior = c(set_prior("normal(0, 2)", coef = "pvar")),
   iter = iter_num, chains = chains_n,
-  data = dplyr::filter(traces_tmp, str_detect(key, "^a")),
+  data = dplyr::filter(traces_tmp, str_detect(key, "^a"))
 )
 
 t_out <- brm(
   mean | se(se) ~ pvar + (1|subj), 
   prior = c(set_prior("normal(0, 2)", coef = "pvar")),
   iter = iter_num, chains = chains_n,
-  data = dplyr::filter(traces_tmp, str_detect(key, "^t")),
+  data = dplyr::filter(traces_tmp, str_detect(key, "^t"))
 )
 outputs[[pvar_name]] <- list("v_out" = v_out, "a_out" = a_out, "t_out" = t_out)
 
