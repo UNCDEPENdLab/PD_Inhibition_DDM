@@ -5,10 +5,10 @@
 initialize <- FALSE
 
 # for local debugging
-ics <- 1
+ics <- 0
 
 # run models or test job submission loop?
-RUN = TRUE
+RUN = FALSE
 
 #################
 ### setup params
@@ -17,6 +17,7 @@ pacman::p_load(tidyverse)
 data_base <- ifelse(ics == 1,"/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Data/preprocessed", "~/github_repos/PD_Inhibition_DDM/Data/preprocessed")
 output_base <- "/gpfs/group/mnh5174/default/Nate/HDDM_outputs_PD_Inhibition"
 log_file <- ifelse(ics == 1, "/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log.csv", "~/ics/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log.csv")
+log_file_comp <- ifelse(ics == 1, "/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log_completed.csv", "~/ics/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log_completed.csv")
 
 nchains <- 2
 nsamples <- paste0("samp",c(#1000, 
@@ -44,7 +45,10 @@ for(f in full_sample){all_models[[f]] <- gen_supported_models()}
 
 ## load completed log and see who never finished running. More customized
 
-models <- gen_missing_mods(tasks)
+models <- gen_missing_mods(tasks,
+                           mod_log = log_file_comp, #this simply contains info on if jobs completed that is run after the fact.
+                           nsamples = nsamples,
+                           full_sample = full_sample)
 
 
 
@@ -62,7 +66,7 @@ if (initialize) {
   write.csv(job_info_log, file = log_file)
 }
 
-if(!RUN){
+if(!RUN & initialize){
   job_info_log <- data.frame(job_id = 0, TASK = "initialize", SAMPLE = "initialize",MODEL = "initialize",CODE = "initialize",NCHAINS = 0, NBURN = 0, NSAMP = 0, DAY_SUB = Sys.Date(), TIME_SUB = Sys.time(),  WT_REQUEST = 0, QSUB_STRING = "initialize")
   job_id = 0} #if testing, just initialize a job counter and job log
 
@@ -104,7 +108,11 @@ for(nsamp in nsamples){
             
             job_id <- paste0("DDM_job_",job_info_log$job_id[nrow(job_info_log)] + 1)  
           } else{
-            job_id <- job_id + 1
+            if(!initialize){
+              job_info_log <- read.csv(log_file) %>% select(-X)
+              
+              job_id <- paste0("DDM_job_",job_info_log$job_id[nrow(job_info_log)] + 1)  
+            }else{job_id <- job_id + 1}
           }
           
           
