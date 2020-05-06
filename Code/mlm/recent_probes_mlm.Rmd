@@ -38,7 +38,7 @@ options(width = 140)
 In master_preproc.R, I determined to use the log-transformed RT distribution to fit to the data based on a group-based trimming procedure with all RTs > 3SD for group-level RT by condition being used as a criterion for dropping and any RTs <350 ms being dropped. This data set removes subjects with invalid personality profiles and subjects with undeniably flawed RT data (which in the case of the recent probes data isn't anyone outside of the personality-dropped folks). Thus, we retain the core 104 subjects for analysis.
 
 ```{r}
-recent_probes <- read.csv("~/github_repos/PD_Inhibition_DDM/Data/preprocessed/recent_probes_full_accCode.csv") %>% tibble()
+recent_probes <- read.csv("~/github_repos/PD_Inhibition_DDM/Data/preprocessed/recent_probes_full_sample_nafilt_accCode.csv") %>% tibble()
 str(recent_probes); length(unique(recent_probes$subj_idx))
 
 # re-order for simplicity of interpretation. Easier to consider non-conflict trials a baseline, that rts then deviate from as a result of conflict.
@@ -307,9 +307,28 @@ AICtab(m15,m12, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
 ```
 okay, yep definitely not :) 
 
-m12 seems very close to right even if we're not carving nature right at its joints. try one more and call it a day for now. Better to try porting this to trait analysis, brms, and MPLUS.
+m12 seems very close to right even if we're not carving nature right at its joints. call it a day for now. Better to try porting this to trait analysis, brms, and MPLUS.
 
 
+brms version:
+
+```{r}
+m12 <- lme(rt_log_trim_grp ~ trial_z + cond, 
+          weights = varIdent(form = ~1|cond),
+          random = ~1 + trial_z + cond| subj_idx,
+          na.action = na.exclude,
+          data = recent_probes, method='ML',control = lmeControl(opt="optim"))
+tictoc::tic()
+m12_brms <- brm(bf(rt_log_trim_grp ~ trial_z + cond +
+          (1 + trial_z + cond  | subj_idx),
+          sigma ~ cond), data = recent_probes, chains=4, cores=4, iter=3000)
+tictoc::toc()
+beepr::beep()
+
+summary(m12_brms)
+summary(pairs(emmeans(m12_brms, ~cond)))
+plot(m12_brms)
+```
 
 
 

@@ -1,0 +1,51 @@
+TITLE:
+Equivalent model to lme m12
+DATA:
+FILE = "recent_probes_mplus_a5ae7584483a895c8249e8cb856efd6e.dat";
+ 
+VARIABLE:
+NAMES = subject rt cond trial_z trial rt_log_trim_grp; 
+ MISSING=.;
+ 
+    WITHIN = cond trial_z ;
+    USEVARIABLES = subject rt_log_trim_grp cond trial_z;
+    CLUSTER = subject;
+  
+DEFINE:
+
+    cond = cond - 1; ! 0=no_conflict, 1=conflict
+  
+ANALYSIS:
+
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    FBITERATIONS=10000;
+    CHAINS=2;
+    PROCESSORS=4;
+  
+MODEL:
+
+    %WITHIN%
+    condslo | rt_log_trim_grp ON cond;
+    trialslo | rt_log_trim_grp ON trial_z;
+    
+    %BETWEEN%
+    !means of random slopes
+    [condslo];
+    [trialslo];
+    
+    
+    !variances of random slopes
+    condslo;
+    trialslo;
+    
+    !slope correlations
+    condslo trialslo WITH
+       condslo trialslo;
+    
+    [rt_log_trim_grp]; !mean average log RT
+  
+OUTPUT:
+TECH1 TECH8 STANDARDIZED CINTERVAL;
+PLOT:
+TYPE = PLOT2;
