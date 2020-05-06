@@ -2,7 +2,7 @@
 # try running an Rscript that submits an array of qsubs using qsub -v --------
 
 # initialize job log?
-initialize <- TRUE
+initialize <- FALSE
 
 # for local debugging
 ics <- 1
@@ -20,23 +20,38 @@ log_file <- ifelse(ics == 1, "/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM
 
 nchains <- 2
 nsamples <- paste0("samp",c(#1000, 
-  2000, 
+  2000))#, 
   #5000, 
-  10000))#, 20000, 40000, 80000))
-tasks <- c("flanker", "recent_probes")#, "go_nogo")
-full_sample <- c("clean_sample", "full_sample")
-wt_scaling_factor <- .01
+  # 10000))#, 20000, 40000, 80000))
+tasks <- c("flanker")#, "recent_probes")#, "go_nogo")
+full_sample <- c("clean_sample",
+                 "full_sample")
+wt_scaling_factor <- .019
 nburn_percentile <- .2
 coding <- "acc"
 
-## load in string of all possible models and select the ones that you wish to run
-source(file.path(data_base,"../../Code/Functions/gen_supported_models.R"))
-all_models <- gen_supported_models()
-
-models <- all_models
-
 #################
 ### done setting up params
+
+
+## load in string of all possible models and select the ones that you wish to run
+source(file.path(data_base,"../../Code/Functions/gen_supported_models.R"))
+all_models <- list()
+
+for(f in full_sample){all_models[[f]] <- gen_supported_models()}
+
+# models <- all_models
+
+## load completed log and see who never finished running. More customized
+
+models <- gen_missing_mods(tasks)
+
+
+
+
+
+
+
 
 
 # handle any necessary job-logging details --------------------------------
@@ -80,7 +95,7 @@ for(nsamp in nsamples){
         rawdf <- file.path(data_base, paste0(task,"_",subject_sample, "_nafilt_",c,"Code.csv"))
         
         out <- dir_string
-        for (m in models[[task]]) {
+        for (m in models[[subject_sample]][[task]]) { # 5/6/20: expand to enable running different models depending on we want the full or the clean sample
           
           if(RUN){ #only mess with the log if you actually run the model, otherwise use a dummy counter.
             
