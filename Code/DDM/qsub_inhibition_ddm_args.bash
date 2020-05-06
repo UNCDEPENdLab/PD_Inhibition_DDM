@@ -1,10 +1,9 @@
 #!/usr/bin/env sh
-#PBS -A mnh5174_c_g_sc_default
+#PBS -A open
 #PBS -l nodes=1:ppn=10
 #PBS -l walltime=24:00:00
 #PBS -j oe
 #PBS -o pbs_outputs/$PBS_JOBNAME.out
-#PBS -m abe
 #PBS -W group_list=mnh5174_collab
 #PBS -N DDM_job
 
@@ -22,13 +21,14 @@ module use /gpfs/group/mnh5174/default/sw/modules
 #activate python 2.7.9 environment
 source /gpfs/group/mnh5174/default/lab_resources/lab_python/bin/activate
 
-#echo ${OUTDIR}
-#echo ${TASK}
-#echo ${MODELS}
-#echo ${NCHAINS}
-#echo ${NBURN}
-#echo ${NSAMP}
+echo ${DF}
+echo ${OUTDIR}
+echo ${TASK}
+echo ${MODELS}
+echo ${NCHAINS}
+echo ${NBURN}
+echo ${NSAMP}
 
 ######
 ## run HDDM models with inputs from PBS args
-python /gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/run_hddm.py ${DF} ${OUTDIR} ${TASK} -m ${MODELS} -nc ${NCHAINS} -nb ${NBURN} -ns ${NSAMP} 
+python /gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/run_hddm.py ${DF} ${OUTDIR} ${TASK} -m ${MODELS} -nc ${NCHAINS} -nb ${NBURN} -ns ${NSAMP}
