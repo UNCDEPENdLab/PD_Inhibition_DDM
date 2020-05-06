@@ -22,6 +22,7 @@ from kabuki.analyze import check_geweke
 import pickle
 import numpy as np
 import sys
+import csv
 #import time
 
 #time.perf_counter()
@@ -31,72 +32,76 @@ import sys
 
 ######### model checking and diagnostics'
 
-ics = 1
-task = 'recent_probes'
-#task = 'flanker'
-full_samples = 0 # denotes the number of samples. 0 is ~2000, and 1 will be full sampling around 20,000 draws.
-nchains = 5
-
-
-# which models need to be checked?
-
-if task == 'flanker':
-    models = ['v_reg','vsv_reg','v_block_reg','v_blocksv_reg','vst_reg','vsvst_reg','v_blockst_reg']#,'v_blocksvst_reg']
-    #models = ['vsvst_reg', 'v_blockst_reg']
-    #models = ['v_reg','vsv_reg','v_block_reg','v_blocksv_reg','vsvst_reg']
-#    models = ['v_blockst_reg','v_blocksvst_reg']
-elif task == 'recent_probes':
-    models = ['v_reg','vsv_reg','vst_reg','vsvst_reg']
+## this should follow similar naming conventions to the output of the R master script.
+ics = 0
+#task = 'recent_probes'
+tasks = ['flanker', 'recent_probes']
+full_sample = ['full_sample', 'clean_sample'] 
+nsamp = ['samp2000', 'samp10000']
+code = "acc"
 
 if ics:
     basedir = '/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM'
 else:
     basedir = '/Users/natehall/ics/Nate/PD_Inhibition_DDM'
 
-#os.chdir(basedir)
 
-if full_samples:
-    outputdir = basedir + '/Outputs/full_hddm/'+task
-else:
-    outputdir = basedir + '/Outputs/practice_hddm/'+task
+# which models need to be checked?
 
-os.chdir(outputdir)
+#pull completed log and see who needs to be diagnosed
+log = pd.read_csv(basedir + '/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log_completed.csv')
 
-# overwrite task naming so models will load properly for recent probes
-if task == 'recent_probes':
-    task = 'rp'
+log_finished = log[(log['outputs_located']== 'all')]
 
 
 #### loop over models and chains to assess convergence.
 
 # 3/22/20: check model convergence via gelman-rubin r-hat statistic, export traces of one chain, and save table of DIC values for model comparison.
+# 5/6/20: expand to encompass log structure for those models that have finished running completely.
 
-dics = []
-for mod in models:
-    print "Assessing model fit for: ", mod
-
-    mods = []
-#    with pymp.Parallel(nchains) as ch:
-    for chain in range(0,nchains):
-        print chain
-        this_model = hddm.load(mod+'_'+task+'_chain'+str(chain)+'.model') 
-        mods.append(this_model)
-#    sub_dict["models"] = models
-    gel_rub =pd.DataFrame(gelman_rubin(mods).items(), columns = ['parameter', 'rhat']) 
-    gel_rub.to_csv(outputdir+'/diagnostics/gr_' + mod + '.csv')
-    dic = this_model.dic
-    print dic
-    dics.append(dic)
-    traces = this_model.get_traces()
-    traces.to_csv(outputdir+'/diagnostics/'+mod+'_traces.csv')
-  
-    
-dics_export = {'model': models,
-               'DIC': dics}
-
-dics_exp = pd.DataFrame(dics_export, columns = ['model', 'DIC'])    
-#dics = pd.DataFrame(dics, models)
-dics_exp.to_csv(outputdir+'/diagnostics/dics_all.csv')
+for samp in nsamp:
+    print samp
+    for task in tasks:
+        print task
+        for samp_size in full_sample:
+            print samp_size
+            log_trimmed = log_finished[(log_finished['NSAMP'] == samp) & (log_finished['TASK'] == task) & (log_finished['SAMPLE'] == samp_size)]
+            models = list(log_trimmed['MODEL'])
+            
+            outputdir = basedir + '/../HDDM_outputs_PD_Inhibition/' + samp + '/' + task + '/' + samp_size + '/model_objects' 
+            os.chdir(outputdir)
+            print 'Navigated to ' + os.getcwd()
+            
+            print 'Directory contents:\n'
+            print os.listdir('.')
+            
+            dics = []
+            for mod in models:
+                print "Assessing model fit for: ", mod
+                
+                nchains = int(log_trimmed['NCHAINS'][log_trimmed['MODEL'] == mod])
+                mods = []
+            #    with pymp.Parallel(nchains) as ch:
+                for chain in range(0,nchains):
+                    print chain
+                    this_model = hddm.load(mod+'_chain'+str(chain) + '_'+ code + 'Code.model') 
+                    mods.append(this_model)
+            #    sub_dict["models"] = models
+                gel_rub =pd.DataFrame(gelman_rubin(mods).items(), columns = ['parameter', 'rhat']) 
+                gel_rub.to_csv(outputdir+'/../diagnostics/gr_' + mod + '.csv')
+                dic = this_model.dic
+                print dic
+                dics.append(dic)
+                traces = this_model.get_traces()
+                traces.to_csv(outputdir+'/diagnostics/'+mod+'_traces.csv')
+#              
+#                
+            dics_export = {'model': models,
+                           'DIC': dics}
+            
+            dics_exp = pd.DataFrame(dics_export, columns = ['model', 'DIC'])    
+            #dics = pd.DataFrame(dics, models)
+            dics_exp.to_csv(outputdir+'/../diagnostics/dics_all.csv')
 
 
 
