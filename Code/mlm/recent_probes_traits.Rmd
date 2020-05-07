@@ -1,0 +1,274 @@
+---
+title: "Recent Probes MLM Trait Relationships"
+subtitle: "PD Inhibition Project"
+author: "Nate Hall & Michael Hallquist"
+date: "5 Apr 2020"
+output:
+  html_document:
+    code_folding: show
+    df_print: default
+    mathjax: default
+    number_sections: no
+    theme: spacelab
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+    fig_width: 9 
+    fig_height: 6 
+  pdf_document:
+    code_folding: hide
+    df_print: default
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+---
+<style type="text/css">
+body{ max-width: 2000px; margin: auto; padding: 1em; }
+</style>
+
+```{r setup, include=FALSE}
+if (!require(pacman)) { install.packages("pacman"); library(pacman) }
+p_load(car, nlme, lme4, readr, tidyverse, emmeans, cowplot, MplusAutomation, knitr, sas7bdat, ggcorrplot, psych, lavaan)
+knitr::opts_chunk$set(echo = TRUE) #print code by default
+#knitr::opts_chunk$set(cache.path = "../../Outputs/flanker_mlms/")
+options(digits=3)
+options(width=180)
+```
+
+# Data cleaning and setup
+
+```{r}
+#flanker data processed in flanker_mlm.Rmd
+#has the worst subjects removed, rt_inv transformation, etc.
+personality_dat <- read.csv("../../Data/preprocessed/all_personality_no_invalids.csv")
+rp_dat <- read.csv("../../Data/preprocessed/recent_probes_full_sample_accCode.csv") %>% dplyr::rename(subject = subj_idx)
+
+data <- personality_dat %>% left_join(rp_dat, by = "subject")
+length(unique(data$subject)) # all looks good!
+# load("../../Data/preprocessed/flanker_for_traits.RData")
+```
+
+## prepare for mplus
+```{r}
+prepareMplusData(data, filename="recent_probes_mplus.dat")
+```
+
+# Initial model in Mplus
+
+This model mimics m12 from recent_probes_mlms, though I did not try to accommodate heterogeneous variance at L1 (which is a pain).
+
+I also haven't validated it closely and should probably spend a little more time looking at the details.
+
+```
+m12 <- lme(rt_log_trim_grp ~ trial_z + cond, 
+weights = varIdent(form = ~1|cond),
+random = ~1 + trial_z + cond| subj_idx,
+na.action = na.exclude,
+data = recent_probes, method='ML',control = lmeControl(opt="optim"))
+```
+
+```{r m30_mplus, cache=TRUE}
+m12_mplus <- mplusObject(
+  TITLE = "Equivalent model to lme m12",
+  DEFINE = "
+    cond = cond - 1; ! 0=no_conflict, 1=conflict
+  ",
+  VARIABLE = "
+    WITHIN = cond trial_z ;
+    USEVARIABLES = subject rt_log_trim_grp cond trial_z;
+    CLUSTER = subject;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    FBITERATIONS=10000;
+    CHAINS=2;
+    PROCESSORS=4;
+  ",
+  MODEL = "
+    %WITHIN%
+    condslo | rt_log_trim_grp ON cond;
+    trialslo | rt_log_trim_grp ON trial_z;
+    
+    %BETWEEN%
+    !means of random slopes
+    [condslo];
+    [trialslo];
+    
+    
+    !variances of random slopes
+    condslo;
+    trialslo;
+    
+    !slope correlations
+    condslo trialslo WITH
+       condslo trialslo;
+    
+    [rt_log_trim_grp]; !mean average log RT
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
+  rdata = data
+)
+
+mout <- mplusModeler(m12_mplus, dataout="recent_probes_mplus.dat", 
+                     modelout="m12_mplus.inp", run=TRUE)
+
+results <- mout$results
+
+```
+## Unstandardized effects
+
+```{r}
+kable(results$parameters$unstandardized)
+```
+
+## Standardized effects
+
+```{r}
+kable(results$parameters$stdyx)
+```
+
+
+# Trait overview
+
+From my looks at the factor structure code, I like the 7 factor solution the best, as it generally conforms to simple structure (though not entirely, but deviations from simple structure all conceptually make sense), greatly reduces the dimensionality of the data, and produces coherent and theoretically plausible factors. It would be awesome if we could fit all factors in a single model, though for now let's start with single CFAs.
+
+```{r lavaan CFA, cache=TRUE}
+pathology1 <- "
+ f =~  T_Manipulativeness + T_Aggression + MPS_agT # + T_Detachment
+"
+
+m1 <- cfa(pathology1, data=data, estimator="MLR")
+summary(m1, fit.measures=TRUE, standardized=TRUE)
+modificationindices(m1, minimum.value = 4)
+```
+
+# CFA Mplus
+
+```{r mplus_1fac, cache=TRUE}
+mplus_trait <- mplusObject(
+  TITLE = "Antagonismesque factor",
+  VARIABLE = "
+    USEVARIABLES = T_Manipulativeness T_Aggression MPS_agT;
+  ",
+  ANALYSIS = "
+    ESTIMATOR=BAYES;
+    FBITERATIONS=10000;
+    CHAINS=2;
+    PROCESSORS=4;
+  ",
+  MODEL = "
+    ! trait model
+    antag BY T_Manipulativeness T_Aggression MPS_agT;
+    
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
+  rdata = data %>% dplyr::select(subject, T_Manipulativeness, T_Aggression, MPS_agT)
+)
+
+mout_trait <- mplusModeler(mplus_trait, dataout="traits_mplus.dat", 
+                           modelout="mplus_antag.inp", run=TRUE)
+
+trait_antag <- mout_trait$results
+```
+
+### Unstandardized effects
+
+```{r}
+kable(trait_antag$parameters$unstandardized)
+```
+
+### Standardized effects
+
+```{r}
+kable(trait_antag$parameters$stdyx)
+```
+
+# Full MSEM with antagonism and RT indices
+```{r m30_trait, cache=TRUE}
+m30_mplus_trait <- mplusObject(
+  TITLE = "Antagonismesque factor and flanker",
+  DEFINE = "
+    cond = cond - 1; ! 0=no_conflict, 1=conflict
+  ",
+  VARIABLE = "
+    WITHIN = cond trial_z;
+    BETWEEN = T_Manipulativeness T_Aggression MPS_agT;
+    USEVARIABLES = rt_log_trim_grp cond trial_z
+       T_Manipulativeness T_Aggression MPS_agT;
+    CLUSTER = subject;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    FBITERATIONS=10000;
+    CHAINS=2;
+    PROCESSORS=4;
+  ",
+  MODEL = "
+    %WITHIN%
+    condslo | rt_log_trim_grp ON cond;
+    trialslo | rt_log_trim_grp ON trial_z;
+    
+    
+    %BETWEEN%
+    
+    !means of random slopes
+    [condslo];
+    [trialslo];
+    
+    !variances of random slopes
+    condslo;
+    trialslo;
+    
+    !slope correlations (removed because all n.s.)
+    condslo trialslo WITH
+       condslo trialslo;
+    
+    [rt_log_trim_grp]; !mean average inverse RT
+    
+    ! trait model
+    antag BY T_Manipulativeness T_Aggression MPS_agT;
+
+    ! trait moderates flanker performance -- incongruency effect and stickiness of RT
+    condslo ON antag;
+    
+    
+    !N.B. Leaving out the association of antag with rt_inv omits a hugely important relationship
+    !  on the between level and will lead to bizarre problems -- like factor loadings near zero
+    
+    !allow antag as a predictor of average RT
+    rt_log_trim_grp ON antag;
+    
+    ! let factor correlate with other variables on the between level
+    ! omitting this for now because it leads to estimation problems at times and when added individually, these are highly n.s.
+    !antag WITH runslo;
+    !antag WITH trialslo;
+    
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
+  rdata = data
+)
+
+mout_antag <- mplusModeler(m30_mplus_trait, dataout="recent_probes_traits_mplus.dat", 
+                           modelout="m30_mplus_antag_recent_probes.inp", run=TRUE)
+
+results_antag <- mout_antag$results
+
+```
+
+
+### Unstandardized effects
+
+```{r}
+kable(results_antag$parameters$unstandardized)
+```
+
+### Standardized effects
+
+```{r}
+kable(results_antag$parameters$stdyx)
+```

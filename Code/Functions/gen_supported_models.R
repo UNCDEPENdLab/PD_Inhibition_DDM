@@ -112,7 +112,33 @@ supported_models <- list(flanker = c('v',
                                            "v_cond", 
                                            "v_cond_st", 
                                            "v_cond_sv",
-                                           "v_cond_sv_st",
+                                           "v_cond_sv_st"
                                            ))
 return(supported_models)
+}
+
+
+# if some models time out pull these  -------------------------------------
+
+gen_missing_mods <- function(task,
+                             mod_log = "/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log_completed.csv",
+                             full_sample = full_sample,
+                             nsamples = nsamples){
+  
+  message("Only configured to handle one value of nsamples!!")
+  
+  df <- read.csv(mod_log) %>% select(-X) %>% filter(outputs_located != "all" & TASK %in% task & NSAMP %in% nsamples & SAMPLE %in% full_sample) 
+  
+  out <- list()
+  for(s in full_sample){
+    for (t in task) {
+      out[[s]][[t]] <- as.character(df[ which(df$SAMPLE %in% s & df$TASK %in% t),"MODEL"])
+    }
+  }
+  
+  
+  return(out)
+  
+  
+  
 }

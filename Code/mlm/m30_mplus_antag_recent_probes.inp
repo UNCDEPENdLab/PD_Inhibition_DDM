@@ -1,0 +1,74 @@
+TITLE:
+Antagonismesque factor and flanker
+DATA:
+FILE = "recent_probes_traits_mplus_2d4ba0dbb37717f8a55d6dc7a657093c.dat";
+ 
+VARIABLE:
+NAMES = subject T_Manipulativeness T_Aggression MPS_agT rt cond trial_z trial
+     rt_log_trim_grp; 
+ MISSING=.;
+ 
+    WITHIN = cond trial_z;
+    BETWEEN = T_Manipulativeness T_Aggression MPS_agT;
+    USEVARIABLES = rt_log_trim_grp cond trial_z
+       T_Manipulativeness T_Aggression MPS_agT;
+    CLUSTER = subject;
+  
+DEFINE:
+
+    cond = cond - 1; ! 0=no_conflict, 1=conflict
+  
+ANALYSIS:
+
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    FBITERATIONS=10000;
+    CHAINS=2;
+    PROCESSORS=4;
+  
+MODEL:
+
+    %WITHIN%
+    condslo | rt_log_trim_grp ON cond;
+    trialslo | rt_log_trim_grp ON trial_z;
+    
+    
+    %BETWEEN%
+    
+    !means of random slopes
+    [condslo];
+    [trialslo];
+    
+    !variances of random slopes
+    condslo;
+    trialslo;
+    
+    !slope correlations (removed because all n.s.)
+    condslo trialslo WITH
+       condslo trialslo;
+    
+    [rt_log_trim_grp]; !mean average inverse RT
+    
+    ! trait model
+    antag BY T_Manipulativeness T_Aggression MPS_agT;
+
+    ! trait moderates flanker performance -- incongruency effect and stickiness of RT
+    condslo ON antag;
+    
+    
+    !N.B. Leaving out the association of antag with rt_inv omits a hugely important relationship
+    !  on the between level and will lead to bizarre problems -- like factor loadings near zero
+    
+    !allow antag as a predictor of average RT
+    rt_log_trim_grp ON antag;
+    
+    ! let factor correlate with other variables on the between level
+    ! omitting this for now because it leads to estimation problems at times and when added individually, these are highly n.s.
+    !antag WITH runslo;
+    !antag WITH trialslo;
+    
+  
+OUTPUT:
+TECH1 TECH8 STANDARDIZED CINTERVAL;
+PLOT:
+TYPE = PLOT2;

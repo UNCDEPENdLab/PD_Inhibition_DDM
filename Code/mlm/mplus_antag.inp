@@ -1,13 +1,13 @@
 TITLE:
 Antagonismesque factor
 DATA:
-FILE = "traits_mplus_ac909afa2c8806c8d01dabbf80b5f562.dat";
+FILE = "traits_mplus_9e246c8c1205731bf68edb1b5941641f.dat";
  
 VARIABLE:
-NAMES = T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm; 
+NAMES = T_Manipulativeness T_Aggression MPS_agT; 
  MISSING=.;
  
-    USEVARIABLES = T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm;
+    USEVARIABLES = T_Manipulativeness T_Aggression MPS_agT;
   
 ANALYSIS:
 
@@ -19,7 +19,7 @@ ANALYSIS:
 MODEL:
 
     ! trait model
-    antag BY T_Mistrust T_Manipulativeness T_Aggression T_SelfHarm;
+    antag BY T_Manipulativeness T_Aggression MPS_agT;
     
   
 OUTPUT:

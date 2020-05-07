@@ -1,4 +1,4 @@
-,st,sv#!/usr/bin/env python2
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
 Created on Mon Apr  6 12:45:27 2020
@@ -26,6 +26,7 @@ import numpy as np
 import argparse
 import os.path
 
+
 #######################
 
 
@@ -35,8 +36,8 @@ import os.path
 ##############################################
 
 ## in case the user inputs nothing for the models they would like to have tested. These are the defaults
-supported_flanker = ['v', 'vst', 'v_block', 'v_blockst', 'vst', 'vstst', 'v_blockst', 'v_blockstst']
-supported_recent_probes = ['v', 'vst', 'vst', 'vstst']
+supported_flanker = ['v', 'v_st', 'v_block', 'v_block_st', 'v_sv', 'v_sv_st', 'v_block_sv', 'v_block_sv_st']
+supported_recent_probes = ['v', 'v_st', 'v_sv', 'v_sv_st']
 
 
 parser = argparse.ArgumentParser(description='Run Hierarchical Bayesian Drift Diffusion Model on experimental task data: http://ski.clps.brown.edu/hddm_docs/index.html\n\nSample call run on the command line: <python run_hddm.py flanker_accCode.cst /gpfs/group/mnh5174/default/Nate/HDDM_outputs_PD_Inhibition/samp1000/flanker/clean_sample flanker -m v -nc 10 -nb 5000 -ns 20000>')
@@ -114,7 +115,7 @@ print 'Nburn: ' + str(nburn) + '\n##############################################
 ## load data and flip incorrect RTs if accuracy coding
 ##############################################
 print 'loading raw RT data from: ' + rawdf
-data = hddm.load_cst(rawdf)
+data = hddm.load_csv(rawdf)
 
 print 'data structure: '
 print data.head(5)
@@ -150,29 +151,31 @@ def z_link_func(x, data=data):
 
 print '\nGenerating design matrices for HDDMRegressor'
 
+
+
 # define regressions that can be estimated for all tasks
 st = {'model': "st ~ 1 ", 'link_func': lambda x: x}
 # z = {'model': "z ~ 1", 'link_func': z_link_func}
 # sz = {'model': "sz ~ 1", 'link_func': lambda x: x}
-st = {'model': "st ~ 1", 'link_func': lambda x: x}
+sv = {'model': "sv ~ 1", 'link_func': lambda x: x}
 
 if task == 'flanker':
 
     #### Simplest model: stim type only IV
     v = {'model': "v ~ 1  + C(stim, Treatment('congruent'))", 'link_func': lambda x: x}
-    v_stimblock = = {'model': "v ~ 1  + C(stimblock, Treatment('congruent'))", 'link_func': lambda x: x}
+    v_stimblock = {'model': "v ~ 1  + C(stimblock, Treatment('congruent'))", 'link_func': lambda x: x}
 
     #### single IV (not including stim)
     # stimulus x block ixn
     v_block = {'model': "v ~ 1  + C(stim, Treatment('congruent')) * C(block, Treatment('most_con'))", 'link_func': lambda x: x}
     # standard stimulus contrasts
-    v_trial = {'model': "v ~ 1  + C(stim, Treatment('congruent')+trial_z )", 'link_func': lambda x: x}
-    v_runtrial = {'model': "v ~ 1  + C(stim, Treatment('congruent')+run_trial_z )", 'link_func': lambda x: x}
-    v_prev_rt = {'model': "v ~ 1  + C(stim, Treatment('congruent')+ v_prev_rt)", 'link_func': lambda x: x}
+    v_trial = {'model': "v ~ 1  + C(stim, Treatment('congruent')) + trial_z", 'link_func': lambda x: x}
+    v_runtrial = {'model': "v ~ 1  + C(stim, Treatment('congruent'))+run_trial_z", 'link_func': lambda x: x}
+    v_prev_rt = {'model': "v ~ 1  + C(stim, Treatment('congruent'))+ prev_rt", 'link_func': lambda x: x}
     # stimblock contrasts
-    v_stimblock_trial = {'model': "v ~ 1  + C(stimblock, Treatment('congruent')+trial_z )", 'link_func': lambda x: x}
-    v_stimblock_runtrial = {'model': "v ~ 1  + C(stimblock, Treatment('congruent')+run_trial_z )", 'link_func': lambda x: x}
-    v_stimblock_prev_rt = {'model': "v ~ 1  + C(stimblock, Treatment('congruent')+ v_prev_rt)", 'link_func': lambda x: x}
+    v_stimblock_trial = {'model': "v ~ 1  + C(stimblock, Treatment('congruent'))+trial_z", 'link_func': lambda x: x}
+    v_stimblock_runtrial = {'model': "v ~ 1  + C(stimblock, Treatment('congruent'))+run_trial_z", 'link_func': lambda x: x}
+    v_stimblock_prev_rt = {'model': "v ~ 1  + C(stimblock, Treatment('congruent'))+ prev_rt", 'link_func': lambda x: x}
 
     #### two IVs (not including stim)
     # stimulus x block ixn
@@ -180,13 +183,13 @@ if task == 'flanker':
     v_block_runtrial = {'model': "v ~ 1  + C(stim, Treatment('congruent')) * C(block, Treatment('most_con')) + run_trial_z", 'link_func': lambda x: x}
     v_block_prev_rt = {'model': "v ~ 1  + C(stim, Treatment('congruent')) * C(block, Treatment('most_con')) + prev_rt", 'link_func': lambda x: x}
     # standard stimulus contrasts
-    v_trial_runtrial = {'model': "v ~ 1  + C(stim, Treatment('congruent')+trial_z +run_trial_z)", 'link_func': lambda x: x}
-    v_trial_prev_rt = {'model': "v ~ 1  + C(stim, Treatment('congruent')+trial_z +prev_rt)", 'link_func': lambda x: x}
-    v_runtrial_prev_rt = {'model': "v ~ 1  + C(stim, Treatment('congruent')+trial_z +run_trial_z)", 'link_func': lambda x: x}
+    v_trial_runtrial = {'model': "v ~ 1  + C(stim, Treatment('congruent'))+trial_z +run_trial_z", 'link_func': lambda x: x}
+    v_trial_prev_rt = {'model': "v ~ 1  + C(stim, Treatment('congruent'))+trial_z +prev_rt", 'link_func': lambda x: x}
+    v_runtrial_prev_rt = {'model': "v ~ 1  + C(stim, Treatment('congruent'))+trial_z +run_trial_z", 'link_func': lambda x: x}
     # stimblock contrasts
-    v_stimblock_trial_runtrial = {'model': "v ~ 1  + C(stimblock, Treatment('congruent')+trial_z +run_trial_z)", 'link_func': lambda x: x}
-    v_stimblock_trial_prev_rt = {'model': "v ~ 1  + C(stimblock, Treatment('congruent')+trial_z +prev_rt)", 'link_func': lambda x: x}
-    v_stimblock_runtrial_prev_rt = {'model': "v ~ 1  + C(stimblock, Treatment('congruent')+trial_z +run_trial_z)", 'link_func': lambda x: x}
+    v_stimblock_trial_runtrial = {'model': "v ~ 1  + C(stimblock, Treatment('congruent'))+trial_z +run_trial_z", 'link_func': lambda x: x}
+    v_stimblock_trial_prev_rt = {'model': "v ~ 1  + C(stimblock, Treatment('congruent'))+trial_z +prev_rt", 'link_func': lambda x: x}
+    v_stimblock_runtrial_prev_rt = {'model': "v ~ 1  + C(stimblock, Treatment('congruent'))+trial_z +run_trial_z", 'link_func': lambda x: x}
 
     #### three IVs (not including stim)
     # stimulus x block ixn
@@ -207,6 +210,8 @@ if task == 'flanker':
     ###################################
     ##### create dict to index that includes different combinations of the design matrices from above
     ###################################
+
+    #import pdb; pdb.set_trace()
     mod_dict = {
     ##################### start with no st or st
     #### Simplest model: stim type only IV
@@ -295,48 +300,48 @@ if task == 'flanker':
     'v_stimblock_trial_runtrial_prev_rt_st':hddm.HDDMRegressor(data, [v_stimblock_trial_runtrial_prev_rt,st], include = 'st', group_only_regressors = False),
 
 
-    ##################### add st
+    ##################### add sv
     #### Simplest model: stim type only IV
-    'v_st':hddm.HDDMRegressor(data, [v,st], include = 'st', group_only_regressors = False),
-    'v_stimblock_st':hddm.HDDMRegressor(data, [v_stimblock,st], include = 'st', group_only_regressors = False),
+    'v_sv':hddm.HDDMRegressor(data, [v,sv], include = 'sv', group_only_regressors = False),
+    'v_stimblock_sv':hddm.HDDMRegressor(data, [v_stimblock,sv], include = 'sv', group_only_regressors = False),
     #### single IV (not including stim)
     # stimulus x block ixn
-    'v_block_st':hddm.HDDMRegressor(data, [v_block,st], include = 'st', group_only_regressors = False),
+    'v_block_sv':hddm.HDDMRegressor(data, [v_block,sv], include = 'sv', group_only_regressors = False),
     # standard stimulus contrasts
-    'v_trial_st':hddm.HDDMRegressor(data, [v_trial,st], include = 'st', group_only_regressors = False),
-    'v_runtrial_st':hddm.HDDMRegressor(data, [v_runtrial,st], include = 'st', group_only_regressors = False),
-    'v_prev_rt_st':hddm.HDDMRegressor(data, [v_prev_rt,st], include = 'st', group_only_regressors = False),
+    'v_trial_sv':hddm.HDDMRegressor(data, [v_trial,sv], include = 'sv', group_only_regressors = False),
+    'v_runtrial_sv':hddm.HDDMRegressor(data, [v_runtrial,sv], include = 'sv', group_only_regressors = False),
+    'v_prev_rt_sv':hddm.HDDMRegressor(data, [v_prev_rt,sv], include = 'sv', group_only_regressors = False),
     # stimblock contrasts
-    'v_stimblock_trial_st':hddm.HDDMRegressor(data, [v_stimblock_trial,st], include = 'st', group_only_regressors = False),
-    'v_stimblock_runtrial_st':hddm.HDDMRegressor(data, [v_stimblock_runtrial,st], include = 'st', group_only_regressors = False),
-    'v_stimblock_prev_rt_st':hddm.HDDMRegressor(data, [v_stimblock_prev_rt,st], include = 'st', group_only_regressors = False),
+    'v_stimblock_trial_sv':hddm.HDDMRegressor(data, [v_stimblock_trial,sv], include = 'sv', group_only_regressors = False),
+    'v_stimblock_runtrial_sv':hddm.HDDMRegressor(data, [v_stimblock_runtrial,sv], include = 'sv', group_only_regressors = False),
+    'v_stimblock_prev_rt_sv':hddm.HDDMRegressor(data, [v_stimblock_prev_rt,sv], include = 'sv', group_only_regressors = False),
     #### two IVs (not including stim)
     # stimulus x block ixn
-    'v_block_trial_st':hddm.HDDMRegressor(data, [v_block_trial,st], include = 'st', group_only_regressors = False),
-    'v_block_runtrial_st':hddm.HDDMRegressor(data, [v_block_runtrial,st], include = 'st', group_only_regressors = False),
-    'v_block_prev_rt_st':hddm.HDDMRegressor(data, [v_block_prev_rt,st], include = 'st', group_only_regressors = False),
+    'v_block_trial_sv':hddm.HDDMRegressor(data, [v_block_trial,sv], include = 'sv', group_only_regressors = False),
+    'v_block_runtrial_sv':hddm.HDDMRegressor(data, [v_block_runtrial,sv], include = 'sv', group_only_regressors = False),
+    'v_block_prev_rt_sv':hddm.HDDMRegressor(data, [v_block_prev_rt,sv], include = 'sv', group_only_regressors = False),
     # standard stimulus contrasts
-    'v_trial_runtrial_st':hddm.HDDMRegressor(data, [v_trial_runtrial,st], include = 'st', group_only_regressors = False),
-    'v_trial_prev_rt_st':hddm.HDDMRegressor(data, [v_trial_prev_rt,st], include = 'st', group_only_regressors = False),
-    'v_runtrial_prev_rt_st':hddm.HDDMRegressor(data, [v_runtrial_prev_rt,st], include = 'st', group_only_regressors = False),
+    'v_trial_runtrial_sv':hddm.HDDMRegressor(data, [v_trial_runtrial,sv], include = 'sv', group_only_regressors = False),
+    'v_trial_prev_rt_sv':hddm.HDDMRegressor(data, [v_trial_prev_rt,sv], include = 'sv', group_only_regressors = False),
+    'v_runtrial_prev_rt_sv':hddm.HDDMRegressor(data, [v_runtrial_prev_rt,sv], include = 'sv', group_only_regressors = False),
     # stimblock contrasts
-    'v_stimblock_trial_runtrial_st':hddm.HDDMRegressor(data, [v_stimblock_trial_runtrial,st], include = 'st', group_only_regressors = False),
-    'v_stimblock_trial_prev_rt_st':hddm.HDDMRegressor(data, [v_stimblock_trial_prev_rt,st], include = 'st', group_only_regressors = False),
-    'v_stimblock_runtrial_prev_rt_st':hddm.HDDMRegressor(data, [v_stimblock_runtrial_prev_rt,st], include = 'st', group_only_regressors = False),
+    'v_stimblock_trial_runtrial_sv':hddm.HDDMRegressor(data, [v_stimblock_trial_runtrial,sv], include = 'sv', group_only_regressors = False),
+    'v_stimblock_trial_prev_rt_sv':hddm.HDDMRegressor(data, [v_stimblock_trial_prev_rt,sv], include = 'sv', group_only_regressors = False),
+    'v_stimblock_runtrial_prev_rt_sv':hddm.HDDMRegressor(data, [v_stimblock_runtrial_prev_rt,sv], include = 'sv', group_only_regressors = False),
     #### three IVs (not including stim)
     # stimulus x block ixn
-    'v_block_trial_runtrial_st':hddm.HDDMRegressor(data, [v_block_trial_runtrial,st], include = 'st', group_only_regressors = False),
-    'v_block_trial_prev_rt_st':hddm.HDDMRegressor(data, [v_block_trial_prev_rt,st], include = 'st', group_only_regressors = False),
-    'v_block_runtrial_prev_rt_st':hddm.HDDMRegressor(data, [v_block_runtrial_prev_rt,st], include = 'st', group_only_regressors = False),
+    'v_block_trial_runtrial_sv':hddm.HDDMRegressor(data, [v_block_trial_runtrial,sv], include = 'sv', group_only_regressors = False),
+    'v_block_trial_prev_rt_sv':hddm.HDDMRegressor(data, [v_block_trial_prev_rt,sv], include = 'sv', group_only_regressors = False),
+    'v_block_runtrial_prev_rt_sv':hddm.HDDMRegressor(data, [v_block_runtrial_prev_rt,sv], include = 'sv', group_only_regressors = False),
     # stimblock contrasts
-    'v_stimblock_trial_runtrial_st':hddm.HDDMRegressor(data, [v_stimblock_trial_runtrial,st], include = 'st', group_only_regressors = False),
-    'v_stimblock_trial_prev_rt_st':hddm.HDDMRegressor(data, [v_stimblock_trial_prev_rt,st], include = 'st', group_only_regressors = False),
-    'v_stimblock_runtrial_prev_rt_st':hddm.HDDMRegressor(data, [v_stimblock_runtrial_prev_rt,st], include = 'st', group_only_regressors = False),
+    'v_stimblock_trial_runtrial_sv':hddm.HDDMRegressor(data, [v_stimblock_trial_runtrial,sv], include = 'sv', group_only_regressors = False),
+    'v_stimblock_trial_prev_rt_sv':hddm.HDDMRegressor(data, [v_stimblock_trial_prev_rt,sv], include = 'sv', group_only_regressors = False),
+    'v_stimblock_runtrial_prev_rt_sv':hddm.HDDMRegressor(data, [v_stimblock_runtrial_prev_rt,sv], include = 'sv', group_only_regressors = False),
     #### all four IVs (not including stim)
     # stimulus x block ixn
-    'v_block_trial_runtrial_prev_rt_st':hddm.HDDMRegressor(data, [v_block_trial_runtrial_prev_rt,st], include = 'st', group_only_regressors = False),
+    'v_block_trial_runtrial_prev_rt_sv':hddm.HDDMRegressor(data, [v_block_trial_runtrial_prev_rt,sv], include = 'sv', group_only_regressors = False),
     # stimblock contrasts
-    'v_stimblock_trial_runtrial_prev_rt_st':hddm.HDDMRegressor(data, [v_stimblock_trial_runtrial_prev_rt,st], include = 'st', group_only_regressors = False),
+    'v_stimblock_trial_runtrial_prev_rt_sv':hddm.HDDMRegressor(data, [v_stimblock_trial_runtrial_prev_rt,sv], include = 'sv', group_only_regressors = False),
 
 
     ##################### add st and sv
@@ -349,7 +354,7 @@ if task == 'flanker':
     # standard stimulus contrasts
     'v_trial_sv_st':hddm.HDDMRegressor(data, [v_trial,st,sv], include = ('st','sv'), group_only_regressors = False),
     'v_runtrial_sv_st':hddm.HDDMRegressor(data, [v_runtrial,st,sv], include = ('st','sv'), group_only_regressors = False),
-    'v_prev_rt_st':hddm.HDDMRegressor(data, [v_prev_rt,st,sv], include = ('st','sv'), group_only_regressors = False),
+    'v_prev_rt_sv_st':hddm.HDDMRegressor(data, [v_prev_rt,st,sv], include = ('st','sv'), group_only_regressors = False),
     # stimblock contrasts
     'v_stimblock_trial_sv_st':hddm.HDDMRegressor(data, [v_stimblock_trial,st,sv], include = ('st','sv'), group_only_regressors = False),
     'v_stimblock_runtrial_sv_st':hddm.HDDMRegressor(data, [v_stimblock_runtrial,st,sv], include = ('st','sv'), group_only_regressors = False),
@@ -388,14 +393,22 @@ if task == 'flanker':
 
 elif task == 'recent_probes':
 
-    v = {'model': "v ~ 1  + C(Condition, Treatment('positive'))", 'link_func': lambda x: x}
+    v = {'model': "v ~ 1  + C(stim, Treatment('positive'))", 'link_func': lambda x: x}
+    v_cond = {'model': "v ~ 1  + C(cond, Treatment('no_conflict'))", 'link_func': lambda x: x}
 
     ##### create dict to index that includes different combinations of the design matrices from above
 
     mod_dict = {'v':hddm.HDDMRegressor(data, v, group_only_regressors = False),
-    'vst':hddm.HDDMRegressor(data, [v,st], include = 'st', group_only_regressors = False),
-    'vst':hddm.HDDMRegressor(data, [v,st], include = 'st', group_only_regressors = False),
-    'vstst':hddm.HDDMRegressor(data, [v,st,st], include = ('st','st'), group_only_regressors = False)}
+    'v_st':hddm.HDDMRegressor(data, [v,st], include = 'st', group_only_regressors = False),
+    'v_sv':hddm.HDDMRegressor(data, [v,sv], include = 'sv', group_only_regressors = False),
+    'v_sv_st':hddm.HDDMRegressor(data, [v,sv,st], include = ('sv','st'), group_only_regressors = False),
+
+    # based off of condition
+    'v_cond':hddm.HDDMRegressor(data, v, group_only_regressors = False),
+    'v_cond_st':hddm.HDDMRegressor(data, [v_cond,st], include = 'st', group_only_regressors = False),
+    'v_cond_sv':hddm.HDDMRegressor(data, [v_cond,sv], include = 'sv', group_only_regressors = False),
+    'v_cond_sv_st':hddm.HDDMRegressor(data, [v,sv,st], include = ('sv','st'), group_only_regressors = False)
+    }
 
 
 #######################
@@ -403,7 +416,7 @@ elif task == 'recent_probes':
 # allows for DDM to drop certain parameterizations if not requested.
 mod_dict_torun = {key: mod_dict[key] for key in models}
 
-print 'final models getting passed to HDDM: '
+print '\n\n\nFINAL MODELS GETTING PASSED TO HDDM: '
 print mod_dict_torun
 ##############################################
 ## parallel loop over models and number of chains. Sample and save
@@ -419,11 +432,10 @@ pymp.config.nested=True
 print '\n' + 'COMMENCE SAMPLING\n'
 
 
-
+#import pdb; pdb.set_trace()
 
 #with pymp.Parallel(len(mod_dict_torun)) as p:
 for index in range(0, len(mod_dict_torun)):
-#    for ch_index in range(0,nchains):
     with pymp.Parallel(nchains) as ch:
         for ch_index in ch.range(0,nchains):
             model = mod_dict_torun.values()[index]
@@ -432,9 +444,6 @@ for index in range(0, len(mod_dict_torun)):
             print dbname
             modelname = mod_dict_torun.keys()[index] + '_chain'+str(ch_index)+ '_'+ code +'Code.model'
             print modelname
-
-#            nsample = 10
-#            nburn = 1
 
             model.sample(nsample, burn = nburn, dbname = dbname, db = 'pickle')
             model.save(modelname)

@@ -1,25 +1,39 @@
-library(tidyverse)
-library(psych)
-library(ggcorrplot)
-library(lavaan)
 
-alldat <- read_csv("C:/Users/timot/Documents/GitHub/PD_Inhibition_DDM/Data/alldat.csv")
+# 4/30/2020 NH edits to latent structure ----------------------------------
+
+## this is mostly me running through the factor analysis checks with faulty subjects dropped. 
+
+pacman::p_load(tidyverse, psych, ggcorrplot, lavaan, GPArotation)
+
+# basedir <- "C:/Users/timot/Documents/GitHub/PD_Inhibition_DDM" # Tim
+basedir <- "~/github_repos/PD_Inhibition_DDM" # Nate
+
+# alldat <- read_csv("/Data/alldat.csv")
+mpq <- get(load(file.path(basedir, "Data/preprocessed/MPQ_all_scored_final.RData"))) %>% filter(exclude_MPQ == 0)
+snap <- get(load(file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RData"))) %>% filter(exclude_SNAP == 0)
+alldat <- mpq %>% inner_join(snap, by = "subject") %>% tibble()
+# length(unique(alldat$subject)) # retain 104 "clean" subjects
+
 
 #select just the SNAP and MPQ variables
 #corrplot of the scales
-self_reps <- alldat %>% select(Subject, NEGTEMP:SUICPRON, MPS_wbR:MPS_abR)
-self_reps <- self_reps %>% select(-NEGTEMP, -POSTEMP, -DISINH, -DISINHP, -SELFHARM)
-srcorrs <- cor(select(self_reps, -Subject), use = "pairwise.complete.obs")
-ggcorrplot(srcorrs, type = "upper", hc.order = TRUE, tl.cex = 6, lab = TRUE, lab_size = 1)
-ggsave("C:/Users/timot/Google Drive/Hallquist_Dombrovski/PD_DDM/Outputs/self_report_correlations.pdf")
+self_reps <- alldat %>% select(subject, starts_with("T_"), MPS_wbT:MPS_abT) %>% select(-T_VRIN, -T_TRIN, -T_DRIN, -T_RareVirtues, - T_Deviance, -T_BackDeviance, -T_InvalidityIndex, -T_NegativeTemperament, -T_PositiveTemperament)
+# self_reps <- alldat %>% select(subject, NEGTEMP:SUICPRON, MPS_wbR:MPS_abR)
+# self_reps <- self_reps %>% select(-NEGTEMP, -POSTEMP, -DISINH, -DISINHP, -SELFHARM) # I think this simply drops all composite scales
+# self_reps <- self_reps %>% select(-NEGTEMP, -POSTEMP, -DISINH, -DISINHP, -SUICPRON, -LOSLFEST) # LOSLFEST tends to be really wonky, perhaps just taking the self harm index would elminate it's wonk-levels. nah I think we should probably drop it altogether.
+write.csv(self_reps, file.path(basedir, "Data/preprocessed/all_personality_no_invalids.csv"), row.names = FALSE)
+# srcorrs <- cor(select(self_reps, -subject), use = "pairwise.complete.obs")
+# ggcorrplot(srcorrs, type = "upper", hc.order = TRUE, tl.cex = 6, lab = TRUE, lab_size = 1)
+# ggsave(file.path(basedir,"Outputs/self_report_correlations.pdf"))
+# 
+# #histograms
+# sr_hist <- pivot_longer(self_reps, T_Mistrust:MPS_abT, names_to = "measure", values_to = "value")
+# ggplot(sr_hist, aes(x = value)) + geom_histogram(binwidth = 10) + facet_wrap(~measure, scales = "free")
+# ggsave(file.path(basedir,"/Outputs/self_report_histograms.pdf"))
 
-#histograms
-sr_hist <- pivot_longer(self_reps, MISTRUST:MPS_abR, names_to = "measure", values_to = "value")
-ggplot(sr_hist, aes(x = value)) + geom_histogram(binwidth = 1) + facet_wrap(~measure, scales = "free")
-ggsave("C:/Users/timot/Google Drive/Hallquist_Dombrovski/PD_DDM/Outputs/self_report_histograms.pdf")
-
-sr_fa <- self_reps %>% select(-Subject)
-
+# not interested (psychoticism) or messy scale
+# sr_fa <- self_reps %>% select(-subject) %>% select(-T_EccentricPerceptions, -MPS_abT, -T_LowSelfEsteem, -T_SuicideProneness, -T_Disinhibition) #-T_SelfHarm)
+sr_fa <- self_reps %>% select(-subject) %>% select(-T_EccentricPerceptions, -MPS_abT, -T_SelfHarm, -T_Disinhibition) #-T_SelfHarm)
 #map test, parallel analysis, and factor analysis
 map <- nfactors(sr_fa, n=10, rotate="oblimin", fm="ml")
 map
@@ -28,37 +42,51 @@ sr.fa <- fa(sr_fa, 9, rotate="oblimin", fm = "ml") #corrplot looks like maybe we
 print(sr.fa, cut=0, sort = T) ##looks interpretable to me
 #pa estimation
 sr.fa <- fa(sr_fa, 9, rotate="oblimin", fm = "pa") 
+print(sr.fa, cut=.3, sort = T) 
 print(sr.fa, cut=0, sort = T) 
 
+
 #8f
-sr.fa <- fa(sr_fa, 8, rotate="oblimin", fm = "ml") #ml
+# sr.fa <- fa(sr_fa, 8, rotate="oblimin", fm = "ml") #ml
+# print(sr.fa, cut=.3, sort = T) 
+# print(sr.fa, cut=0, sort = T) 
 sr.fa <- fa(sr_fa, 8, rotate="oblimin", fm = "pa") #pa
-print(sr.fa, cut=0, sort = T) 
+print(sr.fa, cut=.3, sort = T) 
+# print(sr.fa, cut=0, sort = T) 
 
 #7f
 sr.fa <- fa(sr_fa, 7, rotate="oblimin", fm = "ml") #ml
 sr.fa <- fa(sr_fa, 7, rotate="oblimin", fm = "pa") #pa
-print(sr.fa, cut=0, sort = T) 
+print(sr.fa, cut=.3, sort = T) 
+# print(sr.fa, cut=0, sort = T)
 
 #6f
 sr.fa <- fa(sr_fa, 6, rotate="oblimin", fm = "ml") #ml
 sr.fa <- fa(sr_fa, 6, rotate="oblimin", fm = "pa") #pa
-print(sr.fa, cut=0, sort = T) 
+print(sr.fa, cut=.3, sort = T) 
+# print(sr.fa, cut=0, sort = T) 
 
 #5f
 sr.fa <- fa(sr_fa, 5, rotate="oblimin", fm = "ml") #ml
 sr.fa <- fa(sr_fa, 5, rotate="oblimin", fm = "pa") #pa
-print(sr.fa, cut=0, sort = T) 
+print(sr.fa, cut=.3, sort = T) 
 
 #4f
 sr.fa <- fa(sr_fa, 4, rotate="oblimin", fm = "ml") #ml
 sr.fa <- fa(sr_fa, 4, rotate="oblimin", fm = "pa") #pa
-print(sr.fa, cut=0, sort = T) 
+print(sr.fa, cut=.2, sort = T) 
 
 #3f
 sr.fa <- fa(sr_fa, 3, rotate="oblimin", fm = "ml") #ml
 sr.fa <- fa(sr_fa, 3, rotate="oblimin", fm = "pa") #pa
-print(sr.fa, cut=0, sort = T) 
+print(sr.fa, cut=.3, sort = T) 
+
+
+#2f
+sr.fa <- fa(sr_fa, 2, rotate="oblimin", fm = "ml") #ml
+sr.fa <- fa(sr_fa, 2, rotate="oblimin", fm = "pa") #pa
+print(sr.fa, cut=.3, sort = T) 
+
 
 #what about a 3 factor scale with no neuroticism items
 sr.fa <- fa(select(sr_fa, -SUICPRON, -LOSLFEST, -MPS_abR, -ECCPERC, -MPS_srR, -DEPEN, -MPS_haR), 3, rotate="oblimin", fm = "ml") #ml

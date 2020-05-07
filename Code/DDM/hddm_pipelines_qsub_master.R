@@ -2,13 +2,13 @@
 # try running an Rscript that submits an array of qsubs using qsub -v --------
 
 # initialize job log?
-initialize <- TRUE
+initialize <- FALSE
 
 # for local debugging
-ics <- 1
+ics <- 0
 
 # run models or test job submission loop?
-RUN = TRUE
+RUN = FALSE
 
 #################
 ### setup params
@@ -17,26 +17,45 @@ pacman::p_load(tidyverse)
 data_base <- ifelse(ics == 1,"/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Data/preprocessed", "~/github_repos/PD_Inhibition_DDM/Data/preprocessed")
 output_base <- "/gpfs/group/mnh5174/default/Nate/HDDM_outputs_PD_Inhibition"
 log_file <- ifelse(ics == 1, "/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log.csv", "~/ics/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log.csv")
+log_file_comp <- ifelse(ics == 1, "/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log_completed.csv", "~/ics/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log_completed.csv")
 
 nchains <- 2
 nsamples <- paste0("samp",c(#1000, 
-  2000, 
+  2000))#, 
   #5000, 
-  10000))#, 20000, 40000, 80000))
-tasks <- c("flanker", "recent_probes")#, "go_nogo")
-full_sample <- c("clean_sample", "full_sample")
-wt_scaling_factor <- .01
+  # 10000))#, 20000, 40000, 80000))
+tasks <- c("flanker")#, "recent_probes")#, "go_nogo")
+full_sample <- c("clean_sample",
+                 "full_sample")
+wt_scaling_factor <- .019
 nburn_percentile <- .2
 coding <- "acc"
 
-## load in string of all possible models and select the ones that you wish to run
-source(file.path(data_base,"../../Code/Functions/gen_supported_models.R"))
-all_models <- gen_supported_models()
-
-models <- all_models
-
 #################
 ### done setting up params
+
+
+## load in string of all possible models and select the ones that you wish to run
+source(file.path(data_base,"../../Code/Functions/gen_supported_models.R"))
+all_models <- list()
+
+for(f in full_sample){all_models[[f]] <- gen_supported_models()}
+
+# models <- all_models
+
+## load completed log and see who never finished running. More customized
+
+models <- gen_missing_mods(tasks,
+                           mod_log = log_file_comp, #this simply contains info on if jobs completed that is run after the fact.
+                           nsamples = nsamples,
+                           full_sample = full_sample)
+
+
+
+
+
+
+
 
 
 # handle any necessary job-logging details --------------------------------
@@ -47,7 +66,7 @@ if (initialize) {
   write.csv(job_info_log, file = log_file)
 }
 
-if(!RUN){
+if(!RUN & initialize){
   job_info_log <- data.frame(job_id = 0, TASK = "initialize", SAMPLE = "initialize",MODEL = "initialize",CODE = "initialize",NCHAINS = 0, NBURN = 0, NSAMP = 0, DAY_SUB = Sys.Date(), TIME_SUB = Sys.time(),  WT_REQUEST = 0, QSUB_STRING = "initialize")
   job_id = 0} #if testing, just initialize a job counter and job log
 
@@ -80,7 +99,7 @@ for(nsamp in nsamples){
         rawdf <- file.path(data_base, paste0(task,"_",subject_sample, "_nafilt_",c,"Code.csv"))
         
         out <- dir_string
-        for (m in models[[task]]) {
+        for (m in models[[subject_sample]][[task]]) { # 5/6/20: expand to enable running different models depending on we want the full or the clean sample
           
           if(RUN){ #only mess with the log if you actually run the model, otherwise use a dummy counter.
             
@@ -89,7 +108,11 @@ for(nsamp in nsamples){
             
             job_id <- paste0("DDM_job_",job_info_log$job_id[nrow(job_info_log)] + 1)  
           } else{
-            job_id <- job_id + 1
+            if(!initialize){
+              job_info_log <- read.csv(log_file) %>% select(-X)
+              
+              job_id <- paste0("DDM_job_",job_info_log$job_id[nrow(job_info_log)] + 1)  
+            }else{job_id <- job_id + 1}
           }
           
           
