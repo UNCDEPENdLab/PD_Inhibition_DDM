@@ -160,11 +160,19 @@ f_scores[["factor_2"]] <- scores
 
 R.utils::sourceDirectory("Code/Functions") # source all of Nate's functions for the project (won't use all of them)
 
-behav <- summarise_task_behavior(basedir)
+behav <- summarise_task_behavior(basedir) %>% ungroup()
+
+
+# pull traces -------------------------------------------------------------
+
+source(paste0(basedir, "Code/Nate/temp_pull_posterior_summaries.R"))
+
 
 #loop over task and plot corrs of task behavior with traits, dimensions, and factor scores
 tasks <- c("flanker", "recent_probes", "go_nogo", "all")
 correlations <- list() # to help guide towards large correlations
+
+behav <- behav %>% left_join(ddm_params, by = "subj_idx")
 
 for(t in tasks){
   pdf(file = paste0("Figures/", t, "_personality_corrs.pdf"), width = 11, height = 8)
@@ -204,3 +212,7 @@ for(t in tasks){
 }
 
 save(correlations, file = "Outputs/behavior_traits_allcorrelations.RData")
+
+
+
+
