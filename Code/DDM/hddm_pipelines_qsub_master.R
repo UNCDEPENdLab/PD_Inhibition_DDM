@@ -5,7 +5,7 @@
 initialize <- FALSE
 
 # for local debugging
-ics <- 1
+ics <- 0
 
 # run models or test job submission loop?
 RUN = TRUE
@@ -19,9 +19,9 @@ output_base <- "/gpfs/group/mnh5174/default/Nate/HDDM_outputs_PD_Inhibition"
 log_file <- ifelse(ics == 1, "/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log.csv", "~/ics/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log.csv")
 log_file_comp <- ifelse(ics == 1, "/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log_completed.csv", "~/ics/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log_completed.csv")
 
-nchains <- 2
+nchains <- 10
 nsamples <- paste0("samp",c(#1000, 
-  #2000))#,#, 
+  2000,#, 
 #5000, 
 10000))#, 20000, 40000, 80000))
 tasks <- c(#"flanker")#,
@@ -55,7 +55,9 @@ models <- all_models
 
 
 
-
+models <- list(flanker = c("v_stimblock_trial_prev_rt_st", "v_stimblock_trial_prev_rt_st_a","v_stimblock_st_a", "v_block_st_a"),
+               recent_probes = "v_st")#,
+               # go_nogo = )
 
 
 
