@@ -103,12 +103,12 @@ hddm_posterior_diagnostics <- function(models, # list with structure [[model]][[
       
       tictoc::tic()
       traces <- read.csv(file = models[[mod]][["traces"]]) %>% select(-X) 
-      tictoc::toc(); beepr::beep()
+      tictoc::toc(); #beepr::beep()
       
       
       
       summary_stats <- list()
-      
+      # browser()
       if(fixed_random %in% c("all", "fixed")){
         group_traces <- traces %>%   select(as.character(models[[mod]][["group"]]$label))
         names(group_traces) <-  as.character(models[[mod]][["group"]]$param)
@@ -122,7 +122,7 @@ hddm_posterior_diagnostics <- function(models, # list with structure [[model]][[
           group_pdf_str <- ifelse(output_specifiers[1] == "",
                                   paste0(figuredir,"/group_diagnostics_",mod,".pdf"),
                                   paste0(figuredir,"/group_diagnostics_",mod, "_", output_specifiers[1],".pdf"))
-          # browser()
+          
           pdf(file =group_pdf_str, width =11, height =8)
           for(i in names(group_traces)){
             p <- diagnostic_plot(group_traces[,i], i)

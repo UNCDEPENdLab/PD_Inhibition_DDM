@@ -164,6 +164,7 @@ if task == 'flanker':
     #### Simplest model: stim type only IV
     v = {'model': "v ~ 1  + C(stim, Treatment('congruent'))", 'link_func': lambda x: x}
     v_stimblock = {'model': "v ~ 1  + C(stimblock, Treatment('congruent'))", 'link_func': lambda x: x}
+    a = {'model': "a ~ 1  + C(stim, Treatment('congruent'))", 'link_func': lambda x: x}
 
     #### single IV (not including stim)
     # stimulus x block ixn
@@ -246,10 +247,6 @@ if task == 'flanker':
     'v_block_trial_runtrial':hddm.HDDMRegressor(data, v_block_trial_runtrial, group_only_regressors = False),
     'v_block_trial_prev_rt':hddm.HDDMRegressor(data, v_block_trial_prev_rt, group_only_regressors = False),
     'v_block_runtrial_prev_rt':hddm.HDDMRegressor(data, v_block_runtrial_prev_rt, group_only_regressors = False),
-    # stimblock contrasts
-    'v_stimblock_trial_runtrial':hddm.HDDMRegressor(data, v_stimblock_trial_runtrial, group_only_regressors = False),
-    'v_stimblock_trial_prev_rt':hddm.HDDMRegressor(data, v_stimblock_trial_prev_rt, group_only_regressors = False),
-    'v_stimblock_runtrial_prev_rt':hddm.HDDMRegressor(data, v_stimblock_runtrial_prev_rt, group_only_regressors = False),
     #### all four IVs (not including stim)
     # stimulus x block ixn
     'v_block_trial_runtrial_prev_rt':hddm.HDDMRegressor(data, v_block_trial_runtrial_prev_rt, group_only_regressors = False),
@@ -289,10 +286,6 @@ if task == 'flanker':
     'v_block_trial_runtrial_st':hddm.HDDMRegressor(data, [v_block_trial_runtrial,st], include = 'st', group_only_regressors = False),
     'v_block_trial_prev_rt_st':hddm.HDDMRegressor(data, [v_block_trial_prev_rt,st], include = 'st', group_only_regressors = False),
     'v_block_runtrial_prev_rt_st':hddm.HDDMRegressor(data, [v_block_runtrial_prev_rt,st], include = 'st', group_only_regressors = False),
-    # stimblock contrasts
-    'v_stimblock_trial_runtrial_st':hddm.HDDMRegressor(data, [v_stimblock_trial_runtrial,st], include = 'st', group_only_regressors = False),
-    'v_stimblock_trial_prev_rt_st':hddm.HDDMRegressor(data, [v_stimblock_trial_prev_rt,st], include = 'st', group_only_regressors = False),
-    'v_stimblock_runtrial_prev_rt_st':hddm.HDDMRegressor(data, [v_stimblock_runtrial_prev_rt,st], include = 'st', group_only_regressors = False),
     #### all four IVs (not including stim)
     # stimulus x block ixn
     'v_block_trial_runtrial_prev_rt_st':hddm.HDDMRegressor(data, [v_block_trial_runtrial_prev_rt,st], include = 'st', group_only_regressors = False),
@@ -333,10 +326,6 @@ if task == 'flanker':
     'v_block_trial_runtrial_sv':hddm.HDDMRegressor(data, [v_block_trial_runtrial,sv], include = 'sv', group_only_regressors = False),
     'v_block_trial_prev_rt_sv':hddm.HDDMRegressor(data, [v_block_trial_prev_rt,sv], include = 'sv', group_only_regressors = False),
     'v_block_runtrial_prev_rt_sv':hddm.HDDMRegressor(data, [v_block_runtrial_prev_rt,sv], include = 'sv', group_only_regressors = False),
-    # stimblock contrasts
-    'v_stimblock_trial_runtrial_sv':hddm.HDDMRegressor(data, [v_stimblock_trial_runtrial,sv], include = 'sv', group_only_regressors = False),
-    'v_stimblock_trial_prev_rt_sv':hddm.HDDMRegressor(data, [v_stimblock_trial_prev_rt,sv], include = 'sv', group_only_regressors = False),
-    'v_stimblock_runtrial_prev_rt_sv':hddm.HDDMRegressor(data, [v_stimblock_runtrial_prev_rt,sv], include = 'sv', group_only_regressors = False),
     #### all four IVs (not including stim)
     # stimulus x block ixn
     'v_block_trial_runtrial_prev_rt_sv':hddm.HDDMRegressor(data, [v_block_trial_runtrial_prev_rt,sv], include = 'sv', group_only_regressors = False),
@@ -377,21 +366,21 @@ if task == 'flanker':
     'v_block_trial_runtrial_sv_st':hddm.HDDMRegressor(data, [v_block_trial_runtrial,st,sv], include = ('st','sv'), group_only_regressors = False),
     'v_block_trial_prev_rt_sv_st':hddm.HDDMRegressor(data, [v_block_trial_prev_rt,st,sv], include = ('st','sv'), group_only_regressors = False),
     'v_block_runtrial_prev_rt_sv_st':hddm.HDDMRegressor(data, [v_block_runtrial_prev_rt,st,sv], include = ('st','sv'), group_only_regressors = False),
-    # stimblock contrasts
-    'v_stimblock_trial_runtrial_sv_st':hddm.HDDMRegressor(data, [v_stimblock_trial_runtrial,st,sv], include = ('st','sv'), group_only_regressors = False),
-    'v_stimblock_trial_prev_rt_sv_st':hddm.HDDMRegressor(data, [v_stimblock_trial_prev_rt,st,sv], include = ('st','sv'), group_only_regressors = False),
-    'v_stimblock_runtrial_prev_rt_sv_st':hddm.HDDMRegressor(data, [v_stimblock_runtrial_prev_rt,st,sv], include = ('st','sv'), group_only_regressors = False),
     #### all four IVs (not including stim)
     # stimulus x block ixn
     'v_block_trial_runtrial_prev_rt_sv_st':hddm.HDDMRegressor(data, [v_block_trial_runtrial_prev_rt,st,sv], include = ('st','sv'), group_only_regressors = False),
     # stimblock contrasts
-    'v_stimblock_trial_runtrial_prev_rt_sv_st':hddm.HDDMRegressor(data, [v_stimblock_trial_runtrial_prev_rt,st,sv], include = ('st','sv'), group_only_regressors = False)
+    'v_stimblock_trial_runtrial_prev_rt_sv_st':hddm.HDDMRegressor(data, [v_stimblock_trial_runtrial_prev_rt,st,sv], include = ('st','sv'), group_only_regressors = False),
+
+    ### augment a few with a for testing
+    'v_block_st_a':hddm.HDDMRegressor(data, [v_block,st, a], include = 'st', group_only_regressors = False),
+    'v_stimblock_st_a':hddm.HDDMRegressor(data, [v_stimblock,st, a], include = 'st', group_only_regressors = False),
+    'v_stimblock_trial_prev_rt_st_a':hddm.HDDMRegressor(data, [v_stimblock_trial_prev_rt,st,a], include = 'st', group_only_regressors = False)
+
+
     }
 
-
-
-
-elif task == 'recent_probes':
+if task == 'recent_probes':
 
     v = {'model': "v ~ 1  + C(stim, Treatment('positive'))", 'link_func': lambda x: x}
     v_cond = {'model': "v ~ 1  + C(cond, Treatment('no_conflict'))", 'link_func': lambda x: x}
@@ -404,10 +393,10 @@ elif task == 'recent_probes':
     'v_sv_st':hddm.HDDMRegressor(data, [v,sv,st], include = ('sv','st'), group_only_regressors = False),
 
     # based off of condition
-    'v_cond':hddm.HDDMRegressor(data, v, group_only_regressors = False),
+    'v_cond':hddm.HDDMRegressor(data, v_cond, group_only_regressors = False),
     'v_cond_st':hddm.HDDMRegressor(data, [v_cond,st], include = 'st', group_only_regressors = False),
     'v_cond_sv':hddm.HDDMRegressor(data, [v_cond,sv], include = 'sv', group_only_regressors = False),
-    'v_cond_sv_st':hddm.HDDMRegressor(data, [v,sv,st], include = ('sv','st'), group_only_regressors = False)
+    'v_cond_sv_st':hddm.HDDMRegressor(data, [v_cond,sv,st], include = ('sv','st'), group_only_regressors = False)
     }
 
 

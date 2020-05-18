@@ -122,11 +122,11 @@ return(supported_models)
 
 gen_missing_mods <- function(task,
                              mod_log = "/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log_completed.csv",
-                             full_sample = full_sample,
-                             nsamples = nsamples){
+                             full_sample = "full_sample",
+                             nsamples = "samp2000"){
   
   message("Only configured to handle one value of nsamples!!")
-  
+  # browser()
   df <- read.csv(mod_log) %>% select(-X) %>% filter(outputs_located != "all" & TASK %in% task & NSAMP %in% nsamples & SAMPLE %in% full_sample) 
   
   out <- list()

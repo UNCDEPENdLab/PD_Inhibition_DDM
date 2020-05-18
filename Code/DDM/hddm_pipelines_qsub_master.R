@@ -5,10 +5,10 @@
 initialize <- FALSE
 
 # for local debugging
-ics <- 0
+ics <- 1
 
 # run models or test job submission loop?
-RUN = FALSE
+RUN = TRUE
 
 #################
 ### setup params
@@ -21,13 +21,15 @@ log_file_comp <- ifelse(ics == 1, "/gpfs/group/mnh5174/default/Nate/PD_Inhibitio
 
 nchains <- 2
 nsamples <- paste0("samp",c(#1000, 
-  2000))#, 
-  #5000, 
-  # 10000))#, 20000, 40000, 80000))
-tasks <- c("flanker")#, "recent_probes")#, "go_nogo")
-full_sample <- c("clean_sample",
-                 "full_sample")
-wt_scaling_factor <- .019
+  #2000))#,#, 
+#5000, 
+10000))#, 20000, 40000, 80000))
+tasks <- c(#"flanker")#,
+  "recent_probes")#, "go_nogo")
+
+full_sample <- c(#"clean_sample",
+  "full_sample")
+wt_scaling_factor <- .01
 nburn_percentile <- .2
 coding <- "acc"
 
@@ -41,14 +43,14 @@ all_models <- list()
 
 for(f in full_sample){all_models[[f]] <- gen_supported_models()}
 
-# models <- all_models
+models <- all_models
 
 ## load completed log and see who never finished running. More customized
 
-models <- gen_missing_mods(tasks,
-                           mod_log = log_file_comp, #this simply contains info on if jobs completed that is run after the fact.
-                           nsamples = nsamples,
-                           full_sample = full_sample)
+# models <- gen_missing_mods(tasks,
+#                            mod_log = log_file_comp, #this simply contains info on if jobs completed that is run after the fact.
+#                            nsamples = nsamples,
+#                            full_sample = full_sample)
 
 
 

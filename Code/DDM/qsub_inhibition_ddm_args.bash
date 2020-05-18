@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
-#PBS -A open
-#PBS -l nodes=1:ppn=10
-#PBS -l walltime=24:00:00
+#PBS -A wff3_a_g_hc_default
+#PBS -l nodes=${NODES}:ppn=${PPN}
+#PBS -l walltime=${WT}:00:00
 #PBS -j oe
 #PBS -o pbs_outputs/$PBS_JOBNAME.out
 #PBS -W group_list=mnh5174_collab

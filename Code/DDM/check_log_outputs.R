@@ -85,6 +85,16 @@ log <- log %>% left_join(finfo, by = "job_id") %>%
 log %>% filter(outputs_located != "all") %>% print(n = 150)
 log %>% filter(TASK == "recent_probes") %>% print(n = 150)
 
+log <- log %>% mutate(job_info = paste(TASK, SAMPLE, MODEL, CODE, NCHAINS, NBURN,NSAMP, sep = "_"))
+
+# for missing models, have they been rerun below and are now considered done?
+missing_job_tags <- log %>% filter(outputs_located != "all") %>% pull(job_info)
+completed_jobs <- log %>% filter(outputs_located == "all")
+
+any(missing_job_tags %in% completed_jobs$job_info)
+# missing_job_tags 
+#this actually isn't concerning given that they are all either clean sample recent probes (same thing as full sample) or one of the many crazy 10,000 sample flanker models.
+
 if(ics){
   write.csv(log, "/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log_completed.csv")  
 } else {
