@@ -215,4 +215,36 @@ save(correlations, file = "Outputs/behavior_traits_allcorrelations.RData")
 
 
 
+# just look at behavioral indices -----------------------------------------
+zero_sds <- c()
+for(i in 1:ncol(behav)){
+  nam <- names(behav)[i]
+  if(sd(pull(behav, nam), na.rm = TRUE) == 0) {
+    print(nam)
+    zero_sds <- c(zero_sds, nam)
+    }
+}
+
+drop_zsd <- select(behav, -zero_sds, -subj_idx)
+
+fa_ddm <- select(behav, contains("MAP"))
+
+map <- nfactors(fa_ddm, rotate = "oblimin", n=7,  fm="fiml")
+map
+par <- fa.parallel(fa_ddm, fm = "fiml", fa = "fa")
+
+sr.fa <- fa(fa_ddm, 2, rotate="oblimin", fm = "fiml") #corrplot looks like maybe we could get 9 factors? 
+print(sr.fa, cut=.3, sort = T) ##looks interpretable to me
+#pa estimation
+sr.fa <- fa(fa_ddm, 2, rotate="oblimin", fm = "pa") 
+print(sr.fa, cut=.3, sort = T) 
+
+sr.fa <- fa(fa_ddm, 3, rotate="oblimin", fm = "ml") 
+print(sr.fa, cut=.3, sort = T) 
+
+sr.fa <- fa(fa_ddm, 4, rotate="oblimin", fm = "ml") 
+print(sr.fa, cut=.3, sort = T) 
+
+sr.fa <- fa(fa_ddm, 5, rotate="oblimin", fm = "ml") 
+print(sr.fa, cut=.3, sort = T) 
 
