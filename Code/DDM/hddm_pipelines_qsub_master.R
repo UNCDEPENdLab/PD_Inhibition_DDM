@@ -5,10 +5,10 @@
 initialize <- FALSE
 
 # for local debugging
-ics <- 0
+ics <- 1
 
 # run models or test job submission loop?
-RUN = FALSE
+RUN = TRUE
 
 #################
 ### setup params
@@ -19,15 +19,20 @@ output_base <- "/gpfs/group/mnh5174/default/Nate/HDDM_outputs_PD_Inhibition"
 log_file <- ifelse(ics == 1, "/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log.csv", "~/ics/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log.csv")
 log_file_comp <- ifelse(ics == 1, "/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log_completed.csv", "~/ics/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log_completed.csv")
 
+# nchains <- 10
 nchains <- 2
+
 nsamples <- paste0("samp",c(#1000, 
-  2000))#, 
+  2000))#,#,
   #5000, 
   # 10000))#, 20000, 40000, 80000))
-tasks <- c("flanker")#, "recent_probes")#, "go_nogo")
-full_sample <- c("clean_sample",
-                 "full_sample")
-wt_scaling_factor <- .019
+tasks <- c(#"flanker",
+  #"recent_probes")#, 
+  "go_nogo")
+
+full_sample <- c(#"clean_sample",
+  "full_sample")
+wt_scaling_factor <- .015
 nburn_percentile <- .2
 coding <- "acc"
 
@@ -35,25 +40,35 @@ coding <- "acc"
 ### done setting up params
 
 
+#################
+### specify models to run
+
 ## load in string of all possible models and select the ones that you wish to run
 source(file.path(data_base,"../../Code/Functions/gen_supported_models.R"))
 all_models <- list()
 
 for(f in full_sample){all_models[[f]] <- gen_supported_models()}
+# 
+models <- all_models
 
-# models <- all_models
+
+#for gng testing
+# models[["full_sample"]][["go_nogo"]] <- "v"
+# models[["full_sample"]][["go_nogo"]] <- models[["full_sample"]][["go_nogo"]][!models[["full_sample"]][["go_nogo"]] == "v"]
 
 ## load completed log and see who never finished running. More customized
 
-models <- gen_missing_mods(tasks,
-                           mod_log = log_file_comp, #this simply contains info on if jobs completed that is run after the fact.
-                           nsamples = nsamples,
-                           full_sample = full_sample)
+# models <- gen_missing_mods(tasks,
+#                            mod_log = log_file_comp, #this simply contains info on if jobs completed that is run after the fact.
+#                            nsamples = nsamples,
+#                            full_sample = full_sample)
 
 
 
 
-
+# models <- list(full_sample = list(flanker = c("v_stimblock_trial_prev_rt_st", "v_stimblock_trial_prev_rt_st_a","v_stimblock_st_a", "v_block_st_a"),
+#                                   recent_probes = "v_st"))#,
+# # go_nogo = )
 
 
 
