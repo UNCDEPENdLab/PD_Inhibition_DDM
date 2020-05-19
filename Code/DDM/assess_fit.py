@@ -22,7 +22,7 @@ from kabuki.analyze import check_geweke
 import pickle
 import numpy as np
 import sys
-import csv
+
 #import time
 
 #time.perf_counter()
@@ -33,8 +33,7 @@ import csv
 ######### model checking and diagnostics'
 
 ## this should follow similar naming conventions to the output of the R master script.
-ics = 0
-#task = 'recent_probes'
+ics = 1
 tasks = ['flanker', 'recent_probes']
 full_sample = ['full_sample', 'clean_sample'] 
 nsamp = ['samp2000', 'samp10000']
@@ -79,9 +78,12 @@ for samp in nsamp:
             for mod in models:
                 print "Assessing model fit for: ", mod
                 
-                nchains = int(log_trimmed['NCHAINS'][log_trimmed['MODEL'] == mod])
+                nchains = max(log_trimmed['NCHAINS'][log_trimmed['MODEL'] == mod])
+                
+                
                 mods = []
             #    with pymp.Parallel(nchains) as ch:
+                
                 for chain in range(0,nchains):
                     print chain
                     this_model = hddm.load(mod+'_chain'+str(chain) + '_'+ code + 'Code.model') 
@@ -93,7 +95,7 @@ for samp in nsamp:
                 print dic
                 dics.append(dic)
                 traces = this_model.get_traces()
-                traces.to_csv(outputdir+'/diagnostics/'+mod+'_traces.csv')
+                traces.to_csv(outputdir+'/../diagnostics/'+mod+'_traces.csv')
 #              
 #                
             dics_export = {'model': models,

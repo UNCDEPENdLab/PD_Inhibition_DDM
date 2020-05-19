@@ -5,7 +5,7 @@
 
 pacman::p_load(tidyverse, psych, ggcorrplot, lavaan, GPArotation)
 
-# basedir <- "C:/Users/timot/Documents/GitHub/PD_Inhibition_DDM" # Tim
+ basedir <- "C:/Users/timot/Documents/GitHub/PD_Inhibition_DDM" # Tim
 basedir <- "~/github_repos/PD_Inhibition_DDM" # Nate
 
 # alldat <- read_csv("/Data/alldat.csv")
@@ -14,6 +14,7 @@ snap <- get(load(file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RDa
 alldat <- mpq %>% inner_join(snap, by = "subject") %>% tibble()
 # length(unique(alldat$subject)) # retain 104 "clean" subjects
 
+self_reps <- left_join(mpq, snap, by = "subject")
 
 #select just the SNAP and MPQ variables
 #corrplot of the scales
