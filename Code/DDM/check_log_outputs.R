@@ -3,7 +3,7 @@
 
 library(pacman); p_load(tidyverse)
 
-ics <- 0 
+ics <- 1 
 if(ics){
   log <- log_backup <- read.csv("/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log.csv") %>% select(-X) %>% filter(QSUB_STRING != "initialize")
   setwd("/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/")
@@ -61,6 +61,9 @@ for (mod in 1:nrow(log)) {
 
 log <- log %>% select(-QSUB_STRING, -OUTDIR)
 
+unique(log$DAY_SUB)
+
+log %>% filter(DAY_SUB == "2020-05-18")
 ##get file info including most recent modification, this will equate roughly to run time for reference.
 
 
