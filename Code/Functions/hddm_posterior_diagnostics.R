@@ -43,7 +43,7 @@ hddm_posterior_diagnostics <- function(models, # list with structure [[model]][[
   if(m_digest == "win"){
     m_digest <- win_mod
   } else if(m_digest == "all"){
-    m_digest <- names(models)
+    m_digest <- names(models)[which(!names(models) %in% c("traces", "gelman_rubin", "outdir", "figuredir"))]
   }
   
   
@@ -105,7 +105,7 @@ hddm_posterior_diagnostics <- function(models, # list with structure [[model]][[
       traces <- read.csv(file = models[[mod]][["traces"]]) %>% select(-X) 
       tictoc::toc(); #beepr::beep()
       
-      
+      browser()
       
       summary_stats <- list()
       # browser()
