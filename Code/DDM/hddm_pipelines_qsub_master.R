@@ -19,20 +19,20 @@ output_base <- "/gpfs/group/mnh5174/default/Nate/HDDM_outputs_PD_Inhibition"
 log_file <- ifelse(ics == 1, "/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log.csv", "~/ics/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log.csv")
 log_file_comp <- ifelse(ics == 1, "/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log_completed.csv", "~/ics/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log_completed.csv")
 
-# nchains <- 10
-nchains <- 2
+nchains <- 10
+# nchains <- 2
 
 nsamples <- paste0("samp",c(#1000, 
-  2000))#,#,
+  # 2000))#,#,
   #5000, 
-  # 10000))#, 20000, 40000, 80000))
-tasks <- c(#"flanker",
+  10000))#, 20000, 40000, 80000))
+tasks <- c("flanker",
   #"recent_probes")#, 
   "go_nogo")
 
 full_sample <- c(#"clean_sample",
   "full_sample")
-wt_scaling_factor <- .015
+wt_scaling_factor <- .025
 nburn_percentile <- .2
 coding <- "acc"
 
@@ -55,6 +55,9 @@ models <- all_models
 #for gng testing
 # models[["full_sample"]][["go_nogo"]] <- "v"
 # models[["full_sample"]][["go_nogo"]] <- models[["full_sample"]][["go_nogo"]][!models[["full_sample"]][["go_nogo"]] == "v"]
+
+#for running flanker longer on model that is getting close to soft limit
+models[["full_sample"]][["flanker"]] <- "v_stimblock_trial_prev_rt_st_a"
 
 ## load completed log and see who never finished running. More customized
 

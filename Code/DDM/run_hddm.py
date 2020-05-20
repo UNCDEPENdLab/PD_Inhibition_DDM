@@ -498,11 +498,11 @@ print('\n' + 'COMMENCE SAMPLING\n')
 for index in range(0, len(mod_dict_torun)):
     with pymp.Parallel(nchains) as ch:
         for ch_index in ch.range(0,nchains):
-            model = mod_dict_torun.values()[index]
+            model = list(mod_dict_torun.values())[index]
             print(model)
-            dbname = mod_dict_torun.keys()[index] + '_chain'+str(ch_index)+ '_'+ code +'Code.db'
+            dbname = list(mod_dict_torun.keys())[index] + '_chain'+str(ch_index)+ '_'+ code +'Code.db'
             print(dbname)
-            modelname = mod_dict_torun.keys()[index] + '_chain'+str(ch_index)+ '_'+ code +'Code.model'
+            modelname = list(mod_dict_torun.keys())[index] + '_chain'+str(ch_index)+ '_'+ code +'Code.model'
             print(modelname)
 
             model.sample(nsample, burn = nburn, dbname = dbname, db = 'pickle')
