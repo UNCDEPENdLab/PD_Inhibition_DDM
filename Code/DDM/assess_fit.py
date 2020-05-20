@@ -33,11 +33,12 @@ import sys
 ######### model checking and diagnostics'
 
 ## this should follow similar naming conventions to the output of the R master script.
-ics = 1
+ics = 0
 tasks = ['flanker', 'recent_probes']
-full_sample = ['full_sample', 'clean_sample'] 
-nsamp = ['samp2000', 'samp10000']
+full_sample = ['full_sample']#, 'clean_sample'] 
+nsamp = ['samp2000']#, 'samp10000']
 code = "acc"
+date = "2020-05-18" #in case you want to just get models from a specific date 
 
 if ics:
     basedir = '/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM'
@@ -52,6 +53,14 @@ log = pd.read_csv(basedir + '/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_lo
 
 log_finished = log[(log['outputs_located']== 'all')]
 
+try:
+    log_finished = log_finished[(log_finished['DAY_SUB'] == date)]
+except NameError:
+    print('no date defined')
+
+ 
+
+  
 
 #### loop over models and chains to assess convergence.
 
@@ -65,7 +74,7 @@ for samp in nsamp:
         for samp_size in full_sample:
             print samp_size
             log_trimmed = log_finished[(log_finished['NSAMP'] == samp) & (log_finished['TASK'] == task) & (log_finished['SAMPLE'] == samp_size)]
-            models = list(log_trimmed['MODEL'])
+            models = set(list(log_trimmed['MODEL'])) #set function should get unique values to not redo model grabbing
             
             outputdir = basedir + '/../HDDM_outputs_PD_Inhibition/' + samp + '/' + task + '/' + samp_size + '/model_objects' 
             os.chdir(outputdir)
@@ -74,7 +83,12 @@ for samp in nsamp:
             print 'Directory contents:\n'
             print os.listdir('.')
             
-            dics = []
+            
+            try:
+                dics = pd.read_csv(outputdir+'/../diagnostics/dics_all.csv')[['model', 'DIC']]
+            except NameError:
+                dics = []
+                
             for mod in models:
                 print "Assessing model fit for: ", mod
                 
@@ -88,22 +102,25 @@ for samp in nsamp:
                     print chain
                     this_model = hddm.load(mod+'_chain'+str(chain) + '_'+ code + 'Code.model') 
                     mods.append(this_model)
+                    traces = this_model.get_traces()
+                    traces.to_csv(outputdir+'/../diagnostics/'+mod+'_traces_'+ str(chain) +'.csv')
             #    sub_dict["models"] = models
                 gel_rub =pd.DataFrame(gelman_rubin(mods).items(), columns = ['parameter', 'rhat']) 
                 gel_rub.to_csv(outputdir+'/../diagnostics/gr_' + mod + '.csv')
                 dic = this_model.dic
                 print dic
-                dics.append(dic)
-                traces = this_model.get_traces()
-                traces.to_csv(outputdir+'/../diagnostics/'+mod+'_traces.csv')
+                dics = dics.append(pd.DataFrame([[mod,dic]], columns = ['model', 'DIC']))
+                
+                
+                
 #              
 #                
-            dics_export = {'model': models,
-                           'DIC': dics}
-            
-            dics_exp = pd.DataFrame(dics_export, columns = ['model', 'DIC'])    
+#            dics_export = {'model': models,
+#                           'DIC': dics}
+#            
+#            dics_exp = pd.DataFrame(dics_export, columns = ['model', 'DIC'])    
             #dics = pd.DataFrame(dics, models)
-            dics_exp.to_csv(outputdir+'/../diagnostics/dics_all.csv')
+            dics.to_csv(outputdir+'/../diagnostics/dics_all.csv')
 
 
 
