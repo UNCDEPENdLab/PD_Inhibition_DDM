@@ -1,7 +1,7 @@
 
 # 4/30/2020 NH edits to latent structure ----------------------------------
 
-## this is mostly me running through the factor analysis checks with faulty subjects dropped. 
+## this is mostly me running through the factor analysis checks with faulty subjects dropped.
 
 pacman::p_load(tidyverse, psych, ggcorrplot, lavaan, GPArotation)
 
@@ -14,6 +14,7 @@ snap <- get(load(file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RDa
 alldat <- mpq %>% inner_join(snap, by = "subject") %>% as_tibble()
 # length(unique(alldat$subject)) # retain 104 "clean" subjects
 
+self_reps <- left_join(mpq, snap, by = "subject")
 
 #select just the SNAP and MPQ variables
 #corrplot of the scales
@@ -26,7 +27,7 @@ self_reps <- read.csv(file.path(basedir, "Data/preprocessed/all_personality_no_i
 # srcorrs <- cor(select(self_reps, -subject), use = "pairwise.complete.obs")
 # ggcorrplot(srcorrs, type = "upper", hc.order = TRUE, tl.cex = 6, lab = TRUE, lab_size = 1)
 # ggsave(file.path(basedir,"Outputs/self_report_correlations.pdf"))
-# 
+#
 # #histograms
 # sr_hist <- pivot_longer(self_reps, T_Mistrust:MPS_abT, names_to = "measure", values_to = "value")
 # ggplot(sr_hist, aes(x = value)) + geom_histogram(binwidth = 10) + facet_wrap(~measure, scales = "free")
@@ -40,59 +41,59 @@ map <- nfactors(sr_fa, n=10, rotate="oblimin", fm="ml")
 map
 par <- fa.parallel(sr_fa, fm = "ml", fa = "fa") # suggests 4 factors
 sr.fa <- fa(sr_fa, 9, rotate="oblimin", fm = "ml") #suggests 9 factors are suffciient
-print(sr.fa, cut=0, sort = T) ##looks interpretable to me; heywood case detected so look at cautiously 
+print(sr.fa, cut=0, sort = T) ##looks interpretable to me; heywood case detected so look at cautiously
 #pa estimation
-sr.fa <- fa(sr_fa, 9, rotate="oblimin", fm = "pa") 
-print(sr.fa, cut=.3, sort = T) 
-print(sr.fa, cut=0, sort = T) 
+sr.fa <- fa(sr_fa, 9, rotate="oblimin", fm = "pa")
+print(sr.fa, cut=.3, sort = T)
+print(sr.fa, cut=0, sort = T)
 
 
 #8f Still considered sufficient
 # sr.fa <- fa(sr_fa, 8, rotate="oblimin", fm = "ml") #ml
-# print(sr.fa, cut=.3, sort = T) 
-# print(sr.fa, cut=0, sort = T) 
+# print(sr.fa, cut=.3, sort = T)
+# print(sr.fa, cut=0, sort = T)
 sr.fa <- fa(sr_fa, 8, rotate="oblimin", fm = "pa") #pa
-print(sr.fa, cut=.3, sort = T) 
-# print(sr.fa, cut=0, sort = T) 
+print(sr.fa, cut=.3, sort = T)
+# print(sr.fa, cut=0, sort = T)
 
 #7f Still sufficient
 sr.fa <- fa(sr_fa, 7, rotate="oblimin", fm = "ml") #ml
 sr.fa <- fa(sr_fa, 7, rotate="oblimin", fm = "pa") #pa
-print(sr.fa, cut=.3, sort = T) 
+print(sr.fa, cut=.3, sort = T)
 # print(sr.fa, cut=0, sort = T)
 
 #6f
 sr.fa <- fa(sr_fa, 6, rotate="oblimin", fm = "ml") #ml
 sr.fa <- fa(sr_fa, 6, rotate="oblimin", fm = "pa") #pa
-print(sr.fa, cut=.3, sort = T) 
-# print(sr.fa, cut=0, sort = T) 
+print(sr.fa, cut=.3, sort = T)
+# print(sr.fa, cut=0, sort = T)
 
 #5f - at this point antagonism and mistrust get collapsed together ; still sufficicent
 sr.fa <- fa(sr_fa, 5, rotate="oblimin", fm = "ml") #ml
 sr.fa <- fa(sr_fa, 5, rotate="oblimin", fm = "pa") #pa
-print(sr.fa, cut=.3, sort = T) 
+print(sr.fa, cut=.3, sort = T)
 
 #4f; sufficient
 sr.fa <- fa(sr_fa, 4, rotate="oblimin", fm = "ml") #ml
 sr.fa <- fa(sr_fa, 4, rotate="oblimin", fm = "pa") #pa
-print(sr.fa, cut=.2, sort = T) 
+print(sr.fa, cut=.2, sort = T)
 
 #3f
 sr.fa <- fa(sr_fa, 3, rotate="oblimin", fm = "ml") #ml
 sr.fa <- fa(sr_fa, 3, rotate="oblimin", fm = "pa") #pa
-print(sr.fa, cut=.3, sort = T) 
+print(sr.fa, cut=.3, sort = T)
 
 
 #2f
 sr.fa <- fa(sr_fa, 2, rotate="oblimin", fm = "ml") #ml
 sr.fa <- fa(sr_fa, 2, rotate="oblimin", fm = "pa") #pa
-print(sr.fa, cut=.3, sort = T) 
+print(sr.fa, cut=.3, sort = T)
 
 
 #what about a 3 factor scale with no neuroticism items
 sr.fa <- fa(select(sr_fa, -SUICPRON, -LOSLFEST, -MPS_abR, -ECCPERC, -MPS_srR, -DEPEN, -MPS_haR), 3, rotate="oblimin", fm = "ml") #ml
 sr.fa <- fa(select(sr_fa, -SUICPRON, -LOSLFEST, -MPS_abR, -ECCPERC, -MPS_srR, -DEPEN, -MPS_haR), 3, rotate="oblimin", fm = "pa") #pa
-print(sr.fa, cut=.2, sort = T) 
+print(sr.fa, cut=.2, sort = T)
 
 #c scales -> MPS_clR not included in self-reports
 cscales <- alldat %>% select(MPS_clR, MPS_acR, MPS_tdR, HDWK, PROPER, IMPUL)
@@ -135,7 +136,7 @@ ggsave("C:/Users/timot/Google Drive/Hallquist_Dombrovski/PD_DDM/Outputs/recentpr
 
 
 ### saving factor scores from the 9-f model and looking at task correlations
-sr.fa <- fa(sr_fa, 9, rotate="oblimin", fm = "ml") #corrplot looks like maybe we could get 9 factors? 
+sr.fa <- fa(sr_fa, 9, rotate="oblimin", fm = "ml") #corrplot looks like maybe we could get 9 factors?
 print(sr.fa, cut=0, sort = T) ##looks interpretable to me
 #save factor scores and link to ID
 pd_9fscores <- as.data.frame(sr.fa$scores)
@@ -188,7 +189,7 @@ B5_model_resid <- '
  A =~ MISTRUST + MPS_alR + MANIP + AGG + MPS_agR + MPS_haR
  C =~ MPS_clR + IMPUL + HDWK + MPS_acR + PROPER + MPS_tdR
  E =~ DETACH + MPS_scR + EXHIB + ENTITL + MPS_spR
- 
+
  DETACH	~~	MPS_scR
  HDWK	~~	MPS_acR
  MISTRUST	~~	MPS_alR
@@ -203,23 +204,23 @@ B5mir <- modindices(B5_fitr) #fit not very good here, also doesn't like 2 indica
 B9_model <- '
  O =~ ECCPERC + MPS_abR
  N =~ LOSLFEST + MPS_srR + SUICPRON + DEPEN + MPS_wbR
- TRUST =~ MISTRUST + MPS_alR 
+ TRUST =~ MISTRUST + MPS_alR
  IMPOLITE =~ MANIP + AGG + MPS_agR + MPS_haR
- CONTROL =~ MPS_clR + IMPUL 
- ACHIEVE =~ HDWK + MPS_acR 
+ CONTROL =~ MPS_clR + IMPUL
+ ACHIEVE =~ HDWK + MPS_acR
  RULES =~ PROPER + MPS_tdR
- AFF =~ DETACH + MPS_scR 
+ AFF =~ DETACH + MPS_scR
  AGENT =~ EXHIB + ENTITL + MPS_spR
  '
 B9_fit <- cfa(B9_model, data = self_reps, missing = "ML", estimator = "MLR")
 summary(B9_fit, fit.measures = TRUE, standardized = TRUE)
-B9mi <- modindices(B9_fit) #not gonna work with 2 indicator latents. 
+B9mi <- modindices(B9_fit) #not gonna work with 2 indicator latents.
 
-# just a four factor model? 
+# just a four factor model?
 B4_model <- '
  #O =~ ECCPERC + MPS_abR
  N =~ LOSLFEST + MPS_srR + SUICPRON + MPS_wbR #+ DEPEN
- A =~ MISTRUST + MANIP + MPS_agR #+ AGG  + MPS_haR + MPS_alR 
+ A =~ MISTRUST + MANIP + MPS_agR #+ AGG  + MPS_haR + MPS_alR
  C =~ IMPUL + HDWK + PROPER #+ MPS_tdR + MPS_acR + MPS_clR
  E =~ EXHIB + MPS_spR + MPS_scR # + ENTITL + DETACH
 #EXHIB	~~	MPS_spR
@@ -232,20 +233,20 @@ B4mi <- modindices(B4_fit) #modindices mostly want facet-specific error covarian
 B5_model_nocross <- '
  O =~ A*ECCPERC + A*MPS_abR
  #N =~ LOSLFEST + MPS_srR + SUICPRON
- A =~ MANIP + MPS_agR + AGG 
+ A =~ MANIP + MPS_agR + AGG
  C =~ IMPUL + PROPER + MPS_tdR + MPS_clR + MPS_acR + HDWK
  E =~ EXHIB + MPS_spR + MPS_scR + DETACH
 '
 B5_model_nocrossfit <- cfa(B5_model_nocross, data = self_reps, missing = "ML", estimator = "MLR")
 summary(B5_model_nocrossfit, fit.measures = TRUE, standardized = TRUE)
-B5_model_nocrossmi <- modindices(B5_model_nocrossfit) 
+B5_model_nocrossmi <- modindices(B5_model_nocrossfit)
 
 #3f model with no N, O factor
 B3_model <- '
- E =~ EXHIB + MPS_spR + ENTITL + DETACH + MPS_scR 
+ E =~ EXHIB + MPS_spR + ENTITL + DETACH + MPS_scR
  C =~ IMPUL + PROPER + MPS_tdR + MPS_clR + MPS_acR + HDWK
  ANT =~ MANIP + AGG + MPS_agR + MISTRUST + MPS_alR
- 
+
  MPS_acR ~~ HDWK
  MISTRUST ~~ MPS_alR
  EXHIB ~~ MPS_spR
@@ -253,4 +254,4 @@ B3_model <- '
 '
 B3_fit <- cfa(B3_model, data = self_reps, missing = "ML", estimator = "MLR")
 summary(B3_fit, fit.measures = TRUE, standardized = TRUE)
-B3_mi <- modindices(B3_fit) 
+B3_mi <- modindices(B3_fit)

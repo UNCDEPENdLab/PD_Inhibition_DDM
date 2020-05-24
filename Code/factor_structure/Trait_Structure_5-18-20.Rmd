@@ -1,0 +1,83 @@
+---
+title: "PD_DDM Trait Structure Analysis"
+author: "Timothy Allen"
+date: "5/18/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(psych)
+library(ggcorrplot)
+library(lavaan)
+library(tidyverse)
+
+#basedir <- "C:/Users/timot/Documents/GitHub/PD_Inhibition_DDM"
+basedir <- "~/Data_Analysis/PD_Inhibition_DDM" 
+mpq <- get(load(file.path(basedir, "Data/preprocessed/MPQ_all_scored_final.RData"))) %>% filter(exclude_MPQ == 0) %>% select(subject, MPS_wbR:MPS_abR)
+snap <- get(load(file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RData"))) %>% filter(exclude_SNAP == 0) %>% select(subject, NEGTEMP:HDWK, DISINHP)
+
+self_reps <- inner_join(mpq, snap, by = "subject")
+```
+
+## General Rationale
+
+Based on our previous conversations, I approached this from the perspective that our main goal in this paper is to examine whether antagonistic traits are associated with cognitive control problems, even after controlling for their shared variance with disinhibited traits. 
+
+To get reasonable measures of Antagonism and Disinhibition, I looked at Markon et al., 2005. For those not familiar, that paper showed that factor analysis of normal and abnormal trait measures yields something resembling the Big Five. Luckily it uses both the SNAP and MPQ (though in different samples). I think we should be on solid ground basing decisions off that paper, as it's well-known and has lots of citations. 
+
+To be principled about it, I pulled every SNAP or MPQ scale that had its primary loading on the Agreeableness or Conscientiousness factors in the Markon paper, and then I just tossed them into an EFA and extracted two factors. Perhaps unsurprisingly, it replicates pretty well: 
+
+```{r echo = FALSE}
+sr.fa.AC <- fa(select(self_reps, IMPUL, PROPER, HDWK, MPS_acR, MPS_clR, MPS_tdR, MPS_agR, AGG, MPS_alR, MANIP, MISTRUST), 2, rotate="oblimin", fm = "pa")
+
+print(sr.fa.AC, sort = T) 
+```
+
+I think we can save those factor scores, and use them to test the Antagonism vs. Conscientiousness piece. 
+
+However, that doesn't really let us get at the other main pattern I think we may have spotted, which is that some of the behavioral measures seem to be linked to what I would call Assertiveness, or Agentic Extraversion (or Dominance). Those scales tend to load on Extraversion in Markon's paper, along with more affiliative Extraversion scales. 
+
+I pulled all the scales that had their primary loading on Extraversion in the Markon paper, and then just did another EFA and pulled out 2 factors to see if we could recover something like agentic and affiliative Extraversion. We do indeed: 
+
+```{r pressure, echo=FALSE}
+sr.fa.E <- fa(select(self_reps, POSTEMP, EXHIB, ENTITL, DETACH, MPS_wbR, MPS_spR, MPS_scR), 2, rotate="oblimin", fm = "pa")
+print(sr.fa.E, sort = T) 
+```
+
+My intial thought here is to probably focus on the antagonism v. disinhibition question, but then also note that antagonism exists in this cold-dominant space of the IPC, and that it might actually be this dominant interpersonal space more generally that is associated with cognitive control deficits. If that's the case, we should probably see suppression when we enter antagonism and agentic E as simultaneous predictors, and we should also probably see that agentic E is related to cognitive control whereas affiliative E is not. 
+
+No idea if all that will hold up when we get down to testing it, but I think it's on solid theoretical grounds. I also think it'd be quite novel if we could show that particular portion of interpersonal space is linked to cognitive control. 
+
+Factor scores are saved via the regression method (I go back and forth between regression v. ten Berge, but it hardly ever seems to make a difference from what I can tell?) and are stored here:
+
+GitHub/PD_Inhibition_DDM/Outputs/factor_structure/PDDDM_factor_scores_5-18-20.csv
+
+(NOTE: I multipled the C factor by -1 so that it's keyed in the maladaptive direction. Both E scales are keyed so high = more Extraversion.)
+
+```{r echo = FALSE}
+AC_fscores <- factor.scores(select(self_reps, IMPUL, PROPER, HDWK, MPS_acR, MPS_clR, MPS_tdR, MPS_agR, AGG, MPS_alR, MANIP, MISTRUST), sr.fa.AC$loadings, Phi = sr.fa.AC$Phi, method = "regression")
+
+AC_fscores <- as.data.frame(AC_fscores$scores)
+
+
+colnames(AC_fscores) <- c("ANTAGONISM_F", "DISINHIBITION_F")
+AC_fscores$DISINHIBITION_F <- AC_fscores$DISINHIBITION_F * -1
+
+AC_fscores$subject <- self_reps$subject
+
+E_fscores <- factor.scores(select(self_reps, POSTEMP, EXHIB, ENTITL, DETACH, MPS_wbR, MPS_spR, MPS_scR), sr.fa.E$loadings, Phi = sr.fa.E$Phi, method = "regression")
+
+E_fscores <- as.data.frame(E_fscores$scores)
+
+colnames(E_fscores) <- c("AGENTIC_F", "AFFILIATIVE_F")
+
+E_fscores$subject <- self_reps$subject
+
+fac_scores <- left_join(AC_fscores, E_fscores, by = "subject")
+
+write.csv(fac_scores, "~/Data_Analysis/PD_Inhibition_DDM/Outputs/factor_structure/PDDDM_factor_scores_5-18-20.csv", row.names = F)
+```
+
+

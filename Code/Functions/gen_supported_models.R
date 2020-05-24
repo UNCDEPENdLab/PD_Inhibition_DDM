@@ -113,7 +113,35 @@ supported_models <- list(flanker = c('v',
                                            "v_cond_st", 
                                            "v_cond_sv",
                                            "v_cond_sv_st"
-                                           ))
+                                           ),
+                         go_nogo = c("v",
+                                     "v_st",
+                                     "v_sv",
+                                     "v_sv_st",
+                                     "v_cond",
+                                     "v_cond_st",
+                                     "v_cond_sv",
+                                     "v_cond_sv_st",
+                                     "v_stim_cond",
+                                     "v_stim_cond_st",
+                                     "v_stim_cond_sv",
+                                     "v_stim_cond_sv_st",
+                                     "a",
+                                     "a_st",
+                                     "a_sv",
+                                     "a_sv_st",
+                                     "v_a",
+                                     "v_a_st",
+                                     "v_a_sv",
+                                     "v_a_sv_st",
+                                     "v_a_cond",
+                                     "v_a_cond_st",
+                                     "v_a_cond_sv",
+                                     "v_a_cond_sv_st",
+                                     "v_a_stim_cond",
+                                     "v_a_stim_cond_st",
+                                     "v_a_stim_cond_sv",
+                                     "v_a_stim_cond_sv_st"))
 return(supported_models)
 }
 
@@ -122,11 +150,11 @@ return(supported_models)
 
 gen_missing_mods <- function(task,
                              mod_log = "/gpfs/group/mnh5174/default/Nate/PD_Inhibition_DDM/Code/DDM/pbs_outputs/PD_Inhibition_DDM_job_info_log_completed.csv",
-                             full_sample = full_sample,
-                             nsamples = nsamples){
+                             full_sample = "full_sample",
+                             nsamples = "samp2000"){
   
   message("Only configured to handle one value of nsamples!!")
-  
+  # browser()
   df <- read.csv(mod_log) %>% select(-X) %>% filter(outputs_located != "all" & TASK %in% task & NSAMP %in% nsamples & SAMPLE %in% full_sample) 
   
   out <- list()
