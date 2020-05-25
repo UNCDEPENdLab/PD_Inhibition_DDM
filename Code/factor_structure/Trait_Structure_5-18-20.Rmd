@@ -13,7 +13,8 @@ library(ggcorrplot)
 library(lavaan)
 library(tidyverse)
 
-basedir <- "C:/Users/timot/Documents/GitHub/PD_Inhibition_DDM" 
+#basedir <- "C:/Users/timot/Documents/GitHub/PD_Inhibition_DDM"
+basedir <- "~/Data_Analysis/PD_Inhibition_DDM" 
 mpq <- get(load(file.path(basedir, "Data/preprocessed/MPQ_all_scored_final.RData"))) %>% filter(exclude_MPQ == 0) %>% select(subject, MPS_wbR:MPS_abR)
 snap <- get(load(file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RData"))) %>% filter(exclude_SNAP == 0) %>% select(subject, NEGTEMP:HDWK, DISINHP)
 
@@ -29,7 +30,7 @@ To get reasonable measures of Antagonism and Disinhibition, I looked at Markon e
 To be principled about it, I pulled every SNAP or MPQ scale that had its primary loading on the Agreeableness or Conscientiousness factors in the Markon paper, and then I just tossed them into an EFA and extracted two factors. Perhaps unsurprisingly, it replicates pretty well: 
 
 ```{r echo = FALSE}
-sr.fa.AC <- fa(select(self_reps, IMPUL, PROPER, HDWK, DISINHP, MPS_acR, MPS_clR, MPS_tdR, MPS_agR, AGG, MPS_alR, MANIP, MISTRUST, MPS_haR), 2, rotate="oblimin", fm = "pa")
+sr.fa.AC <- fa(select(self_reps, IMPUL, PROPER, HDWK, MPS_acR, MPS_clR, MPS_tdR, MPS_agR, AGG, MPS_alR, MANIP, MISTRUST), 2, rotate="oblimin", fm = "pa")
 
 print(sr.fa.AC, sort = T) 
 ```
@@ -56,7 +57,7 @@ GitHub/PD_Inhibition_DDM/Outputs/factor_structure/PDDDM_factor_scores_5-18-20.cs
 (NOTE: I multipled the C factor by -1 so that it's keyed in the maladaptive direction. Both E scales are keyed so high = more Extraversion.)
 
 ```{r echo = FALSE}
-AC_fscores <- factor.scores(select(self_reps, IMPUL, PROPER, HDWK, DISINHP, MPS_acR, MPS_clR, MPS_tdR, MPS_agR, AGG, MPS_alR, MANIP, MISTRUST, MPS_haR), sr.fa.AC$loadings, Phi = sr.fa.AC$Phi, method = "regression")
+AC_fscores <- factor.scores(select(self_reps, IMPUL, PROPER, HDWK, MPS_acR, MPS_clR, MPS_tdR, MPS_agR, AGG, MPS_alR, MANIP, MISTRUST), sr.fa.AC$loadings, Phi = sr.fa.AC$Phi, method = "regression")
 
 AC_fscores <- as.data.frame(AC_fscores$scores)
 
@@ -76,7 +77,7 @@ E_fscores$subject <- self_reps$subject
 
 fac_scores <- left_join(AC_fscores, E_fscores, by = "subject")
 
-write.csv(fac_scores, "C:/Users/timot/Documents/GitHub/PD_Inhibition_DDM/Outputs/factor_structure/PDDDM_factor_scores_5-18-20.csv", row.names = F)
+write.csv(fac_scores, "~/Data_Analysis/PD_Inhibition_DDM/Outputs/factor_structure/PDDDM_factor_scores_5-18-20.csv", row.names = F)
 ```
 
 
