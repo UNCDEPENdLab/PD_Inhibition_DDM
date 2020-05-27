@@ -1,0 +1,32 @@
+TITLE:
+Antagonism and Disinhibition ESEM
+DATA:
+FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/AC_esem.dat";
+ 
+VARIABLE:
+NAMES = subject MPS_acR MPS_alR MPS_agR MPS_clR MPS_tdR MISTRUST MANIP AGG IMPUL
+     PROPER HDWK; 
+ MISSING=.;
+ 
+    USEVARIABLES=MPS_agR AGG MISTRUST MPS_alR MANIP
+      PROPER  MPS_clR IMPUL MPS_tdR MPS_acR HDWK;
+    IDVARIABLE = subject;
+  
+ANALYSIS:
+
+    ESTIMATOR=MLR;
+  
+MODEL:
+
+    f1-f2 BY MPS_agR AGG MISTRUST MPS_alR MANIP
+       PROPER MPS_clR IMPUL MPS_tdR MPS_acR HDWK (*1);
+  
+OUTPUT:
+
+    TECH1 STANDARDIZED MODINDICES (10);
+  
+SAVEDATA:
+
+    FILE = AC_esem_fscores.dat;
+    SAVE=FSCORES;
+  

@@ -1,0 +1,42 @@
+TITLE:
+Antagonism and Disinhibition BSEM CFA
+DATA:
+FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/AC_bsem_cfa.dat";
+ 
+VARIABLE:
+NAMES = subject MPS_acR MPS_alR MPS_agR MPS_clR MPS_tdR MISTRUST MANIP AGG DISINH
+     IMPUL PROPER HDWK; 
+ MISSING=.;
+ 
+    USEVARIABLES=MPS_agR AGG MISTRUST MPS_alR MANIP
+      PROPER MPS_clR IMPUL MPS_tdR; !MPS_acR !HDWK
+    IDVARIABLE = subject;
+  
+ANALYSIS:
+
+    !ESTIMATOR=MLR;
+    ESTIMATOR=BAYES;
+    PROCESSORS=4;
+    CHAINS=4;
+    BITERATIONS=(10000);
+  
+MODEL:
+
+    antag BY MPS_agR AGG MISTRUST MPS_alR MANIP;
+    disinhib BY PROPER MPS_clR IMPUL MPS_tdR; !MPS_acR !HDWK
+    antag WITH disinhib;
+    !MPS_ACR  WITH HDWK;
+    MPS_ALR  WITH MISTRUST;
+    MPS_TDR  WITH PROPER;
+    !IMPUL WITH MPS_CLR;
+  
+OUTPUT:
+
+    TECH1 TECH8 STANDARDIZED MODINDICES (10);
+  
+SAVEDATA:
+
+    FILE = AC_bsem_cfa_fscores.dat;
+    SAVE = FSCORES(5000);
+    !SAVE=FSCORES;
+  
