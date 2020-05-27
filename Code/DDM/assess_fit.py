@@ -24,6 +24,7 @@ from kabuki.analyze import gelman_rubin
 #import sys
 
 #import time
+from kimchi import convert #for re-pickling
 
 #time.perf_counter()
 #
@@ -88,11 +89,11 @@ except NameError:
 # 5/25/20: since 
 
 for samp in nsamp:
-    print samp
+    print(samp)
     for task in tasks:
-        print task
+        print(task)
         for samp_size in full_sample:
-            print samp_size
+            print(samp_size)
             
             if use_log:
                 log_trimmed = log_finished[(log_finished['NSAMP'] == samp) & (log_finished['TASK'] == task) & (log_finished['SAMPLE'] == samp_size)]
@@ -103,21 +104,19 @@ for samp in nsamp:
             
             outputdir = basedir + '/../HDDM_outputs_PD_Inhibition/' + samp + '/' + task + '/' + samp_size + '/model_objects' 
             os.chdir(outputdir)
-            print 'Navigated to ' + os.getcwd()
+            print('Navigated to ' + os.getcwd())
             
-            print 'Directory contents:\n'
+            print('Directory contents:\n')
             contents = os.listdir('.')
-            print contents
+            print(contents)
             
             ## initialize dic df to append to.
             try:
                 dics = pd.read_csv(outputdir+'/../diagnostics/dics_all.csv')[['model', 'DIC']]
-            except NameError:
+            except:
                 dics = []
                
-                
-                
-                
+     
             for mod in models:
                 print "Assessing model fit for: ", mod
                 
@@ -130,7 +129,7 @@ for samp in nsamp:
 #                    # Extracting numbers from list of strings 
 #                    res = list(map(lambda sub:int(''.join( 
 #                          [ele for ele in sub if ele.isnumeric()])), chain_list)) 
-                    nchains = 9
+                    nchains = 10
                 
                 mods = []
                 
@@ -140,20 +139,32 @@ for samp in nsamp:
                     print chain
                     try:
                         this_model = hddm.load(mod+'_chain'+str(chain) + '_'+ code + 'Code.model') 
-                    except ValueError:
-                        print('no string matching' +mod+'_chain'+str(chain) + '_'+ code + 'Code.model')
+                        mods.append(this_model)
+                        traces = this_model.get_traces()
+                        traces.to_csv(outputdir+'/../diagnostics/'+mod+'_traces_'+ str(chain) +'.csv')
+                    except Exception as e:
+                        print(e)
+                        if str(e) == 'unsupported pickle protocol: 3':
+                            try:
+                                convert(mod+'_chain'+str(chain) + '_'+ code + 'Code.model')
+                                mods.append(this_model)
+                                traces = this_model.get_traces()
+                                traces.to_csv(outputdir+'/../diagnostics/'+mod+'_traces_'+ str(chain) +'.csv')
+                            except Exception as ee:
+                                print(ee)
+                            
                         
-                    mods.append(this_model)
-                    traces = this_model.get_traces()
-                    traces.to_csv(outputdir+'/../diagnostics/'+mod+'_traces_'+ str(chain) +'.csv')
-            #    sub_dict["models"] = models
-                gel_rub =pd.DataFrame(gelman_rubin(mods).items(), columns = ['parameter', 'rhat']) 
-                gel_rub.to_csv(outputdir+'/../diagnostics/gr_' + mod + '.csv')
-                dic = this_model.dic
-                print dic
-                dics = dics.append(pd.DataFrame([[mod,dic]], columns = ['model', 'DIC']))
-                
-                
+
+                try:
+                    gel_rub =pd.DataFrame(gelman_rubin(mods).items(), columns = ['parameter', 'rhat']) 
+                    gel_rub.to_csv(outputdir+'/../diagnostics/gr_' + mod + '.csv')
+                    dic = this_model.dic
+                    print dic
+                    dics = dics.append(pd.DataFrame([[mod,dic]], columns = ['model', 'DIC']))
+                    
+                    dics.to_csv(outputdir+'/../diagnostics/dics_all.csv')                
+                except Exception as e:
+                    print('Ran into issues with these settings: ' + samp + ' ' + task + ' ' + samp_size)
                 
 #              
 #                
@@ -162,7 +173,7 @@ for samp in nsamp:
 #            
 #            dics_exp = pd.DataFrame(dics_export, columns = ['model', 'DIC'])    
             #dics = pd.DataFrame(dics, models)
-            dics.to_csv(outputdir+'/../diagnostics/dics_all.csv')
+
 
 
 

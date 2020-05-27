@@ -37,8 +37,8 @@ for(t in tasks){
 #trim to specific models from the past that we want to look at
 
 
+df.all$post_processed <- "no"
 
-
-write.csv(df.all, file = "~/ics/Nate/PD_Inhibition_DDM/Data/cache/check_these_models.csv")
+write.csv(df.all, file = "~/ics/Nate/PD_Inhibition_DDM/Data/cache/check_these_models.csv", row.names = FALSE)
 
 
