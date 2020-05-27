@@ -1,0 +1,995 @@
+Mplus VERSION 8.4 (Mac)
+MUTHEN & MUTHEN
+05/27/2020  11:54 AM
+
+INPUT INSTRUCTIONS
+
+  TITLE:
+  Antagonism and Disinhibition ESEM
+  DATA:
+  FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/AC_esem.dat";
+
+  VARIABLE:
+  NAMES = subject MPS_acR MPS_alR MPS_agR MPS_clR MPS_tdR MISTRUST MANIP AGG IMPUL
+       PROPER HDWK;
+   MISSING=.;
+
+      USEVARIABLES=MPS_agR AGG MISTRUST MPS_alR MANIP
+        PROPER  MPS_clR IMPUL MPS_tdR MPS_acR HDWK;
+      IDVARIABLE = subject;
+
+  ANALYSIS:
+
+      ESTIMATOR=MLR;
+
+  MODEL:
+
+      f1-f2 BY MPS_agR AGG MISTRUST MPS_alR MANIP
+         PROPER MPS_clR IMPUL MPS_tdR MPS_acR HDWK (*1);
+
+  OUTPUT:
+
+      TECH1 STANDARDIZED MODINDICES (10);
+
+  SAVEDATA:
+
+      FILE = AC_esem_fscores.dat;
+      SAVE=FSCORES;
+
+
+
+
+INPUT READING TERMINATED NORMALLY
+
+
+
+
+Antagonism and Disinhibition ESEM
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                         104
+
+Number of dependent variables                                   11
+Number of independent variables                                  0
+Number of continuous latent variables                            2
+
+Observed dependent variables
+
+  Continuous
+   MPS_AGR     AGG         MISTRUST    MPS_ALR     MANIP       PROPER
+   MPS_CLR     IMPUL       MPS_TDR     MPS_ACR     HDWK
+
+Continuous latent variables
+
+  EFA factors
+  *1:   F1          F2
+
+Variables with special functions
+
+  ID variable           SUBJECT
+
+Estimator                                                      MLR
+Rotation                                                    GEOMIN
+Row standardization                                    CORRELATION
+Type of rotation                                           OBLIQUE
+Epsilon value                                               Varies
+Information matrix                                        OBSERVED
+Maximum number of iterations                                  1000
+Convergence criterion                                    0.500D-04
+Maximum number of steepest descent iterations                   20
+Maximum number of iterations for H1                           2000
+Convergence criterion for H1                             0.100D-03
+Optimization Specifications for the Exploratory Factor Analysis
+Rotation Algorithm
+  Number of random starts                                       30
+  Maximum number of iterations                               10000
+  Derivative convergence criterion                       0.100D-04
+
+Input data file(s)
+  ~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/AC_esem.dat
+
+Input data format  FREE
+
+
+SUMMARY OF DATA
+
+     Number of missing data patterns             1
+
+
+COVARIANCE COVERAGE OF DATA
+
+Minimum covariance coverage value   0.100
+
+
+     PROPORTION OF DATA PRESENT
+
+
+           Covariance Coverage
+              MPS_AGR       AGG           MISTRUST      MPS_ALR       MANIP
+              ________      ________      ________      ________      ________
+ MPS_AGR        1.000
+ AGG            1.000         1.000
+ MISTRUST       1.000         1.000         1.000
+ MPS_ALR        1.000         1.000         1.000         1.000
+ MANIP          1.000         1.000         1.000         1.000         1.000
+ PROPER         1.000         1.000         1.000         1.000         1.000
+ MPS_CLR        1.000         1.000         1.000         1.000         1.000
+ IMPUL          1.000         1.000         1.000         1.000         1.000
+ MPS_TDR        1.000         1.000         1.000         1.000         1.000
+ MPS_ACR        1.000         1.000         1.000         1.000         1.000
+ HDWK           1.000         1.000         1.000         1.000         1.000
+
+
+           Covariance Coverage
+              PROPER        MPS_CLR       IMPUL         MPS_TDR       MPS_ACR
+              ________      ________      ________      ________      ________
+ PROPER         1.000
+ MPS_CLR        1.000         1.000
+ IMPUL          1.000         1.000         1.000
+ MPS_TDR        1.000         1.000         1.000         1.000
+ MPS_ACR        1.000         1.000         1.000         1.000         1.000
+ HDWK           1.000         1.000         1.000         1.000         1.000
+
+
+           Covariance Coverage
+              HDWK
+              ________
+ HDWK           1.000
+
+
+
+UNIVARIATE SAMPLE STATISTICS
+
+
+     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS
+
+         Variable/         Mean/     Skewness/   Minimum/ % with                Percentiles
+        Sample Size      Variance    Kurtosis    Maximum  Min/Max      20%/60%    40%/80%    Median
+
+     MPS_AGR               3.462       0.926       0.000   11.54%       1.000      2.000      3.000
+             104.000       7.979       0.471      12.000    1.92%       4.000      5.000
+     AGG                   4.231       1.216       0.000   13.46%       1.000      2.000      3.000
+             104.000      15.235       1.308      18.000    0.96%       4.000      7.000
+     MISTRUST              5.942       0.936       0.000    6.73%       2.000      4.000      5.000
+             104.000      19.689       0.749      19.000    1.92%       7.000      9.000
+     MPS_ALR               2.808       1.085       0.000   22.12%       0.000      2.000      2.000
+             104.000       6.944       0.861      11.000    1.92%       3.000      5.000
+     MANIP                 6.356       0.093       0.000    6.73%       3.000      5.000      7.000
+             104.000      13.825      -0.445      17.000    0.96%       8.000      9.000
+     PROPER               11.192      -0.207       2.000    1.92%       7.000     10.000     11.000
+             104.000      17.713      -0.755      19.000    1.92%      12.000     15.000
+     MPS_CLR               8.548      -0.794       1.000    0.96%       6.000      8.000      9.000
+             104.000       7.517      -0.071      12.000   12.50%      10.000     11.000
+     IMPUL                 5.808       0.818       0.000    0.96%       2.000      4.000      5.000
+             104.000      14.098       0.282      17.000    0.96%       6.000      8.000
+     MPS_TDR               6.827      -0.153       1.000    0.96%       5.000      6.000      7.000
+             104.000       6.316      -0.609      12.000    1.92%       7.000      9.000
+     MPS_ACR               7.106      -0.221       1.000    3.85%       4.000      6.000      7.000
+             104.000       9.595      -1.006      12.000    3.85%       8.000     10.000
+     HDWK                  7.625       0.332       0.000    0.96%       4.000      6.000      7.000
+             104.000      16.254      -0.673      17.000    0.96%       9.000     11.000
+
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                       43
+
+Loglikelihood
+
+          H0 Value                       -2803.667
+          H0 Scaling Correction Factor      1.3519
+            for MLR
+          H1 Value                       -2676.593
+          H1 Scaling Correction Factor      1.0136
+            for MLR
+
+Information Criteria
+
+          Akaike (AIC)                    5693.334
+          Bayesian (BIC)                  5807.043
+          Sample-Size Adjusted BIC        5671.206
+            (n* = (n + 2) / 24)
+
+Chi-Square Test of Model Fit
+
+          Value                            433.903*
+          Degrees of Freedom                    34
+          P-Value                           0.0000
+          Scaling Correction Factor         0.5857
+            for MLR
+
+*   The chi-square value for MLM, MLMV, MLR, ULSMV, WLSM and WLSMV cannot be used
+    for chi-square difference testing in the regular way.  MLM, MLR and WLSM
+    chi-square difference testing is described on the Mplus website.  MLMV, WLSMV,
+    and ULSMV difference testing is done using the DIFFTEST option.
+
+RMSEA (Root Mean Square Error Of Approximation)
+
+          Estimate                           0.336
+          90 Percent C.I.                    0.308  0.365
+          Probability RMSEA <= .05           0.000
+
+CFI/TLI
+
+          CFI                                0.345
+          TLI                                0.000
+
+Chi-Square Test of Model Fit for the Baseline Model
+
+          Value                            665.935
+          Degrees of Freedom                    55
+          P-Value                           0.0000
+
+SRMR (Standardized Root Mean Square Residual)
+
+          Value                              0.087
+
+
+
+MODEL RESULTS
+
+                                                    Two-Tailed
+                    Estimate       S.E.  Est./S.E.    P-Value
+
+ F1       BY
+    MPS_AGR            2.310      0.376      6.143      0.000
+    AGG                3.085      0.525      5.871      0.000
+    MISTRUST           3.087      0.781      3.953      0.000
+    MPS_ALR            1.834      0.433      4.233      0.000
+    MANIP              2.674      0.366      7.309      0.000
+    PROPER            -0.006      0.100     -0.061      0.952
+    MPS_CLR           -0.343      0.318     -1.079      0.281
+    IMPUL              1.118      0.451      2.479      0.013
+    MPS_TDR           -0.283      0.224     -1.264      0.206
+    MPS_ACR            0.218      0.386      0.565      0.572
+    HDWK               0.984      0.482      2.040      0.041
+
+ F2       BY
+    MPS_AGR           -0.099      0.337     -0.292      0.770
+    AGG               -0.337      0.533     -0.632      0.527
+    MISTRUST           1.449      0.593      2.443      0.015
+    MPS_ALR            0.950      0.378      2.517      0.012
+    MANIP              0.012      0.059      0.203      0.839
+    PROPER             3.081      0.470      6.553      0.000
+    MPS_CLR            1.839      0.645      2.851      0.004
+    IMPUL             -2.299      0.911     -2.523      0.012
+    MPS_TDR            1.342      0.354      3.797      0.000
+    MPS_ACR            1.617      0.778      2.079      0.038
+    HDWK               2.848      1.009      2.821      0.005
+
+ F2       WITH
+    F1                -0.168      0.159     -1.056      0.291
+
+ Intercepts
+    MPS_AGR            3.462      0.277     12.497      0.000
+    AGG                4.231      0.383     11.054      0.000
+    MISTRUST           5.942      0.435     13.657      0.000
+    MPS_ALR            2.808      0.258     10.866      0.000
+    MANIP              6.356      0.365     17.432      0.000
+    PROPER            11.192      0.413     27.120      0.000
+    MPS_CLR            8.548      0.269     31.795      0.000
+    IMPUL              5.808      0.368     15.774      0.000
+    MPS_TDR            6.827      0.246     27.702      0.000
+    MPS_ACR            7.106      0.304     23.395      0.000
+    HDWK               7.625      0.395     19.288      0.000
+
+ Variances
+    F1                 1.000      0.000    999.000    999.000
+    F2                 1.000      0.000    999.000    999.000
+
+ Residual Variances
+    MPS_AGR            2.559      1.283      1.994      0.046
+    AGG                5.253      2.364      2.222      0.026
+    MISTRUST           9.561      3.688      2.593      0.010
+    MPS_ALR            3.263      1.267      2.575      0.010
+    MANIP              6.686      1.210      5.524      0.000
+    PROPER             8.215      1.898      4.327      0.000
+    MPS_CLR            3.804      1.890      2.013      0.044
+    IMPUL              6.700      3.447      1.943      0.052
+    MPS_TDR            4.307      0.818      5.268      0.000
+    MPS_ACR            7.051      2.444      2.884      0.004
+    HDWK               8.118      4.826      1.682      0.093
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                                    Two-Tailed
+                    Estimate       S.E.  Est./S.E.    P-Value
+
+ F1       BY
+    MPS_AGR            0.818      0.108      7.591      0.000
+    AGG                0.790      0.112      7.066      0.000
+    MISTRUST           0.696      0.146      4.762      0.000
+    MPS_ALR            0.696      0.144      4.848      0.000
+    MANIP              0.719      0.069     10.399      0.000
+    PROPER            -0.001      0.024     -0.061      0.952
+    MPS_CLR           -0.125      0.116     -1.077      0.281
+    IMPUL              0.298      0.116      2.555      0.011
+    MPS_TDR           -0.112      0.089     -1.260      0.207
+    MPS_ACR            0.070      0.124      0.567      0.571
+    HDWK               0.244      0.117      2.081      0.037
+
+ F2       BY
+    MPS_AGR           -0.035      0.120     -0.292      0.770
+    AGG               -0.086      0.135     -0.640      0.522
+    MISTRUST           0.327      0.124      2.627      0.009
+    MPS_ALR            0.361      0.128      2.821      0.005
+    MANIP              0.003      0.016      0.203      0.839
+    PROPER             0.732      0.086      8.555      0.000
+    MPS_CLR            0.671      0.210      3.190      0.001
+    IMPUL             -0.612      0.223     -2.746      0.006
+    MPS_TDR            0.534      0.127      4.212      0.000
+    MPS_ACR            0.522      0.248      2.104      0.035
+    HDWK               0.706      0.239      2.954      0.003
+
+ F2       WITH
+    F1                -0.168      0.159     -1.056      0.291
+
+ Intercepts
+    MPS_AGR            1.225      0.087     14.035      0.000
+    AGG                1.084      0.079     13.668      0.000
+    MISTRUST           1.339      0.097     13.805      0.000
+    MPS_ALR            1.065      0.079     13.419      0.000
+    MANIP              1.709      0.138     12.397      0.000
+    PROPER             2.659      0.190     14.003      0.000
+    MPS_CLR            3.118      0.280     11.129      0.000
+    IMPUL              1.547      0.103     15.045      0.000
+    MPS_TDR            2.716      0.196     13.884      0.000
+    MPS_ACR            2.294      0.165     13.943      0.000
+    HDWK               1.891      0.122     15.450      0.000
+
+ Variances
+    F1                 1.000      0.000    999.000    999.000
+    F2                 1.000      0.000    999.000    999.000
+
+ Residual Variances
+    MPS_AGR            0.321      0.161      1.990      0.047
+    AGG                0.345      0.152      2.268      0.023
+    MISTRUST           0.486      0.210      2.310      0.021
+    MPS_ALR            0.470      0.200      2.354      0.019
+    MANIP              0.484      0.099      4.862      0.000
+    PROPER             0.464      0.124      3.737      0.000
+    MPS_CLR            0.506      0.277      1.826      0.068
+    IMPUL              0.475      0.268      1.771      0.076
+    MPS_TDR            0.682      0.135      5.055      0.000
+    MPS_ACR            0.735      0.249      2.956      0.003
+    HDWK               0.499      0.305      1.638      0.101
+
+
+STDY Standardization
+
+                                                    Two-Tailed
+                    Estimate       S.E.  Est./S.E.    P-Value
+
+ F1       BY
+    MPS_AGR            0.818      0.108      7.591      0.000
+    AGG                0.790      0.112      7.066      0.000
+    MISTRUST           0.696      0.146      4.762      0.000
+    MPS_ALR            0.696      0.144      4.848      0.000
+    MANIP              0.719      0.069     10.399      0.000
+    PROPER            -0.001      0.024     -0.061      0.952
+    MPS_CLR           -0.125      0.116     -1.077      0.281
+    IMPUL              0.298      0.116      2.555      0.011
+    MPS_TDR           -0.112      0.089     -1.260      0.207
+    MPS_ACR            0.070      0.124      0.567      0.571
+    HDWK               0.244      0.117      2.081      0.037
+
+ F2       BY
+    MPS_AGR           -0.035      0.120     -0.292      0.770
+    AGG               -0.086      0.135     -0.640      0.522
+    MISTRUST           0.327      0.124      2.627      0.009
+    MPS_ALR            0.361      0.128      2.821      0.005
+    MANIP              0.003      0.016      0.203      0.839
+    PROPER             0.732      0.086      8.555      0.000
+    MPS_CLR            0.671      0.210      3.190      0.001
+    IMPUL             -0.612      0.223     -2.746      0.006
+    MPS_TDR            0.534      0.127      4.212      0.000
+    MPS_ACR            0.522      0.248      2.104      0.035
+    HDWK               0.706      0.239      2.954      0.003
+
+ F2       WITH
+    F1                -0.168      0.159     -1.056      0.291
+
+ Intercepts
+    MPS_AGR            1.225      0.087     14.035      0.000
+    AGG                1.084      0.079     13.668      0.000
+    MISTRUST           1.339      0.097     13.805      0.000
+    MPS_ALR            1.065      0.079     13.419      0.000
+    MANIP              1.709      0.138     12.397      0.000
+    PROPER             2.659      0.190     14.003      0.000
+    MPS_CLR            3.118      0.280     11.129      0.000
+    IMPUL              1.547      0.103     15.045      0.000
+    MPS_TDR            2.716      0.196     13.884      0.000
+    MPS_ACR            2.294      0.165     13.943      0.000
+    HDWK               1.891      0.122     15.450      0.000
+
+ Variances
+    F1                 1.000      0.000    999.000    999.000
+    F2                 1.000      0.000    999.000    999.000
+
+ Residual Variances
+    MPS_AGR            0.321      0.161      1.990      0.047
+    AGG                0.345      0.152      2.268      0.023
+    MISTRUST           0.486      0.210      2.310      0.021
+    MPS_ALR            0.470      0.200      2.354      0.019
+    MANIP              0.484      0.099      4.862      0.000
+    PROPER             0.464      0.124      3.737      0.000
+    MPS_CLR            0.506      0.277      1.826      0.068
+    IMPUL              0.475      0.268      1.771      0.076
+    MPS_TDR            0.682      0.135      5.055      0.000
+    MPS_ACR            0.735      0.249      2.956      0.003
+    HDWK               0.499      0.305      1.638      0.101
+
+
+STD Standardization
+
+                                                    Two-Tailed
+                    Estimate       S.E.  Est./S.E.    P-Value
+
+ F1       BY
+    MPS_AGR            2.310      0.376      6.143      0.000
+    AGG                3.085      0.525      5.871      0.000
+    MISTRUST           3.087      0.781      3.953      0.000
+    MPS_ALR            1.834      0.433      4.233      0.000
+    MANIP              2.674      0.366      7.309      0.000
+    PROPER            -0.006      0.100     -0.061      0.952
+    MPS_CLR           -0.343      0.318     -1.079      0.281
+    IMPUL              1.118      0.451      2.479      0.013
+    MPS_TDR           -0.283      0.224     -1.264      0.206
+    MPS_ACR            0.218      0.386      0.565      0.572
+    HDWK               0.984      0.482      2.040      0.041
+
+ F2       BY
+    MPS_AGR           -0.099      0.337     -0.292      0.770
+    AGG               -0.337      0.533     -0.632      0.527
+    MISTRUST           1.449      0.593      2.443      0.015
+    MPS_ALR            0.950      0.378      2.517      0.012
+    MANIP              0.012      0.059      0.203      0.839
+    PROPER             3.081      0.470      6.553      0.000
+    MPS_CLR            1.839      0.645      2.851      0.004
+    IMPUL             -2.299      0.911     -2.523      0.012
+    MPS_TDR            1.342      0.354      3.797      0.000
+    MPS_ACR            1.617      0.778      2.079      0.038
+    HDWK               2.848      1.009      2.821      0.005
+
+ F2       WITH
+    F1                -0.168      0.159     -1.056      0.291
+
+ Intercepts
+    MPS_AGR            3.462      0.277     12.497      0.000
+    AGG                4.231      0.383     11.054      0.000
+    MISTRUST           5.942      0.435     13.657      0.000
+    MPS_ALR            2.808      0.258     10.866      0.000
+    MANIP              6.356      0.365     17.432      0.000
+    PROPER            11.192      0.413     27.120      0.000
+    MPS_CLR            8.548      0.269     31.795      0.000
+    IMPUL              5.808      0.368     15.774      0.000
+    MPS_TDR            6.827      0.246     27.702      0.000
+    MPS_ACR            7.106      0.304     23.395      0.000
+    HDWK               7.625      0.395     19.288      0.000
+
+ Variances
+    F1                 1.000      0.000    999.000    999.000
+    F2                 1.000      0.000    999.000    999.000
+
+ Residual Variances
+    MPS_AGR            2.559      1.283      1.994      0.046
+    AGG                5.253      2.364      2.222      0.026
+    MISTRUST           9.561      3.688      2.593      0.010
+    MPS_ALR            3.263      1.267      2.575      0.010
+    MANIP              6.686      1.210      5.524      0.000
+    PROPER             8.215      1.898      4.327      0.000
+    MPS_CLR            3.804      1.890      2.013      0.044
+    IMPUL              6.700      3.447      1.943      0.052
+    MPS_TDR            4.307      0.818      5.268      0.000
+    MPS_ACR            7.051      2.444      2.884      0.004
+    HDWK               8.118      4.826      1.682      0.093
+
+
+R-SQUARE
+
+    Observed                                        Two-Tailed
+    Variable        Estimate       S.E.  Est./S.E.    P-Value
+
+    MPS_AGR            0.679      0.161      4.215      0.000
+    AGG                0.655      0.152      4.311      0.000
+    MISTRUST           0.514      0.210      2.447      0.014
+    MPS_ALR            0.530      0.200      2.655      0.008
+    MANIP              0.516      0.099      5.192      0.000
+    PROPER             0.536      0.124      4.321      0.000
+    MPS_CLR            0.494      0.277      1.782      0.075
+    IMPUL              0.525      0.268      1.956      0.050
+    MPS_TDR            0.318      0.135      2.358      0.018
+    MPS_ACR            0.265      0.249      1.066      0.286
+    HDWK               0.501      0.305      1.642      0.101
+
+
+QUALITY OF NUMERICAL RESULTS
+
+     Condition Number for the Information Matrix              0.267E-02
+       (ratio of smallest to largest eigenvalue)
+
+
+MODEL MODIFICATION INDICES
+
+NOTE:  Modification indices for direct effects of observed dependent variables
+regressed on covariates may not be included.  To include these, request
+MODINDICES (ALL).
+
+Minimum M.I. value for printing the modification index    10.000
+
+                                   M.I.     E.P.C.  Std E.P.C.  StdYX E.P.C.
+
+WITH Statements
+
+AGG      WITH MPS_AGR             65.597     3.959      3.959        1.080
+MISTRUST WITH MPS_AGR             24.334    -2.666     -2.666       -0.539
+MISTRUST WITH AGG                 14.964    -2.868     -2.868       -0.405
+MPS_ALR  WITH MPS_AGR             16.065    -1.282     -1.282       -0.444
+MPS_ALR  WITH AGG                 10.151    -1.395     -1.395       -0.337
+MPS_ALR  WITH MISTRUST            82.548     5.003      5.003        0.896
+MPS_CLR  WITH MPS_AGR             11.035     1.035      1.035        0.332
+IMPUL    WITH MPS_CLR            110.830    -5.360     -5.360       -1.062
+MPS_TDR  WITH PROPER              59.075     4.283      4.283        0.720
+MPS_ACR  WITH MANIP               12.571    -2.054     -2.054       -0.299
+MPS_ACR  WITH PROPER              13.785    -2.605     -2.605       -0.342
+HDWK     WITH MPS_CLR             13.414    -2.063     -2.063       -0.371
+HDWK     WITH IMPUL               18.811     3.204      3.204        0.434
+HDWK     WITH MPS_ACR            116.485     7.374      7.374        0.975
+
+
+TECHNICAL 1 OUTPUT
+
+
+     TECHNICAL 1 OUTPUT FOR THE UNROTATED SOLUTION
+
+
+     PARAMETER SPECIFICATION
+
+
+           NU
+              MPS_AGR       AGG           MISTRUST      MPS_ALR       MANIP
+              ________      ________      ________      ________      ________
+                  1             2             3             4             5
+
+
+           NU
+              PROPER        MPS_CLR       IMPUL         MPS_TDR       MPS_ACR
+              ________      ________      ________      ________      ________
+                  6             7             8             9            10
+
+
+           NU
+              HDWK
+              ________
+                 11
+
+
+           LAMBDA
+              F1            F2
+              ________      ________
+ MPS_AGR           12             0
+ AGG               13            14
+ MISTRUST          15            16
+ MPS_ALR           17            18
+ MANIP             19            20
+ PROPER            21            22
+ MPS_CLR           23            24
+ IMPUL             25            26
+ MPS_TDR           27            28
+ MPS_ACR           29            30
+ HDWK              31            32
+
+
+           THETA
+              MPS_AGR       AGG           MISTRUST      MPS_ALR       MANIP
+              ________      ________      ________      ________      ________
+ MPS_AGR           33
+ AGG                0            34
+ MISTRUST           0             0            35
+ MPS_ALR            0             0             0            36
+ MANIP              0             0             0             0            37
+ PROPER             0             0             0             0             0
+ MPS_CLR            0             0             0             0             0
+ IMPUL              0             0             0             0             0
+ MPS_TDR            0             0             0             0             0
+ MPS_ACR            0             0             0             0             0
+ HDWK               0             0             0             0             0
+
+
+           THETA
+              PROPER        MPS_CLR       IMPUL         MPS_TDR       MPS_ACR
+              ________      ________      ________      ________      ________
+ PROPER            38
+ MPS_CLR            0            39
+ IMPUL              0             0            40
+ MPS_TDR            0             0             0            41
+ MPS_ACR            0             0             0             0            42
+ HDWK               0             0             0             0             0
+
+
+           THETA
+              HDWK
+              ________
+ HDWK              43
+
+
+           ALPHA
+              F1            F2
+              ________      ________
+                  0             0
+
+
+           BETA
+              F1            F2
+              ________      ________
+ F1                 0             0
+ F2                 0             0
+
+
+           PSI
+              F1            F2
+              ________      ________
+ F1                 0
+ F2                 0             0
+
+
+     STARTING VALUES
+
+
+           NU
+              MPS_AGR       AGG           MISTRUST      MPS_ALR       MANIP
+              ________      ________      ________      ________      ________
+                3.462         4.231         5.942         2.808         6.356
+
+
+           NU
+              PROPER        MPS_CLR       IMPUL         MPS_TDR       MPS_ACR
+              ________      ________      ________      ________      ________
+               11.192         8.548         5.808         6.827         7.106
+
+
+           NU
+              HDWK
+              ________
+                7.625
+
+
+           LAMBDA
+              F1            F2
+              ________      ________
+ MPS_AGR        2.328         0.000
+ AGG            3.153         0.201
+ MISTRUST       2.782        -1.546
+ MPS_ALR        1.634        -1.006
+ MANIP          2.669        -0.124
+ PROPER        -0.650        -3.013
+ MPS_CLR       -0.727        -1.784
+ IMPUL          1.597         2.202
+ MPS_TDR       -0.563        -1.301
+ MPS_ACR       -0.120        -1.590
+ HDWK           0.388        -2.826
+
+
+           THETA
+              MPS_AGR       AGG           MISTRUST      MPS_ALR       MANIP
+              ________      ________      ________      ________      ________
+ MPS_AGR        2.559
+ AGG            0.000         5.253
+ MISTRUST       0.000         0.000         9.561
+ MPS_ALR        0.000         0.000         0.000         3.263
+ MANIP          0.000         0.000         0.000         0.000         6.686
+ PROPER         0.000         0.000         0.000         0.000         0.000
+ MPS_CLR        0.000         0.000         0.000         0.000         0.000
+ IMPUL          0.000         0.000         0.000         0.000         0.000
+ MPS_TDR        0.000         0.000         0.000         0.000         0.000
+ MPS_ACR        0.000         0.000         0.000         0.000         0.000
+ HDWK           0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              PROPER        MPS_CLR       IMPUL         MPS_TDR       MPS_ACR
+              ________      ________      ________      ________      ________
+ PROPER         8.215
+ MPS_CLR        0.000         3.804
+ IMPUL          0.000         0.000         6.700
+ MPS_TDR        0.000         0.000         0.000         4.307
+ MPS_ACR        0.000         0.000         0.000         0.000         7.051
+ HDWK           0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              HDWK
+              ________
+ HDWK           8.118
+
+
+           ALPHA
+              F1            F2
+              ________      ________
+                0.000         0.000
+
+
+           BETA
+              F1            F2
+              ________      ________
+ F1             0.000         0.000
+ F2             0.000         0.000
+
+
+           PSI
+              F1            F2
+              ________      ________
+ F1             1.000
+ F2             0.000         1.000
+
+
+     TECHNICAL 1 OUTPUT FOR THE ROTATED SOLUTION
+
+
+     PARAMETER SPECIFICATION
+
+
+           NU
+              MPS_AGR       AGG           MISTRUST      MPS_ALR       MANIP
+              ________      ________      ________      ________      ________
+                  1             2             3             4             5
+
+
+           NU
+              PROPER        MPS_CLR       IMPUL         MPS_TDR       MPS_ACR
+              ________      ________      ________      ________      ________
+                  6             7             8             9            10
+
+
+           NU
+              HDWK
+              ________
+                 11
+
+
+           LAMBDA
+              F1            F2
+              ________      ________
+ MPS_AGR           12            13
+ AGG               14            15
+ MISTRUST          16            17
+ MPS_ALR           18            19
+ MANIP             20            21
+ PROPER            22            23
+ MPS_CLR           24            25
+ IMPUL             26            27
+ MPS_TDR           28            29
+ MPS_ACR           30            31
+ HDWK              32            33
+
+
+           THETA
+              MPS_AGR       AGG           MISTRUST      MPS_ALR       MANIP
+              ________      ________      ________      ________      ________
+ MPS_AGR           34
+ AGG                0            35
+ MISTRUST           0             0            36
+ MPS_ALR            0             0             0            37
+ MANIP              0             0             0             0            38
+ PROPER             0             0             0             0             0
+ MPS_CLR            0             0             0             0             0
+ IMPUL              0             0             0             0             0
+ MPS_TDR            0             0             0             0             0
+ MPS_ACR            0             0             0             0             0
+ HDWK               0             0             0             0             0
+
+
+           THETA
+              PROPER        MPS_CLR       IMPUL         MPS_TDR       MPS_ACR
+              ________      ________      ________      ________      ________
+ PROPER            39
+ MPS_CLR            0            40
+ IMPUL              0             0            41
+ MPS_TDR            0             0             0            42
+ MPS_ACR            0             0             0             0            43
+ HDWK               0             0             0             0             0
+
+
+           THETA
+              HDWK
+              ________
+ HDWK              44
+
+
+           ALPHA
+              F1            F2
+              ________      ________
+                  0             0
+
+
+           BETA
+              F1            F2
+              ________      ________
+ F1                 0             0
+ F2                 0             0
+
+
+           PSI
+              F1            F2
+              ________      ________
+ F1                 0
+ F2                45             0
+
+
+     STARTING VALUES
+
+
+           NU
+              MPS_AGR       AGG           MISTRUST      MPS_ALR       MANIP
+              ________      ________      ________      ________      ________
+                3.462         4.231         5.942         2.808         6.356
+
+
+           NU
+              PROPER        MPS_CLR       IMPUL         MPS_TDR       MPS_ACR
+              ________      ________      ________      ________      ________
+               11.192         8.548         5.808         6.827         7.106
+
+
+           NU
+              HDWK
+              ________
+                7.625
+
+
+           LAMBDA
+              F1            F2
+              ________      ________
+ MPS_AGR        0.000         0.000
+ AGG            0.000         0.000
+ MISTRUST       0.000         0.000
+ MPS_ALR        0.000         0.000
+ MANIP          0.000         0.000
+ PROPER         0.000         0.000
+ MPS_CLR        0.000         0.000
+ IMPUL          0.000         0.000
+ MPS_TDR        0.000         0.000
+ MPS_ACR        0.000         0.000
+ HDWK           0.000         0.000
+
+
+           THETA
+              MPS_AGR       AGG           MISTRUST      MPS_ALR       MANIP
+              ________      ________      ________      ________      ________
+ MPS_AGR        3.990
+ AGG            0.000         7.618
+ MISTRUST       0.000         0.000         9.844
+ MPS_ALR        0.000         0.000         0.000         3.472
+ MANIP          0.000         0.000         0.000         0.000         6.913
+ PROPER         0.000         0.000         0.000         0.000         0.000
+ MPS_CLR        0.000         0.000         0.000         0.000         0.000
+ IMPUL          0.000         0.000         0.000         0.000         0.000
+ MPS_TDR        0.000         0.000         0.000         0.000         0.000
+ MPS_ACR        0.000         0.000         0.000         0.000         0.000
+ HDWK           0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              PROPER        MPS_CLR       IMPUL         MPS_TDR       MPS_ACR
+              ________      ________      ________      ________      ________
+ PROPER         8.857
+ MPS_CLR        0.000         3.758
+ IMPUL          0.000         0.000         7.049
+ MPS_TDR        0.000         0.000         0.000         3.158
+ MPS_ACR        0.000         0.000         0.000         0.000         4.797
+ HDWK           0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              HDWK
+              ________
+ HDWK           8.127
+
+
+           ALPHA
+              F1            F2
+              ________      ________
+                0.000         0.000
+
+
+           BETA
+              F1            F2
+              ________      ________
+ F1             0.000         0.000
+ F2             0.000         0.000
+
+
+           PSI
+              F1            F2
+              ________      ________
+ F1             1.000
+ F2             0.000         1.000
+
+
+SAMPLE STATISTICS FOR ESTIMATED FACTOR SCORES
+
+
+     SAMPLE STATISTICS
+
+
+           Means
+              F1            F1_SE         F2            F2_SE
+              ________      ________      ________      ________
+                0.000         0.347         0.000         0.404
+
+
+           Covariances
+              F1            F1_SE         F2            F2_SE
+              ________      ________      ________      ________
+ F1             0.880
+ F1_SE          0.000         0.000
+ F2            -0.155         0.000         0.837
+ F2_SE          0.000         0.000         0.000         0.000
+
+
+           Correlations
+              F1            F1_SE         F2            F2_SE
+              ________      ________      ________      ________
+ F1             1.000
+ F1_SE        999.000         1.000
+ F2            -0.181       999.000         1.000
+ F2_SE        999.000       999.000       999.000         1.000
+
+
+SAVEDATA INFORMATION
+
+
+  Save file
+    AC_esem_fscores.dat
+
+  Order and format of variables
+
+    MPS_AGR        F10.3
+    AGG            F10.3
+    MISTRUST       F10.3
+    MPS_ALR        F10.3
+    MANIP          F10.3
+    PROPER         F10.3
+    MPS_CLR        F10.3
+    IMPUL          F10.3
+    MPS_TDR        F10.3
+    MPS_ACR        F10.3
+    HDWK           F10.3
+    F1             F10.3
+    F1_SE          F10.3
+    F2             F10.3
+    F2_SE          F10.3
+    SUBJECT        I4
+
+  Save file format
+    15F10.3 I4
+
+  Save file record length    10000
+
+
+     Beginning Time:  11:54:15
+        Ending Time:  11:54:15
+       Elapsed Time:  00:00:00
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2019 Muthen & Muthen

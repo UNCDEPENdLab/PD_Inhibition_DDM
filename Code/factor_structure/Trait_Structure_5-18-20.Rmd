@@ -7,16 +7,16 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
-library(psych)
-library(ggcorrplot)
-library(lavaan)
-library(tidyverse)
+if (!require(pacman)) { install.packages("pacman"); library(pacman) }
+p_load(psych, ggcorrplot, lavaan, tidyverse, MplusAutomation, BayesFM, knitr)
 
 #basedir <- "C:/Users/timot/Documents/GitHub/PD_Inhibition_DDM"
 basedir <- "~/Data_Analysis/PD_Inhibition_DDM" 
-mpq <- get(load(file.path(basedir, "Data/preprocessed/MPQ_all_scored_final.RData"))) %>% filter(exclude_MPQ == 0) %>% select(subject, MPS_wbR:MPS_abR)
-snap <- get(load(file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RData"))) %>% filter(exclude_SNAP == 0) %>% select(subject, NEGTEMP:HDWK, DISINHP)
+
+mpq <- get(load(file.path(basedir, "Data/preprocessed/MPQ_all_scored_final.RData"))) %>% 
+  filter(exclude_MPQ == 0) %>% select(subject, MPS_wbR:MPS_abR)
+snap <- get(load(file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RData"))) %>% filter(exclude_SNAP == 0) %>% 
+  select(subject, NEGTEMP:HDWK, DISINHP)
 
 self_reps <- inner_join(mpq, snap, by = "subject")
 ```
@@ -30,7 +30,20 @@ To get reasonable measures of Antagonism and Disinhibition, I looked at Markon e
 To be principled about it, I pulled every SNAP or MPQ scale that had its primary loading on the Agreeableness or Conscientiousness factors in the Markon paper, and then I just tossed them into an EFA and extracted two factors. Perhaps unsurprisingly, it replicates pretty well: 
 
 ```{r echo = FALSE}
-sr.fa.AC <- fa(select(self_reps, IMPUL, PROPER, HDWK, MPS_acR, MPS_clR, MPS_tdR, MPS_agR, AGG, MPS_alR, MANIP, MISTRUST), 2, rotate="oblimin", fm = "pa")
+sr.fa.AC <- fa(select(self_reps, IMPUL, PROPER, HDWK, DISINHP, MPS_acR, MPS_clR, MPS_tdR, MPS_agR, AGG, MPS_alR, MANIP, MISTRUST, MPS_haR), 
+               nfactors = 2, rotate="oblimin", fm = "pa")
+
+print(sr.fa.AC, sort = T) 
+```
+
+### MNH simplification of factor structure
+
+1. MPS_har (harm avoidance) doesn't have a primary loading on either factor. Thus, drop it.
+2. DISINHP isn't technically overlapping with facet scales, but has major cross-loadings. Thus, drop it.
+
+```{r echo = FALSE}
+sr.fa.AC <- fa(select(self_reps, IMPUL, PROPER, HDWK, MPS_acR, MPS_clR, MPS_tdR, MPS_agR, AGG, MPS_alR, MANIP, MISTRUST), 
+               nfactors = 2, rotate="oblimin", fm = "pa")
 
 print(sr.fa.AC, sort = T) 
 ```
@@ -80,4 +93,267 @@ fac_scores <- left_join(AC_fscores, E_fscores, by = "subject")
 write.csv(fac_scores, "~/Data_Analysis/PD_Inhibition_DDM/Outputs/factor_structure/PDDDM_factor_scores_5-18-20.csv", row.names = F)
 ```
 
+## Bayesian SEM factor score estimation
 
+Let's hand this off to CFA so that we can get both plausible factor scores and variability in the estimates. The goal of moving to CFA is to allow us to estimate uncertainty in factor scores for brms and to have a structural model for MSEM analyses of RT and accuracy. Factor score uncertainty is possible if we draw plausible values from the BSEM posterior for factor scores. A few notes on the challenges. 
+
+1. Mplus ESEM is only possible using MLR estimation, which precludes estimating uncertainty in factor scores.
+2. Mplus EFA cannot save factores scores using SAVE=FSCORES;
+3. BayesFM in R cannot generate factor scores.
+
+Given these limitations, we need to shift to CFA, not EFA.
+
+### ESEM Approach
+
+Only works for ML-based estimation. Generally comports with EFA solution above.
+
+```{r, message=FALSE}
+
+AC_m <- mplusObject(
+  TITLE="Antagonism and Disinhibition ESEM",
+  VARIABLE="
+    USEVARIABLES=MPS_agR AGG MISTRUST MPS_alR MANIP
+      PROPER  MPS_clR IMPUL MPS_tdR MPS_acR HDWK;
+    IDVARIABLE = subject;
+  ",
+  ANALYSIS="
+    ESTIMATOR=MLR;
+  ",
+  MODEL = "
+    f1-f2 BY MPS_agR AGG MISTRUST MPS_alR MANIP
+       PROPER MPS_clR IMPUL MPS_tdR MPS_acR HDWK (*1);
+  ",
+  SAVEDATA = "
+    FILE = AC_esem_fscores.dat;
+    SAVE=FSCORES;
+  ",
+  OUTPUT ="
+    TECH1 STANDARDIZED MODINDICES (10);
+  ",
+  rdata=self_reps
+)
+  
+mres <- mplusModeler(AC_m, modelout = file.path(basedir, "Code", "factor_structure", "AC_esem.inp"), 
+                     hashfilename = FALSE, run=TRUE,
+                     Mplus_command = "/Users/mnh5174/Applications/Mplus/mplus")
+ 
+summary(mres)
+kable(mres$results$parameters$stdyx.standardized)
+```
+
+### BSEM CFA
+
+HDWK and MPS_acR don't play well in the factor solution. They have a strong correlation with each other, requiring a unique residual covariance. After including this, they don't load well on the factor. Removing for now.
+
+This solution allows for residual correlations of MPS_alr with MISTRUST and MPS_tdr with PROPER. These are highly related scales on SNAP and MPQ.
+
+```{r, message=FALSE}
+
+AC_m <- mplusObject(
+  TITLE="Antagonism and Disinhibition BSEM CFA",
+  VARIABLE="
+    USEVARIABLES=MPS_agR AGG MISTRUST MPS_alR MANIP
+      PROPER MPS_clR IMPUL MPS_tdR; !MPS_acR !HDWK
+    IDVARIABLE = subject;
+  ",
+  ANALYSIS="
+    !ESTIMATOR=MLR;
+    ESTIMATOR=BAYES;
+    PROCESSORS=4;
+    CHAINS=4;
+    BITERATIONS=(10000);
+  ",
+  MODEL = "
+    antag BY MPS_agR AGG MISTRUST MPS_alR MANIP;
+    disinhib BY PROPER MPS_clR IMPUL MPS_tdR; !MPS_acR !HDWK
+    antag WITH disinhib;
+    !MPS_ACR  WITH HDWK;
+    MPS_ALR  WITH MISTRUST;
+    MPS_TDR  WITH PROPER;
+    !IMPUL WITH MPS_CLR;
+  ",
+  SAVEDATA = "
+    FILE = AC_bsem_cfa_fscores.dat;
+    SAVE = FSCORES(5000);
+    !SAVE=FSCORES;
+  ",
+  OUTPUT ="
+    TECH1 TECH8 STANDARDIZED MODINDICES (10);
+  ",
+  rdata=self_reps
+)
+  
+mres <- mplusModeler(AC_m, modelout = file.path(basedir, "Code", "factor_structure", "AC_bsem_cfa.inp"), 
+                     hashfilename = FALSE, run=TRUE,
+                     Mplus_command = "/Users/mnh5174/Applications/Mplus/mplus")
+ 
+summary(mres)
+kable(mres$results$parameters$stdyx.standardized)
+
+```
+
+This factor solution is good in terms of fit, but those massive residual correlations undermine the quality of the second factor.
+
+### Aside: Bayesian EFA in R
+
+This works well, but doesn't generate factor scores...
+
+Notice the couplets of MPQ and SNAP scales that cover the same content domain
+
+```{r, fig=TRUE}
+tofactor <- self_reps %>% select(subject, MPS_agR, AGG, MISTRUST, MPS_alR, MANIP,
+      PROPER, MPS_clR, IMPUL, MPS_tdR, MPS_acR, HDWK) %>% 
+  mutate(IMPUL =-1*IMPUL) %>% #score toward constraint to make loadings upright
+  mutate_at(vars(-subject), list(~as.vector(scale(.))))
+
+#shows the couplets of related scales
+mcmc <- befa(tofactor, iter=10000, Kmax=5, Nid=2)
+mcmc <- post.column.switch(mcmc)
+mcmc <- post.sign.switch(mcmc)
+plot(mcmc)
+
+#here's a three-factor solution that is more reasonable (requires 3 indicators per factor)
+mcmc3 <- befa(tofactor, iter=10000, Kmax=3, Nid=3)
+mcmc3 <- post.column.switch(mcmc3)
+mcmc3 <- post.sign.switch(mcmc3)
+plot(mcmc3)
+
+#prepareMplusData(as.data.frame(lapply(Y, as.vector)), filename="AC_cfa_std.dat")
+
+```
+
+### Zelig BEFA
+
+Not really tractable -- doesn't support rotation?!
+
+```{r, eval=FALSE}
+devtools::install_github('IQSS/Zelig')
+library(Zelig)
+z.out <- zelig(~ MPS_agR + AGG +  MISTRUST +  MPS_alR +  MANIP +
+                 PROPER + MPS_clR +  IMPUL+  MPS_tdR+  MPS_acR + HDWK, factors = 2,
+               model = "factor.bayes", data=tofactor)
+z.out$geweke.diag()
+
+summary(z.out)
+```
+
+### Parceling approach
+
+Given that MPQ and SNAP are highly overlapping in content and even share the same intellectual lineage, some of the scales overlap to the point of causing problems in estimation. Rather than include a million residual correlations, let's form two-scale parcels of MPQ and SNAP scales that overlap. To get the relative weighting of the parcels correct, z-score all scales, then use the mean of the two z-scores forming a parcel as the indicator in CFA.
+
+Here are the couplets:
+
+1. MISTRUST (Mistrustfulness) and MPS_alr (Alienation)
+2. PROPER (Propriety) and MPS_tdr (Traditionalism)
+3. IMPUL (Impulsivity, reversed) and MPS_clr (Control)
+4. HDWK (Hard-working) and MPS_acr (Achievement)
+5. AGG (Aggression) and MPS_agr (Aggression)
+
+Note that the `tofactor` data.frame above contais the z-scored versions of scales, with IMPUL being flipped to score in the same direction as MPS_clr.
+
+```{r, message=FALSE}
+
+AC_m <- mplusObject(
+  TITLE="Antagonism and Disinhibition BSEM CFA 3+3 Parcels",
+  DEFINE="
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+  ",
+  VARIABLE="
+    USEVARIABLES=MANIP p1 p2 p3 p4 p5;
+    IDVARIABLE = subject;
+  ",
+  ANALYSIS="
+    ESTIMATOR=BAYES;
+    PROCESSORS=4;
+    CHAINS=4;
+    BITERATIONS=(30000);
+  ",
+  MODEL = "
+    antag BY p5 ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+
+    inhib BY
+      p2  !PROPER MPS_tdR
+      p3  !MPS_clR IMPUL
+      p4; !MPS_acR HDWK;
+
+    antag WITH inhib;",
+  SAVEDATA = "
+    FILE = AC_bsem_cfa_parcel_fscores.dat;
+    SAVE = FSCORES(5000);
+  ",
+  OUTPUT ="
+    TECH1 TECH8 STANDARDIZED MODINDICES (10);
+  ",
+  rdata=tofactor
+)
+  
+mres <- mplusModeler(AC_m, modelout = file.path(basedir, "Code", "factor_structure", "AC_bsem_cfa_parcel.inp"), 
+                     hashfilename = FALSE, run=TRUE,
+                     Mplus_command = "/Users/mnh5174/Applications/Mplus/mplus")
+ 
+summary(mres)
+kable(mres$results$parameters$stdyx.standardized)
+
+write.csv(mres$results$savedata, file="AC_bsem_cfa_parcel_savedata.csv", row.names=FALSE)
+```
+
+```{r, eval=FALSE}
+#mplus with and without corr -- not currently a focus
+nocorr <- readModels("/Users/mnh5174/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/AC_cfa_manual_noresidcorr.out")
+withcorr <- readModels("/Users/mnh5174/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/AC_cfa_manual.out")
+compareModels(nocorr, withcorr, compare="stdyx.standardized")
+```
+
+## Dominance model
+
+```{r, message=FALSE}
+
+tofactor <- self_reps %>% dplyr::select(subject, POSTEMP, EXHIB, ENTITL, DETACH, MPS_wbR, MPS_spR, MPS_scR) %>%
+  mutate(MPS_scR=-1*MPS_scR) %>% #rescore in direction of detachment (higher scores are bad)
+  mutate_at(vars(-subject), list(~as.vector(scale(.))))
+
+Dom_m <- mplusObject(
+  TITLE="Dominance BSEM CFA",
+  VARIABLE="
+    USEVARIABLES=POSTEMP EXHIB ENTITL DETACH MPS_wbR MPS_spR MPS_scR;
+    IDVARIABLE = subject;
+  ",
+  ANALYSIS="
+    ESTIMATOR=BAYES;
+    PROCESSORS=4;
+    CHAINS=4;
+    BITERATIONS=(15000);
+  ",
+  MODEL = "
+    f1 BY MPS_spR EXHIB ENTITL POSTEMP MPS_wbR;
+    f2 BY MPS_scR DETACH;
+    f1 WITH f2;
+    MPS_SPR WITH EXHIB;
+    !DETACH@0;  !heywood case in MLR, okay in Bayes (force positive variance)
+  ",
+  SAVEDATA = "
+    FILE = Dom_bsem_cfa_fscores.dat;
+    SAVE = FSCORES(5000);
+  ",
+  OUTPUT ="
+    TECH1 TECH8 STANDARDIZED MODINDICES (10);
+  ",
+  rdata=tofactor
+)
+  
+mres <- mplusModeler(Dom_m, modelout = file.path(basedir, "Code", "factor_structure", "Dom_bsem_cfa.inp"), 
+                     hashfilename = FALSE, run=TRUE,
+                     Mplus_command = "/Users/mnh5174/Applications/Mplus/mplus")
+
+summary(mres)
+kable(mres$results$parameters$stdyx.standardized)
+
+write.csv(mres$results$savedata, file="Dom_bsem_cfa_savedata.csv", row.names=FALSE)
+
+```
