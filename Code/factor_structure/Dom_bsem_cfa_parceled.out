@@ -1,0 +1,637 @@
+Mplus VERSION 8.4 (Mac)
+MUTHEN & MUTHEN
+05/29/2020   2:50 PM
+
+INPUT INSTRUCTIONS
+
+  TITLE:
+  Dominance BSEM CFA Parceled
+  DATA:
+  FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/Dom_bsem_cfa_parceled.dat"
+
+  VARIABLE:
+  NAMES = subject POSTEMP EXHIB ENTITL DETACH MPS_wbR MPS_spR MPS_scR;
+   MISSING=.;
+
+      USEVARIABLES=ENTITL DETACH MPS_scR p1 p2;
+      IDVARIABLE = subject;
+
+  DEFINE:
+
+      p1 = MEAN(MPS_spR EXHIB);
+      p2 = MEAN(POSTEMP MPS_wbR);
+
+  ANALYSIS:
+
+      ESTIMATOR=BAYES;
+      PROCESSORS=4;
+      CHAINS=4;
+      BITERATIONS=(15000);
+
+  MODEL:
+
+      f1 BY p1 ENTITL p2;
+      f2 BY MPS_scR DETACH;
+      f1 WITH f2;
+      !DETACH@0;  !heywood case in MLR, okay in Bayes (force positive variance)
+
+  OUTPUT:
+
+      TECH1 TECH8 STANDARDIZED;
+
+
+
+
+*** WARNING
+  Input line exceeded 90 characters. Some input may be truncated.
+  FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/Dom_bsem_cfa_parceled.dat";
+   1 WARNING(S) FOUND IN THE INPUT INSTRUCTIONS
+
+
+
+
+Dominance BSEM CFA Parceled
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                         104
+
+Number of dependent variables                                    5
+Number of independent variables                                  0
+Number of continuous latent variables                            2
+
+Observed dependent variables
+
+  Continuous
+   ENTITL      DETACH      MPS_SCR     P1          P2
+
+Continuous latent variables
+   F1          F2
+
+Variables with special functions
+
+  ID variable           SUBJECT
+
+Estimator                                                    BAYES
+Specifications for Bayesian Estimation
+  Point estimate                                            MEDIAN
+  Number of Markov chain Monte Carlo (MCMC) chains               4
+  Random seed for the first chain                                0
+  Starting value information                           UNPERTURBED
+  Algorithm used for Markov chain Monte Carlo           GIBBS(PX1)
+  Convergence criterion                                  0.500D-01
+  Maximum number of iterations                               50000
+  K-th iteration used for thinning                               1
+
+Input data file(s)
+  ~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/Dom_bsem_cfa_parceled.
+Input data format  FREE
+
+
+SUMMARY OF DATA
+
+
+
+COVARIANCE COVERAGE OF DATA
+
+Minimum covariance coverage value   0.100
+
+     Number of missing data patterns             1
+
+
+     PROPORTION OF DATA PRESENT
+
+
+           Covariance Coverage
+              ENTITL        DETACH        MPS_SCR       P1            P2
+              ________      ________      ________      ________      ________
+ ENTITL         1.000
+ DETACH         1.000         1.000
+ MPS_SCR        1.000         1.000         1.000
+ P1             1.000         1.000         1.000         1.000
+ P2             1.000         1.000         1.000         1.000         1.000
+
+
+
+UNIVARIATE SAMPLE STATISTICS
+
+
+     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS
+
+         Variable/         Mean/     Skewness/   Minimum/ % with                Percentiles
+        Sample Size      Variance    Kurtosis    Maximum  Min/Max      20%/60%    40%/80%    Median
+
+     ENTITL                0.000      -0.184      -2.089    0.96%      -1.024     -0.225      0.041
+             104.000       0.990      -0.730       2.171    0.96%       0.307      0.840
+     DETACH                0.000       1.200      -1.074    9.62%      -0.841     -0.373     -0.373
+             104.000       0.990       0.758       3.133    0.96%      -0.139      0.796
+     MPS_SCR               0.000       1.387      -1.228    1.92%      -0.843     -0.459     -0.459
+             104.000       0.990       1.216       3.003    2.88%      -0.074      0.695
+     P1                    0.000      -0.332      -1.997    0.96%      -0.864     -0.162      0.093
+             104.000       0.818      -0.839       1.526    0.96%       0.336      0.835
+     P2                    0.000      -0.878      -2.447    0.96%      -0.991      0.028      0.370
+             104.000       0.888      -0.223       1.229    2.88%       0.530      0.712
+
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+     USE THE FBITERATIONS OPTION TO INCREASE THE NUMBER OF ITERATIONS BY A FACTOR
+     OF AT LEAST TWO TO CHECK CONVERGENCE AND THAT THE PSR VALUE DOES NOT INCREASE.
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                              16
+
+Bayesian Posterior Predictive Checking using Chi-Square
+
+          95% Confidence Interval for the Difference Between
+          the Observed and the Replicated Chi-Square Values
+
+                                 -4.877            31.424
+
+          Posterior Predictive P-Value              0.075
+
+Information Criteria
+
+          Deviance (DIC)                         1278.943
+          Estimated Number of Parameters (pD)      14.146
+          Bayesian (BIC)                         1323.446
+
+RMSEA (Root Mean Square Error Of Approximation)
+
+          Estimate                           0.145
+          90 Percent C.I.                    0.086  0.203
+          Probability RMSEA <= .05           0.004
+
+CFI/TLI
+
+          CFI                                0.936
+          90 Percent C.I.                    0.874  0.977
+
+          TLI                                0.890
+          90 Percent C.I.                    0.785  0.961
+
+
+
+MODEL RESULTS
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+ F1       BY
+    P1                 1.000       0.000      0.000       1.000       1.000
+    ENTITL             0.730       0.228      0.000       0.354       1.251      *
+    P2                 1.214       0.371      0.000       0.692       2.176      *
+
+ F2       BY
+    MPS_SCR            1.000       0.000      0.000       1.000       1.000
+    DETACH             1.146       0.095      0.000       0.951       1.336      *
+
+ F1       WITH
+    F2                -0.306       0.090      0.000      -0.510      -0.161      *
+
+ Intercepts
+    ENTITL            -0.001       0.101      0.497      -0.197       0.198
+    DETACH             0.003       0.100      0.489      -0.195       0.195
+    MPS_SCR            0.002       0.100      0.491      -0.198       0.196
+    P1                 0.000       0.092      0.498      -0.183       0.182
+    P2                -0.001       0.096      0.498      -0.188       0.189
+
+ Variances
+    F1                 0.360       0.141      0.000       0.142       0.693      *
+    F2                 0.758       0.153      0.000       0.514       1.112      *
+
+ Residual Variances
+    ENTITL             0.844       0.138      0.000       0.619       1.161      *
+    DETACH             0.048       0.052      0.000       0.003       0.199      *
+    MPS_SCR            0.297       0.061      0.000       0.170       0.418      *
+    P1                 0.500       0.121      0.000       0.271       0.745      *
+    P2                 0.408       0.133      0.000       0.158       0.681      *
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+ F1       BY
+    P1                 0.646       0.103      0.000       0.427       0.832      *
+    ENTITL             0.428       0.106      0.000       0.208       0.619      *
+    P2                 0.751       0.097      0.000       0.538       0.915      *
+
+ F2       BY
+    MPS_SCR            0.848       0.037      0.000       0.771       0.919      *
+    DETACH             0.977       0.027      0.000       0.897       0.999      *
+
+ F1       WITH
+    F2                -0.602       0.096      0.000      -0.761      -0.388      *
+
+ Intercepts
+    ENTITL            -0.001       0.098      0.497      -0.191       0.193
+    DETACH             0.003       0.097      0.489      -0.189       0.188
+    MPS_SCR            0.002       0.097      0.491      -0.190       0.189
+    P1                 0.000       0.098      0.498      -0.194       0.193
+    P2                -0.001       0.099      0.498      -0.192       0.194
+
+ Variances
+    F1                 1.000       0.000      0.000       1.000       1.000
+    F2                 1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    ENTITL             0.817       0.088      0.000       0.617       0.957      *
+    DETACH             0.046       0.051      0.000       0.003       0.196      *
+    MPS_SCR            0.281       0.062      0.000       0.156       0.405      *
+    P1                 0.582       0.132      0.000       0.308       0.817      *
+    P2                 0.436       0.141      0.000       0.163       0.710      *
+
+
+STDY Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+ F1       BY
+    P1                 0.646       0.103      0.000       0.427       0.832      *
+    ENTITL             0.428       0.106      0.000       0.208       0.619      *
+    P2                 0.751       0.097      0.000       0.538       0.915      *
+
+ F2       BY
+    MPS_SCR            0.848       0.037      0.000       0.771       0.919      *
+    DETACH             0.977       0.027      0.000       0.897       0.999      *
+
+ F1       WITH
+    F2                -0.602       0.096      0.000      -0.761      -0.388      *
+
+ Intercepts
+    ENTITL            -0.001       0.098      0.497      -0.191       0.193
+    DETACH             0.003       0.097      0.489      -0.189       0.188
+    MPS_SCR            0.002       0.097      0.491      -0.190       0.189
+    P1                 0.000       0.098      0.498      -0.194       0.193
+    P2                -0.001       0.099      0.498      -0.192       0.194
+
+ Variances
+    F1                 1.000       0.000      0.000       1.000       1.000
+    F2                 1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    ENTITL             0.817       0.088      0.000       0.617       0.957      *
+    DETACH             0.046       0.051      0.000       0.003       0.196      *
+    MPS_SCR            0.281       0.062      0.000       0.156       0.405      *
+    P1                 0.582       0.132      0.000       0.308       0.817      *
+    P2                 0.436       0.141      0.000       0.163       0.710      *
+
+
+STD Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+ F1       BY
+    P1                 0.600       0.115      0.000       0.377       0.832      *
+    ENTITL             0.436       0.121      0.000       0.205       0.678      *
+    P2                 0.728       0.118      0.000       0.494       0.955      *
+
+ F2       BY
+    MPS_SCR            0.871       0.086      0.000       0.717       1.055      *
+    DETACH             0.994       0.080      0.000       0.846       1.161      *
+
+ F1       WITH
+    F2                -0.602       0.096      0.000      -0.761      -0.388      *
+
+ Intercepts
+    ENTITL            -0.001       0.101      0.497      -0.197       0.198
+    DETACH             0.003       0.100      0.489      -0.195       0.195
+    MPS_SCR            0.002       0.100      0.491      -0.198       0.196
+    P1                 0.000       0.092      0.498      -0.183       0.182
+    P2                -0.001       0.096      0.498      -0.188       0.189
+
+ Variances
+    F1                 1.000       0.000      0.000       1.000       1.000
+    F2                 1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    ENTITL             0.844       0.138      0.000       0.619       1.161      *
+    DETACH             0.048       0.052      0.000       0.003       0.199      *
+    MPS_SCR            0.297       0.061      0.000       0.170       0.418      *
+    P1                 0.500       0.121      0.000       0.271       0.745      *
+    P2                 0.408       0.133      0.000       0.158       0.681      *
+
+
+R-SQUARE
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    ENTITL             0.183       0.088      0.000       0.043       0.383
+    DETACH             0.954       0.051      0.000       0.804       0.997
+    MPS_SCR            0.719       0.062      0.000       0.595       0.844
+    P1                 0.418       0.132      0.000       0.183       0.692
+    P2                 0.564       0.141      0.000       0.290       0.837
+
+
+TECHNICAL 1 OUTPUT
+
+
+     PARAMETER SPECIFICATION
+
+
+           NU
+              ENTITL        DETACH        MPS_SCR       P1            P2
+              ________      ________      ________      ________      ________
+                    1             2             3             4             5
+
+
+           LAMBDA
+              F1            F2
+              ________      ________
+ ENTITL             6             0
+ DETACH             0             7
+ MPS_SCR            0             0
+ P1                 0             0
+ P2                 8             0
+
+
+           THETA
+              ENTITL        DETACH        MPS_SCR       P1            P2
+              ________      ________      ________      ________      ________
+ ENTITL             9
+ DETACH             0            10
+ MPS_SCR            0             0            11
+ P1                 0             0             0            12
+ P2                 0             0             0             0            13
+
+
+           ALPHA
+              F1            F2
+              ________      ________
+                    0             0
+
+
+           BETA
+              F1            F2
+              ________      ________
+ F1                 0             0
+ F2                 0             0
+
+
+           PSI
+              F1            F2
+              ________      ________
+ F1                14
+ F2                15            16
+
+
+     STARTING VALUES
+
+
+           NU
+              ENTITL        DETACH        MPS_SCR       P1            P2
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           LAMBDA
+              F1            F2
+              ________      ________
+ ENTITL         1.000         0.000
+ DETACH         0.000         1.000
+ MPS_SCR        0.000         1.000
+ P1             1.000         0.000
+ P2             1.000         0.000
+
+
+           THETA
+              ENTITL        DETACH        MPS_SCR       P1            P2
+              ________      ________      ________      ________      ________
+ ENTITL         0.495
+ DETACH         0.000         0.495
+ MPS_SCR        0.000         0.000         0.495
+ P1             0.000         0.000         0.000         0.409
+ P2             0.000         0.000         0.000         0.000         0.444
+
+
+           ALPHA
+              F1            F2
+              ________      ________
+                0.000         0.000
+
+
+           BETA
+              F1            F2
+              ________      ________
+ F1             0.000         0.000
+ F2             0.000         0.000
+
+
+           PSI
+              F1            F2
+              ________      ________
+ F1             1.000
+ F2             0.000         1.000
+
+
+
+     PRIORS FOR ALL PARAMETERS            PRIOR MEAN      PRIOR VARIANCE     PRIOR STD. DEV.
+
+     Parameter 1~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 2~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 3~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 4~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 5~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 6~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 7~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 8~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 9~IG(-1.000,0.000)          infinity            infinity            infinity
+     Parameter 10~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 11~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 12~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 13~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 14~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 15~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 16~IW(0.000,-3)             infinity            infinity            infinity
+
+
+TECHNICAL 8 OUTPUT
+
+
+   TECHNICAL 8 OUTPUT FOR BAYES ESTIMATION
+
+     CHAIN    BSEED
+     1        0
+     2        285380
+     3        253358
+     4        93468
+
+                     POTENTIAL       PARAMETER WITH
+     ITERATION    SCALE REDUCTION      HIGHEST PSR
+     100              1.390               8
+     200              1.450               2
+     300              1.336               2
+     400              1.140               10
+     500              1.152               10
+     600              1.091               10
+     700              1.089               10
+     800              1.152               10
+     900              1.152               10
+     1000             1.164               10
+     1100             1.114               10
+     1200             1.116               10
+     1300             1.070               10
+     1400             1.068               10
+     1500             1.056               10
+     1600             1.060               10
+     1700             1.060               10
+     1800             1.065               10
+     1900             1.072               10
+     2000             1.086               10
+     2100             1.101               2
+     2200             1.105               2
+     2300             1.103               2
+     2400             1.086               2
+     2500             1.067               2
+     2600             1.068               2
+     2700             1.056               2
+     2800             1.045               2
+     2900             1.028               2
+     3000             1.025               8
+     3100             1.026               8
+     3200             1.022               8
+     3300             1.017               8
+     3400             1.010               8
+     3500             1.010               2
+     3600             1.009               14
+     3700             1.011               2
+     3800             1.018               2
+     3900             1.015               2
+     4000             1.009               2
+     4100             1.012               10
+     4200             1.022               10
+     4300             1.027               10
+     4400             1.023               10
+     4500             1.022               10
+     4600             1.012               10
+     4700             1.013               2
+     4800             1.014               10
+     4900             1.017               2
+     5000             1.015               2
+     5100             1.017               10
+     5200             1.015               10
+     5300             1.013               10
+     5400             1.010               10
+     5500             1.009               10
+     5600             1.009               10
+     5700             1.007               10
+     5800             1.008               13
+     5900             1.010               13
+     6000             1.010               10
+     6100             1.011               10
+     6200             1.010               10
+     6300             1.009               10
+     6400             1.008               10
+     6500             1.008               2
+     6600             1.008               2
+     6700             1.008               2
+     6800             1.008               2
+     6900             1.008               2
+     7000             1.009               2
+     7100             1.009               2
+     7200             1.008               13
+     7300             1.010               13
+     7400             1.013               13
+     7500             1.012               13
+     7600             1.012               13
+     7700             1.009               13
+     7800             1.008               13
+     7900             1.008               13
+     8000             1.008               13
+     8100             1.009               10
+     8200             1.009               13
+     8300             1.010               7
+     8400             1.011               7
+     8500             1.010               7
+     8600             1.010               7
+     8700             1.011               7
+     8800             1.010               7
+     8900             1.011               7
+     9000             1.012               7
+     9100             1.013               7
+     9200             1.011               7
+     9300             1.010               7
+     9400             1.009               7
+     9500             1.009               7
+     9600             1.009               7
+     9700             1.008               7
+     9800             1.007               7
+     9900             1.005               7
+     10000            1.005               7
+     10100            1.007               7
+     10200            1.006               7
+     10300            1.006               7
+     10400            1.006               7
+     10500            1.006               7
+     10600            1.005               7
+     10700            1.006               10
+     10800            1.004               7
+     10900            1.004               7
+     11000            1.004               7
+     11100            1.004               10
+     11200            1.004               10
+     11300            1.003               10
+     11400            1.003               10
+     11500            1.004               7
+     11600            1.003               7
+     11700            1.002               7
+     11800            1.002               7
+     11900            1.002               7
+     12000            1.002               7
+     12100            1.002               10
+     12200            1.003               2
+     12300            1.003               2
+     12400            1.003               8
+     12500            1.003               8
+     12600            1.002               8
+     12700            1.002               10
+     12800            1.002               10
+     12900            1.002               10
+     13000            1.002               2
+     13100            1.002               2
+     13200            1.002               2
+     13300            1.003               2
+     13400            1.003               2
+     13500            1.003               10
+     13600            1.003               10
+     13700            1.004               10
+     13800            1.005               10
+     13900            1.005               10
+     14000            1.005               10
+     14100            1.005               10
+     14200            1.004               10
+     14300            1.004               10
+     14400            1.004               10
+     14500            1.005               10
+     14600            1.005               10
+     14700            1.005               10
+     14800            1.006               10
+     14900            1.004               10
+     15000            1.003               10
+
+
+     Beginning Time:  14:50:15
+        Ending Time:  14:50:19
+       Elapsed Time:  00:00:04
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2019 Muthen & Muthen
