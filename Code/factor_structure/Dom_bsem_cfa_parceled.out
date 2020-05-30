@@ -1,6 +1,6 @@
-Mplus VERSION 8.4 (Mac)
+Mplus VERSION 8.4
 MUTHEN & MUTHEN
-05/29/2020   2:50 PM
+05/30/2020   1:03 PM
 
 INPUT INSTRUCTIONS
 
@@ -619,9 +619,17 @@ TECHNICAL 8 OUTPUT
      15000            1.003               10
 
 
-     Beginning Time:  14:50:15
-        Ending Time:  14:50:19
-       Elapsed Time:  00:00:04
+DIAGRAM INFORMATION
+
+  Use View Diagram under the Diagram menu in the Mplus Editor to view the diagram.
+  If running Mplus from the Mplus Diagrammer, the diagram opens automatically.
+
+  Diagram output
+    c:\users\timot\documents\github\pd_inhibition_ddm\code\factor_structure\dom_bsem_cfa_parceled.dgm
+
+     Beginning Time:  13:03:13
+        Ending Time:  13:03:15
+       Elapsed Time:  00:00:02
 
 
 

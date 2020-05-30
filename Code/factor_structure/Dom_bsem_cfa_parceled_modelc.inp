@@ -1,0 +1,35 @@
+TITLE:
+Dominance BSEM CFA Parceled
+DATA:
+FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/Dom_bsem_cfa_parceled.dat";
+ 
+VARIABLE:
+NAMES = subject POSTEMP EXHIB ENTITL DETACH MPS_wbR MPS_spR MPS_scR; 
+ MISSING=.;
+ 
+    USEVARIABLES=ENTITL DETACH MPS_scR POSTEMP p1;
+    IDVARIABLE = subject;
+  
+DEFINE:
+
+    p1 = MEAN(MPS_spR EXHIB);
+    !p2 = MEAN(POSTEMP MPS_wbR);
+  
+ANALYSIS:
+
+    ESTIMATOR=BAYES;
+    PROCESSORS=4;
+    CHAINS=4;
+    BITERATIONS=(15000);
+  
+MODEL:
+
+    f1 BY p1 ENTITL POSTEMP;
+    f2 BY MPS_scR DETACH POSTEMP;
+    f1 WITH f2;
+    !DETACH@0;  !heywood case in MLR, okay in Bayes (force positive variance)
+  
+OUTPUT:
+
+    TECH1 TECH8 STANDARDIZED;
+  
