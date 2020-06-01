@@ -249,9 +249,9 @@ Here are the couplets:
 4. HDWK (Hard-working) and MPS_acr (Achievement)
 5. AGG (Aggression) and MPS_agr (Aggression)
 
-Note that the `tofactor` data.frame above contais the z-scored versions of scales, with IMPUL being flipped to score in the same direction as MPS_clr.
+Note that the `tofactor` data.frame above contains the z-scored versions of scales, with IMPUL being flipped to score in the same direction as MPS_clr.
 
-```{r, message=FALSE}
+```{r ac_parcel, message=FALSE, cache=TRUE}
 
 AC_m <- mplusObject(
   TITLE="Antagonism and Disinhibition BSEM CFA 3+3 Parcels",
@@ -355,5 +355,55 @@ summary(mres)
 kable(mres$results$parameters$stdyx.standardized)
 
 write.csv(mres$results$savedata, file="Dom_bsem_cfa_savedata.csv", row.names=FALSE)
+
+```
+
+## Dominance parcel CFA
+
+The dominance model is a bit fragile and has started falling apart in MSEMs.
+
+Try the same parceling approach
+
+```{r dom_parcel, cache=TRUE}
+Dom_m <- mplusObject(
+  TITLE="Dominance BSEM CFA Parceled",
+  DEFINE="
+    p1 = MEAN(MPS_spR EXHIB);
+    p2 = MEAN(POSTEMP MPS_wbR);
+  ",
+  VARIABLE="
+    USEVARIABLES=ENTITL DETACH MPS_scR p1 p2;
+    IDVARIABLE = subject;
+  ",
+  ANALYSIS="
+    ESTIMATOR=BAYES;
+    PROCESSORS=4;
+    CHAINS=4;
+    BITERATIONS=(15000);
+  ",
+  MODEL = "
+    f1 BY p1* ENTITL p2;
+    f1@1;
+    f2 BY MPS_scR* DETACH;
+    f2@1;
+    f1 WITH f2;
+    !DETACH@0;  !heywood case in MLR, okay in Bayes (force positive variance)
+  ",
+  SAVEDATA = "
+    FILE = Dom_bsem_cfa_parcel_fscores.dat;
+    SAVE = FSCORES(5000);
+  ",
+  OUTPUT ="
+    TECH1 TECH8 STANDARDIZED;
+  ",
+  rdata=tofactor
+)
+  
+mres <- mplusModeler(Dom_m, modelout = file.path(basedir, "Code", "factor_structure", "Dom_bsem_cfa_parcel.inp"), 
+                     hashfilename = FALSE, run=TRUE,
+                     Mplus_command = "/Users/mnh5174/Applications/Mplus/mplus")
+
+summary(mres)
+kable(mres$results$parameters$stdyx.standardized)
 
 ```

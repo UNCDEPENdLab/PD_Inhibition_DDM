@@ -1,0 +1,36 @@
+TITLE:
+Dominance BSEM CFA
+DATA:
+FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/Dom_bsem_cfa.dat";
+ 
+VARIABLE:
+NAMES = subject POSTEMP EXHIB ENTITL DETACH MPS_wbR MPS_spR MPS_scR; 
+ MISSING=.;
+ 
+    USEVARIABLES=POSTEMP EXHIB ENTITL DETACH MPS_spR MPS_scR;
+    IDVARIABLE = subject;
+  
+ANALYSIS:
+
+    ESTIMATOR=BAYES;
+    PROCESSORS=4;
+    CHAINS=4;
+    BITERATIONS=(15000);
+  
+MODEL:
+
+    f1 BY MPS_spR EXHIB ENTITL POSTEMP;
+    f2 BY MPS_scR DETACH POSTEMP;
+    f1 WITH f2;
+    MPS_SPR WITH EXHIB;
+    !DETACH@0;  !heywood case in MLR, okay in Bayes (force positive variance)
+  
+OUTPUT:
+
+    TECH1 TECH8 STANDARDIZED MODINDICES (10);
+  
+!SAVEDATA:
+
+!    FILE = Dom_bsem_cfa_fscores.dat;
+!    SAVE = FSCORES(5000);
+  
