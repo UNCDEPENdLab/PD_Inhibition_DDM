@@ -19,6 +19,7 @@ snap <- get(load(file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RDa
   select(subject, NEGTEMP:HDWK, DISINHP)
 
 self_reps <- inner_join(mpq, snap, by = "subject")
+mpluscmd <- "/Applications/Mplus/mplus"
 ```
 
 ## General Rationale
@@ -107,7 +108,7 @@ Given these limitations, we need to shift to CFA, not EFA.
 
 Only works for ML-based estimation. Generally comports with EFA solution above.
 
-```{r, message=FALSE}
+```{r ac_esem, cache=TRUE, message=FALSE}
 
 AC_m <- mplusObject(
   TITLE="Antagonism and Disinhibition ESEM",
@@ -135,7 +136,7 @@ AC_m <- mplusObject(
   
 mres <- mplusModeler(AC_m, modelout = file.path(basedir, "Code", "factor_structure", "AC_esem.inp"), 
                      hashfilename = FALSE, run=TRUE,
-                     Mplus_command = "/Users/mnh5174/Applications/Mplus/mplus")
+                     Mplus_command = mpluscmd)
  
 summary(mres)
 kable(mres$results$parameters$stdyx.standardized)
@@ -147,7 +148,7 @@ HDWK and MPS_acR don't play well in the factor solution. They have a strong corr
 
 This solution allows for residual correlations of MPS_alr with MISTRUST and MPS_tdr with PROPER. These are highly related scales on SNAP and MPQ.
 
-```{r, message=FALSE}
+```{r ac_bsem, cache=TRUE, message=FALSE}
 
 AC_m <- mplusObject(
   TITLE="Antagonism and Disinhibition BSEM CFA",
@@ -185,7 +186,7 @@ AC_m <- mplusObject(
   
 mres <- mplusModeler(AC_m, modelout = file.path(basedir, "Code", "factor_structure", "AC_bsem_cfa.inp"), 
                      hashfilename = FALSE, run=TRUE,
-                     Mplus_command = "/Users/mnh5174/Applications/Mplus/mplus")
+                     Mplus_command = mpluscmd)
  
 summary(mres)
 kable(mres$results$parameters$stdyx.standardized)
@@ -200,7 +201,7 @@ This works well, but doesn't generate factor scores...
 
 Notice the couplets of MPQ and SNAP scales that cover the same content domain
 
-```{r, fig=TRUE}
+```{r, cache=TRUE, fig=TRUE}
 tofactor <- self_reps %>% select(subject, MPS_agR, AGG, MISTRUST, MPS_alR, MANIP,
       PROPER, MPS_clR, IMPUL, MPS_tdR, MPS_acR, HDWK) %>% 
   mutate(IMPUL =-1*IMPUL) %>% #score toward constraint to make loadings upright
@@ -295,13 +296,71 @@ AC_m <- mplusObject(
   
 mres <- mplusModeler(AC_m, modelout = file.path(basedir, "Code", "factor_structure", "AC_bsem_cfa_parcel.inp"), 
                      hashfilename = FALSE, run=TRUE,
-                     Mplus_command = "/Users/mnh5174/Applications/Mplus/mplus")
+                     Mplus_command = mpluscmd)
  
 summary(mres)
 kable(mres$results$parameters$stdyx.standardized)
 
 write.csv(mres$results$savedata, file="AC_bsem_cfa_parcel_savedata.csv", row.names=FALSE)
 ```
+
+In MLR, there is a meaningful cross-loading of P1 onto Inhib. Test this in BSEM, too.
+
+```{r ac_parcel_mod, message=FALSE, cache=TRUE}
+
+AC_m_mod <- mplusObject(
+  TITLE="Antagonism and Disinhibition BSEM CFA 3+3 Parcels Modindex",
+  DEFINE="
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+  ",
+  VARIABLE="
+    USEVARIABLES=MANIP p1 p2 p3 p4 p5;
+    IDVARIABLE = subject;
+  ",
+  ANALYSIS="
+    ESTIMATOR=BAYES;
+    PROCESSORS=4;
+    CHAINS=4;
+    BITERATIONS=(30000);
+  ",
+  MODEL = "
+    antag BY p5 ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+
+    inhib BY
+      p2  !PROPER MPS_tdR
+      p3  !MPS_clR IMPUL
+      p4; !MPS_acR HDWK;
+
+    antag WITH inhib;
+    
+    INHIB BY P1; !sig mod index
+  ",
+  SAVEDATA = "
+    FILE = AC_bsem_cfa_parcel_mod_fscores.dat;
+    SAVE = FSCORES(5000);
+  ",
+  OUTPUT ="
+    TECH1 TECH8 STANDARDIZED MODINDICES (10);
+  ",
+  rdata=tofactor
+)
+  
+mres <- mplusModeler(AC_m_mod, modelout = file.path(basedir, "Code", "factor_structure", "AC_bsem_cfa_parcel_mod.inp"), 
+                     hashfilename = FALSE, run=TRUE,
+                     Mplus_command = mpluscmd)
+ 
+summary(mres)
+kable(mres$results$parameters$stdyx.standardized)
+
+write.csv(mres$results$savedata, file="AC_bsem_cfa_parcel_mod_savedata.csv", row.names=FALSE)
+```
+
 
 ```{r, eval=FALSE}
 #mplus with and without corr -- not currently a focus
@@ -312,7 +371,7 @@ compareModels(nocorr, withcorr, compare="stdyx.standardized")
 
 ## Dominance model
 
-```{r, message=FALSE}
+```{r dom_cfa, cache=TRUE, message=FALSE}
 
 tofactor <- self_reps %>% dplyr::select(subject, POSTEMP, EXHIB, ENTITL, DETACH, MPS_wbR, MPS_spR, MPS_scR) %>%
   mutate(MPS_scR=-1*MPS_scR) %>% #rescore in direction of detachment (higher scores are bad)
@@ -349,7 +408,7 @@ Dom_m <- mplusObject(
   
 mres <- mplusModeler(Dom_m, modelout = file.path(basedir, "Code", "factor_structure", "Dom_bsem_cfa.inp"), 
                      hashfilename = FALSE, run=TRUE,
-                     Mplus_command = "/Users/mnh5174/Applications/Mplus/mplus")
+                     Mplus_command = mpluscmd)
 
 summary(mres)
 kable(mres$results$parameters$stdyx.standardized)
@@ -401,9 +460,207 @@ Dom_m <- mplusObject(
   
 mres <- mplusModeler(Dom_m, modelout = file.path(basedir, "Code", "factor_structure", "Dom_bsem_cfa_parcel.inp"), 
                      hashfilename = FALSE, run=TRUE,
-                     Mplus_command = "/Users/mnh5174/Applications/Mplus/mplus")
+                     Mplus_command = mpluscmd)
 
 summary(mres)
 kable(mres$results$parameters$stdyx.standardized)
+
+```
+
+
+## Amended dominance model
+
+Following Tim's further exploration of the dominance analysis, drop POSTEMP and MPS_wbR as generic indicators of extraversion. This tilts the first factor more cleanly toward agentic extraversion. The model also appears to fit the data quite well. This is called Model A in Tim's nomenclature, which I've preserved here.
+
+```{r dom_modela, cache=TRUE, message=FALSE}
+
+tofactor <- self_reps %>% dplyr::select(subject, EXHIB, ENTITL, DETACH, MPS_spR, MPS_scR) %>%
+  mutate(MPS_scR=-1*MPS_scR) %>% #rescore in direction of detachment (higher scores are bad)
+  mutate_at(vars(-subject), list(~as.vector(scale(.))))
+
+Dom_m <- mplusObject(
+  TITLE="Dominance BSEM CFA Model A amendment",
+  VARIABLE="
+    USEVARIABLES=EXHIB ENTITL DETACH MPS_spR MPS_scR;
+    IDVARIABLE = subject;
+  ",
+  ANALYSIS="
+    ESTIMATOR=BAYES;
+    PROCESSORS=4;
+    CHAINS=4;
+    BITERATIONS=(35000);
+  ",
+  MODEL = "
+    agentic BY MPS_spR* EXHIB ENTITL;
+    affiliat BY MPS_scR* DETACH;
+    agentic WITH affiliat;
+    agentic@1;
+    affiliat@1;
+  ",
+  SAVEDATA = "
+    FILE = Dom_bsem_cfa_modela_fscores.dat;
+    SAVE = FSCORES(5000);
+  ",
+  OUTPUT ="
+    TECH1 TECH8 STANDARDIZED MODINDICES (10);
+  ",
+  rdata=tofactor
+)
+  
+mres <- mplusModeler(Dom_m, modelout = file.path(basedir, "Code", "factor_structure", "Dom_bsem_cfa_modela.inp"), 
+                     hashfilename = FALSE, run=TRUE,
+                     Mplus_command = mpluscmd)
+
+summary(mres)
+kable(mres$results$parameters$stdyx.standardized)
+
+write.csv(mres$results$savedata, file="Dom_bsem_cfa_modela_savedata.csv", row.names=FALSE)
+
+```
+
+## Combined model?
+
+```{r combined, cache=TRUE}
+tofactor <- self_reps %>% 
+  dplyr::select(subject, EXHIB, ENTITL, DETACH, MPS_spR, MPS_scR,
+                MPS_agR, AGG, MISTRUST, MPS_alR, MANIP,
+                PROPER, MPS_clR, IMPUL, MPS_tdR, MPS_acR, HDWK) %>%
+  mutate(MPS_scR=-1*MPS_scR) %>% #rescore in direction of detachment (higher scores are bad)
+  mutate(IMPUL =-1*IMPUL) %>% #score toward constraint to make loadings upright
+  mutate_at(vars(-subject), list(~as.vector(scale(.))))
+
+Combo_m <- mplusObject(
+  TITLE="Extraversion, Antag, Consc combination",
+  DEFINE="
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+  ",
+  VARIABLE="
+    USEVARIABLES=EXHIB ENTITL DETACH MPS_spR MPS_scR
+      MANIP p1 p2 p3 p4 p5;
+    IDVARIABLE = subject;
+  ",
+  ANALYSIS="
+    ESTIMATOR=BAYES;
+    PROCESSORS=4;
+    CHAINS=4;
+    BITERATIONS=(35000);
+  ",
+  MODEL = "
+    agentic BY MPS_spR* EXHIB ENTITL;
+    agentic@1;
+    
+    affiliat BY MPS_scR* DETACH;
+    affiliat@1;
+    
+    antag BY p5* ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+    antag@1;
+
+    inhib BY
+      p2*  !PROPER MPS_tdR
+      p3   !MPS_clR IMPUL
+      p4;  !MPS_acR HDWK;
+    inhib@1;
+
+    antag inhib agentic affiliat WITH
+      antag inhib agentic affiliat;
+  ",
+  SAVEDATA = "
+    FILE = Combined_cfa_modela_fscores.dat;
+    SAVE = FSCORES(5000);
+  ",
+  OUTPUT ="
+    TECH1 TECH8 STANDARDIZED MODINDICES (10);
+  ",
+  rdata=tofactor
+)
+  
+mres <- mplusModeler(Combo_m, modelout = file.path(basedir, "Code", "factor_structure", "Combo_bsem_cfa.inp"), 
+                     hashfilename = FALSE, run=TRUE,
+                     Mplus_command = mpluscmd)
+
+summary(mres)
+kable(mres$results$parameters$stdyx.standardized)
+
+write.csv(mres$results$savedata, file="Combo_bsem_cfa_savedata.csv", row.names=FALSE)
+
+```
+
+
+## Combined model, allowing some cross-loadings for fit
+
+```{r combined_modindices, cache=TRUE}
+
+Combo_m <- mplusObject(
+  TITLE="Extraversion, Antag, Consc combination modindices added",
+  DEFINE="
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+  ",
+  VARIABLE="
+    USEVARIABLES=EXHIB ENTITL DETACH MPS_spR MPS_scR
+      MANIP p1 p2 p3 p4 p5;
+    IDVARIABLE = subject;
+  ",
+  ANALYSIS="
+    ESTIMATOR=BAYES;
+    PROCESSORS=4;
+    CHAINS=4;
+    BITERATIONS=(35000);
+  ",
+  MODEL = "
+    agentic BY MPS_spR* EXHIB ENTITL;
+    agentic@1;
+    
+    affiliat BY MPS_scR* DETACH;
+    affiliat@1;
+    
+    antag BY p5* ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+    antag@1;
+
+    inhib BY
+      p2*  !PROPER MPS_tdR
+      p3   !MPS_clR IMPUL
+      p4;  !MPS_acR HDWK;
+    inhib@1;
+
+    antag inhib agentic affiliat WITH
+      antag inhib agentic affiliat;
+      
+    !these were identified in the 4-factor model using MLR
+    AFFILIAT BY P1; !sig modification index
+    INHIB BY ENTITL; !sig modification index
+    
+    !this one comes from the two-factor model, but seems unimportant for 4-factor.
+    !INHIB BY P1; !mod index
+  ",
+  SAVEDATA = "
+    FILE = Combined_cfa_modela_modindices_fscores.dat;
+    SAVE = FSCORES(5000);
+  ",
+  OUTPUT ="
+    TECH1 TECH8 STANDARDIZED MODINDICES (10);
+  ",
+  rdata=tofactor
+)
+  
+mres <- mplusModeler(Combo_m, modelout = file.path(basedir, "Code", "factor_structure", "Combo_bsem_modindices.inp"), 
+                     hashfilename = FALSE, run=TRUE,
+                     Mplus_command = mpluscmd)
+
+summary(mres)
+kable(mres$results$parameters$stdyx.standardized)
+
+write.csv(mres$results$savedata, file="Combo_bsem_cfa_withmodindices_savedata.csv", row.names=FALSE)
 
 ```
