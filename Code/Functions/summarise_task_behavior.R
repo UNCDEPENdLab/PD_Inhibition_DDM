@@ -1,5 +1,5 @@
 # load and calc summaries of behavioral variables -------------------------
-summarise_task_behavior <- function(basedir = "~/github_repos/PD_Inhibition_DDM/"){
+summarise_task_behavior <- function(basedir = "~/github_dirs/PD_Inhibition_DDM/"){
   # flanker -----------------------------------------------------------------
   
   
