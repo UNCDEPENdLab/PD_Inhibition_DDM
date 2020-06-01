@@ -1,0 +1,59 @@
+TITLE:
+Antagonism factor and gng
+DATA:
+FILE = "acc_mod_cfa_antagonism_a_mplus.dat";
+ 
+VARIABLE:
+NAMES = subj_idx response trial_z stim cond MANIP P5 P1; 
+ MISSING=.;
+ 
+    WITHIN = trial_z stim cond trst;
+    BETWEEN = P1 P5 MANIP;
+    USEVARIABLES = subj_idx response trial_z stim cond MANIP P1 P5 trst;
+    CLUSTER = subj_idx;
+    CATEGORICAL = response;
+  
+DEFINE:
+
+   trst = trial_z*stim;
+    
+ANALYSIS:
+
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(15000);
+    BCONVERGENCE=.02;
+    CHAINS=2;
+    PROCESSORS=2;
+  
+MODEL:
+
+    %WITHIN%
+    btrial | response ON trial_z;
+    bstim | response ON stim;
+    bcond | response ON cond;
+    btrst | response ON trst;
+    
+    %BETWEEN%
+    [btrial bstim bcond btrst]; !slope means
+    btrial bstim bcond btrst; !slope variances
+    
+    ! trait model
+    antag BY P1 P5 MANIP;
+    
+    [response$1]; !person average
+    response on antag;
+    
+    !correlation of random slopes with each other
+    btrial WITH bstim;
+    btrial WITH btrst;
+    btrial WITH bcond;
+    bstim WITH btrst;
+    bstim WITH bcond;
+    bcond WITH btrst;
+    
+  
+OUTPUT:
+TECH1 TECH8 STANDARDIZED CINTERVAL;
+PLOT:
+TYPE = PLOT2;
