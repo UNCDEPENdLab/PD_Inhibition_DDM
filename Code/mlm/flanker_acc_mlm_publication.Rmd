@@ -493,3 +493,17 @@ gg <- plot_model(m15, type="std", show.p=TRUE, ci.lvl=.95, dot.size=5,
 plot(gg)
 ggsave(gg, filename="Flanker_Acc_Params.pdf", width=9, height=6, useDingbats=FALSE)
 ```
+
+## m15 as probit
+
+To match Mplus
+
+```{r m15_probit, cache=TRUE}
+m15 <- glmer(correct ~ cond + block + prev_rt_z + prev_error +
+              (1 + prev_rt_z + cond + prev_error | id) +
+              (1 | id:block),
+          na.action = na.exclude, control=glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 30000)),
+          data = flanker, family = binomial(link = "probit"))
+
+summary(m15)
+```

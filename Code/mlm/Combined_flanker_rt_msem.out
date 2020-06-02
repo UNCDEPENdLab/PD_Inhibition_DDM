@@ -1,0 +1,1760 @@
+Mplus VERSION 8.4 (Mac)
+MUTHEN & MUTHEN
+05/30/2020   5:06 PM
+
+INPUT INSTRUCTIONS
+
+  TITLE:
+  Agentic and Affiliative Extraversion MSEM Flanker RT
+  DATA:
+  FILE = "Combined_flanker_rt_msem.dat";
+
+  VARIABLE:
+  NAMES = id rt cond block trial trial_z rt_inv run_trial run_trial_z prev_rt
+       prev_error prev_rt_z EXHIB ENTITL DETACH MPS_spR MPS_scR MPS_agR AGG MISTRUST
+       MPS_alR MANIP PROPER MPS_clR IMPUL MPS_tdR MPS_acR HDWK;
+   MISSING=.;
+
+      WITHIN = cond block cond_block prev_rt_z prev_error trial_z run_trial_z;
+      USEVARIABLES = id rt_inv cond block prev_rt_z
+        prev_error trial_z run_trial_z
+        EXHIB ENTITL DETACH MPS_spR MPS_scR
+        MANIP p1 p2 p3 p4 p5 cond_block;
+      BETWEEN = EXHIB ENTITL DETACH MPS_spR MPS_scR MANIP p1 p2 p3 p4 p5;
+      CLUSTER = id;
+
+  DEFINE:
+
+      p1=MEAN(MISTRUST MPS_alR);
+      p2=MEAN(PROPER MPS_tdR);
+      p3=MEAN(MPS_clR IMPUL);
+      p4=MEAN(MPS_acR HDWK);
+      p5=MEAN(MPS_agR AGG);
+      cond = cond - 1; ! 0=congruent, 1=incongruent
+      block = block - 1; ! 0=most_incon, 1=most_con
+      cond_block = cond*block; ! 1=most_con, incongruent
+
+  ANALYSIS:
+
+      TYPE=TWOLEVEL RANDOM;
+      ESTIMATOR=BAYES;
+      BITERATIONS=(20000);
+      CHAINS=4;
+      PROCESSORS=4;
+
+  MODEL:
+
+
+    %WITHIN%
+      rt_inv ON block cond_block;
+      condslo | rt_inv ON cond;        !random slope of cond
+      prevslo | rt_inv ON prev_rt_z;   !random slope of rt autocorrelation
+      errslo | rt_inv ON prev_error;   !random slope of previous error
+      runslo | rt_inv ON run_trial_z;  !random slope of run_trial
+      trialslo | rt_inv ON trial_z;    !random slope of trial
+
+    %BETWEEN%
+      !means of random slopes
+      [condslo];
+      [runslo];
+      [trialslo];
+      [prevslo];
+      [errslo];
+
+      !variances of random slopes
+      condslo;
+      runslo;
+      trialslo;
+      prevslo;
+      errslo;
+
+      !slope correlations
+      condslo runslo trialslo prevslo errslo WITH
+         condslo runslo trialslo prevslo errslo;
+
+      [rt_inv]; !mean average inverse RT
+
+      !TRAIT MODEL
+      agentic BY MPS_spR* EXHIB ENTITL;
+      agentic@1;
+
+      affiliat BY MPS_scR*1 DETACH;
+      affiliat@1;
+
+      antag BY p5 ! MPS_agR AGG
+        p1        ! MISTRUST MPS_alR
+        MANIP;
+
+      inhib BY
+        p2  !PROPER MPS_tdR
+        p3  !MPS_clR IMPUL
+        p4; !MPS_acR HDWK;
+
+      antag inhib agentic affiliat WITH antag inhib agentic affiliat;
+
+      !TRAIT MODERATION
+
+      ! trait moderates flanker performance -- incongruency effect and stickiness of RT
+      condslo ON antag inhib agentic affiliat;
+      prevslo ON antag inhib agentic affiliat;
+
+      !errslo ON antag inhib; !highly non-significant
+
+      !N.B. Leaving out the association of antag with rt_inv
+      !omits a hugely important relationship.
+      !Thus, allow antag as a predictor of average (person) RT
+      rt_inv ON antag inhib agentic affiliat;
+
+  OUTPUT:
+
+      TECH1 TECH8 CINTERVAL STANDARDIZED;
+
+  PLOT:
+  TYPE = PLOT2;
+
+
+
+*** WARNING in VARIABLE command
+  Note that only the first 8 characters of variable names are used in the output.
+  Shorten variable names to avoid any confusion.
+*** WARNING in PLOT command
+  Note that only the first 8 characters of variable names are used in plots.
+  If variable names are not unique within the first 8 characters, problems
+  may occur.
+*** WARNING
+  One or more individual-level variables have no variation within a
+  cluster for the following clusters.
+
+     Variable   Cluster IDs with no within-cluster variation
+
+      PREV_ERR    90 15 11 114 13 5 52 6 106 66 86 20 107 91 93 95
+
+*** WARNING
+  Data set contains cases with missing on x-variables.
+  These cases were not included in the analysis.
+  Number of cases with missing on x-variables:  496
+   4 WARNING(S) FOUND IN THE INPUT INSTRUCTIONS
+
+
+
+
+Agentic and Affiliative Extraversion MSEM Flanker RT
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                       15504
+
+Number of dependent variables                                   12
+Number of independent variables                                  7
+Number of continuous latent variables                            9
+
+Observed dependent variables
+
+  Continuous
+   EXHIB       ENTITL      DETACH      MPS_SPR     MPS_SCR     MANIP
+   P1          P2          P3          P4          P5          RT_INV
+
+Observed independent variables
+   COND        BLOCK       PREV_RT_    PREV_ERR    TRIAL_Z     RUN_TRIA
+   COND_BLO
+
+Continuous latent variables
+   AGENTIC     AFFILIAT    ANTAG       INHIB       CONDSLO     PREVSLO
+   ERRSLO      RUNSLO      TRIALSLO
+
+Variables with special functions
+
+  Cluster variable      ID
+
+  Within variables
+   COND        BLOCK       PREV_RT_    PREV_ERR    TRIAL_Z     RUN_TRIA
+   COND_BLO
+
+  Between variables
+   EXHIB       ENTITL      DETACH      MPS_SPR     MPS_SCR     MANIP
+   P1          P2          P3          P4          P5
+
+
+Estimator                                                    BAYES
+Specifications for Bayesian Estimation
+  Point estimate                                            MEDIAN
+  Number of Markov chain Monte Carlo (MCMC) chains               4
+  Random seed for the first chain                                0
+  Starting value information                           UNPERTURBED
+  Algorithm used for Markov chain Monte Carlo           GIBBS(PX1)
+  Convergence criterion                                  0.500D-01
+  Maximum number of iterations                               50000
+  K-th iteration used for thinning                               1
+
+Input data file(s)
+  Combined_flanker_rt_msem.dat
+Input data format  FREE
+
+
+SUMMARY OF DATA
+
+     Number of clusters                        100
+
+       Size (s)    Cluster ID with Size s
+
+        137        62
+        144        92
+        146        36
+        150        73 45
+        151        35
+        152        110
+        153        42 90 65
+        154        24 109 89 46 15
+        155        113 14 102 18 21 57 58 22 105 68 27 32 33 34 99
+        156        25 26 11 28 29 3 30 31 1 111 112 103 114 37 4 40 41
+                   12 43 13 104 49 5 50 52 53 54 56 10 16 59 6 60 61 17
+                   63 64 106 66 67 19 69 70 71 72 2 74 75 76 77 78 79 8
+                   81 84 86 87 88 20 9 107 91 108 93 94 95 96 97 98 101
+
+
+
+COVARIANCE COVERAGE OF DATA
+
+Minimum covariance coverage value   0.100
+
+     Number of missing data patterns             2
+
+
+     PROPORTION OF DATA PRESENT
+
+
+           Covariance Coverage
+              EXHIB         ENTITL        DETACH        MPS_SPR       MPS_SCR
+              ________      ________      ________      ________      ________
+ EXHIB          1.000
+ ENTITL         1.000         1.000
+ DETACH         1.000         1.000         1.000
+ MPS_SPR        1.000         1.000         1.000         1.000
+ MPS_SCR        1.000         1.000         1.000         1.000         1.000
+ MANIP          1.000         1.000         1.000         1.000         1.000
+ P1             1.000         1.000         1.000         1.000         1.000
+ P2             1.000         1.000         1.000         1.000         1.000
+ P3             1.000         1.000         1.000         1.000         1.000
+ P4             1.000         1.000         1.000         1.000         1.000
+ P5             1.000         1.000         1.000         1.000         1.000
+ RT_INV         0.951         0.951         0.951         0.951         0.951
+ COND           1.000         1.000         1.000         1.000         1.000
+ BLOCK          1.000         1.000         1.000         1.000         1.000
+ PREV_RT_       1.000         1.000         1.000         1.000         1.000
+ PREV_ERR       1.000         1.000         1.000         1.000         1.000
+ TRIAL_Z        1.000         1.000         1.000         1.000         1.000
+ RUN_TRIA       1.000         1.000         1.000         1.000         1.000
+ COND_BLO       1.000         1.000         1.000         1.000         1.000
+
+
+           Covariance Coverage
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+ MANIP          1.000
+ P1             1.000         1.000
+ P2             1.000         1.000         1.000
+ P3             1.000         1.000         1.000         1.000
+ P4             1.000         1.000         1.000         1.000         1.000
+ P5             1.000         1.000         1.000         1.000         1.000
+ RT_INV         0.951         0.951         0.951         0.951         0.951
+ COND           1.000         1.000         1.000         1.000         1.000
+ BLOCK          1.000         1.000         1.000         1.000         1.000
+ PREV_RT_       1.000         1.000         1.000         1.000         1.000
+ PREV_ERR       1.000         1.000         1.000         1.000         1.000
+ TRIAL_Z        1.000         1.000         1.000         1.000         1.000
+ RUN_TRIA       1.000         1.000         1.000         1.000         1.000
+ COND_BLO       1.000         1.000         1.000         1.000         1.000
+
+
+           Covariance Coverage
+              P5            RT_INV        COND          BLOCK         PREV_RT_
+              ________      ________      ________      ________      ________
+ P5             1.000
+ RT_INV         0.951         0.951
+ COND           1.000         0.951         1.000
+ BLOCK          1.000         0.951         1.000         1.000
+ PREV_RT_       1.000         0.951         1.000         1.000         1.000
+ PREV_ERR       1.000         0.951         1.000         1.000         1.000
+ TRIAL_Z        1.000         0.951         1.000         1.000         1.000
+ RUN_TRIA       1.000         0.951         1.000         1.000         1.000
+ COND_BLO       1.000         0.951         1.000         1.000         1.000
+
+
+           Covariance Coverage
+              PREV_ERR      TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________      ________
+ PREV_ERR       1.000
+ TRIAL_Z        1.000         1.000
+ RUN_TRIA       1.000         1.000         1.000
+ COND_BLO       1.000         1.000         1.000         1.000
+
+
+
+UNIVARIATE SAMPLE STATISTICS
+
+
+     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS
+
+         Variable/         Mean/     Skewness/   Minimum/ % with                Percentiles
+        Sample Size      Variance    Kurtosis    Maximum  Min/Max      20%/60%    40%/80%    Median
+
+     EXHIB                 0.016      -0.030      -1.771    5.00%      -1.023     -0.276      0.098
+             100.000       1.012      -0.989       1.968    2.00%       0.223      0.971
+     ENTITL               -0.004      -0.175      -2.089    1.00%      -1.024     -0.225      0.041
+             100.000       1.020      -0.785       2.171    1.00%       0.307      0.840
+     DETACH                0.008       1.172      -1.074   10.00%      -0.841     -0.607     -0.373
+             100.000       1.022       0.625       3.133    1.00%      -0.139      0.796
+     MPS_SPR              -0.003      -0.632      -2.222    4.00%      -0.954     -0.003      0.314
+             100.000       1.019      -0.572       1.582    3.00%       0.314      0.948
+     MPS_SCR              -0.005       1.387      -1.228    2.00%      -0.843     -0.459     -0.459
+             100.000       1.022       1.141       3.003    3.00%      -0.074      0.695
+     MANIP                 0.020       0.065      -1.701    7.00%      -0.898     -0.095      0.172
+             100.000       1.006      -0.475       2.849    1.00%       0.440      0.708
+     P1                    0.018       1.093      -1.197    5.00%      -0.819     -0.370     -0.108
+             100.000       0.886       1.171       3.011    1.00%       0.078      0.645
+     P2                   -0.005      -0.135      -2.240    1.00%      -0.857     -0.225      0.051
+             100.000       0.833      -0.639       1.749    1.00%       0.286      0.762
+     P3                    0.012      -0.902      -2.672    1.00%      -0.788     -0.027      0.231
+             100.000       0.887       0.345       1.396    1.00%       0.371      0.817
+     P4                    0.006       0.027      -1.799    1.00%      -0.946     -0.304      0.023
+             100.000       0.902      -1.019       1.783    1.00%       0.313      0.795
+     P5                    0.007       1.054      -1.149    7.00%      -0.845     -0.463     -0.199
+             100.000       0.897       0.848       3.259    1.00%       0.065      0.752
+     RT_INV               -2.643       0.102      -4.000    0.03%      -3.030     -2.762     -2.646
+           14751.000       0.225       0.183      -1.031    0.01%      -2.532     -2.268
+     COND                  0.502      -0.007       0.000   49.82%       0.000      0.000      1.000
+           15504.000       0.250      -2.000       1.000   50.18%       1.000      1.000
+     BLOCK                 0.499       0.003       0.000   50.08%       0.000      0.000      0.000
+           15504.000       0.250      -2.000       1.000   49.92%       1.000      1.000
+     PREV_RT_Z            -0.020       1.617      -2.625    0.01%      -0.751     -0.367     -0.187
+           15504.000       0.979       4.909       6.508    0.01%       0.017      0.559
+     PREV_ERROR            0.035       5.048       0.000   96.48%       0.000      0.000      0.000
+           15504.000       0.034      23.484       1.000    3.52%       0.000      0.000
+     TRIAL_Z               0.009       0.002      -1.700    0.63%      -1.028     -0.336     -0.011
+           15504.000       0.995      -1.205       1.721    0.63%       0.357      1.050
+     RUN_TRIAL_Z           0.043      -0.001      -1.582    2.56%      -0.984     -0.299      0.043
+           15504.000       0.927      -1.202       1.668    2.57%       0.385      1.069
+     COND_BLOCK            0.151       1.954       0.000   84.95%       0.000      0.000      0.000
+           15504.000       0.128       1.820       1.000   15.05%       0.000      0.000
+
+
+     THE CONVERGENCE CRITERION IS NOT SATISFIED.
+     INCREASE THE MAXIMUM NUMBER OF ITERATIONS OR INCREASE
+     THE CONVERGENCE CRITERION.
+
+
+
+
+
+
+MODEL RESULTS
+
+                    Estimate
+
+Within Level
+
+ RT_INV     ON
+    BLOCK              0.024
+    COND_BLOCK         0.054
+
+ Residual Variances
+    RT_INV             0.117
+
+Between Level
+
+ AGENTIC  BY
+    MPS_SPR           -0.837
+    EXHIB             -0.831
+    ENTITL            -0.640
+
+ AFFILIAT BY
+    MPS_SCR            0.852
+    DETACH             1.037
+
+ ANTAG    BY
+    P5                 1.000
+    P1             *********
+    MANIP          *********
+
+ INHIB    BY
+    P2                 1.000
+    P3               -23.328
+    P4                66.942
+
+ CONDSLO    ON
+    ANTAG          14344.605
+    INHIB            -14.016
+    AGENTIC           -0.014
+    AFFILIAT           0.020
+
+ PREVSLO    ON
+    ANTAG          61859.852
+    INHIB            -84.133
+    AGENTIC           -0.042
+    AFFILIAT           0.014
+
+ RT_INV     ON
+    ANTAG          *********
+    INHIB            614.135
+    AGENTIC            0.478
+    AFFILIAT          -0.266
+
+ CONDSLO  WITH
+    RUNSLO             0.000
+    TRIALSLO          -0.001
+    PREVSLO           -0.001
+    ERRSLO            -0.002
+
+ RUNSLO   WITH
+    TRIALSLO           0.000
+    PREVSLO            0.000
+    ERRSLO             0.000
+
+ TRIALSLO WITH
+    PREVSLO           -0.001
+    ERRSLO             0.000
+
+ PREVSLO  WITH
+    ERRSLO             0.003
+
+ ANTAG    WITH
+    INHIB              0.000
+    AGENTIC            0.000
+    AFFILIAT           0.000
+
+ INHIB    WITH
+    AGENTIC            0.000
+    AFFILIAT           0.001
+
+ AGENTIC  WITH
+    AFFILIAT           0.571
+
+ Means
+    ERRSLO             0.242
+    RUNSLO            -0.001
+    TRIALSLO          -0.026
+
+ Intercepts
+    EXHIB              0.005
+    ENTITL            -0.073
+    DETACH            -0.103
+    MPS_SPR           -0.014
+    MPS_SCR           -0.030
+    MANIP             -0.030
+    P1                -0.182
+    P2                 0.109
+    P3                -0.106
+    P4                 0.046
+    P5                 0.141
+    RT_INV            -2.700
+    CONDSLO            0.109
+    PREVSLO            0.142
+
+ Variances
+    AGENTIC            1.000
+    AFFILIAT           1.000
+    ANTAG              0.000
+    INHIB              0.000
+    ERRSLO             0.025
+    RUNSLO             0.001
+    TRIALSLO           0.003
+
+ Residual Variances
+    EXHIB              0.337
+    ENTITL             0.831
+    DETACH             0.070
+    MPS_SPR            0.375
+    MPS_SCR            0.373
+    MANIP              0.695
+    P1                 0.322
+    P2                 0.778
+    P3                 0.971
+    P4                 0.794
+    P5                 0.914
+    RT_INV             0.027
+    CONDSLO            0.003
+    PREVSLO            0.005
+
+
+MODEL COMMAND WITH FINAL ESTIMATES USED AS STARTING VALUES
+
+     %WITHIN%
+
+     condslo | rt_inv ON cond;
+     prevslo | rt_inv ON prev_rt_z;
+     errslo | rt_inv ON prev_error;
+     runslo | rt_inv ON run_trial_z;
+     trialslo | rt_inv ON trial_z;
+
+     rt_inv ON block*0.02371;
+     rt_inv ON cond_block*0.05359;
+
+     rt_inv*0.11715;
+
+     %BETWEEN%
+
+     agentic BY mps_spr*-0.83661;
+     agentic BY exhib*-0.83083;
+     agentic BY entitl*-0.63989;
+     affiliat BY mps_scr*0.85154;
+     affiliat BY detach*1.03692;
+     antag BY p5@1;
+     antag BY p1*324771.09375;
+     antag BY manip*215364.43750;
+     inhib BY p2@1;
+     inhib BY p3*-23.32804;
+     inhib BY p4*66.94189;
+
+     condslo ON antag*14344.60547;
+     condslo ON inhib*-14.01601;
+     condslo ON agentic*-0.01427;
+     condslo ON affiliat*0.02044;
+     prevslo ON antag*61859.85156;
+     prevslo ON inhib*-84.13325;
+     prevslo ON agentic*-0.04205;
+     prevslo ON affiliat*0.01402;
+     rt_inv ON antag*-427369.31250;
+     rt_inv ON inhib*614.13489;
+     rt_inv ON agentic*0.47828;
+     rt_inv ON affiliat*-0.26579;
+
+     condslo WITH runslo*-0.00012;
+     condslo WITH trialslo*-0.00089;
+     condslo WITH prevslo*-0.00127;
+     condslo WITH errslo*-0.00197;
+     runslo WITH trialslo*0.00015;
+     runslo WITH prevslo*-0.00013;
+     runslo WITH errslo*0.00033;
+     trialslo WITH prevslo*-0.00066;
+     trialslo WITH errslo*-0.00029;
+     prevslo WITH errslo*0.00341;
+     antag WITH inhib*0.00000;
+     antag WITH agentic*0.00000;
+     antag WITH affiliat*0.00000;
+     inhib WITH agentic*-0.00040;
+     inhib WITH affiliat*0.00108;
+     agentic WITH affiliat*0.57111;
+
+     [ exhib*0.00519 ];
+     [ entitl*-0.07346 ];
+     [ detach*-0.10258 ];
+     [ mps_spr*-0.01447 ];
+     [ mps_scr*-0.02991 ];
+     [ manip*-0.02978 ];
+     [ p1*-0.18151 ];
+     [ p2*0.10913 ];
+     [ p3*-0.10582 ];
+     [ p4*0.04598 ];
+     [ p5*0.14091 ];
+     [ rt_inv*-2.69958 ];
+     [ condslo*0.10852 ];
+     [ prevslo*0.14182 ];
+     [ errslo*0.24157 ];
+     [ runslo*-0.00069 ];
+     [ trialslo*-0.02616 ];
+
+     exhib*0.33698;
+     entitl*0.83072;
+     detach*0.06978;
+     mps_spr*0.37502;
+     mps_scr*0.37342;
+     manip*0.69463;
+     p1*0.32236;
+     p2*0.77758;
+     p3*0.97061;
+     p4*0.79439;
+     p5*0.91389;
+     rt_inv*0.02717;
+     agentic@1;
+     affiliat@1;
+     antag*0.00000;
+     inhib*0.00000;
+     condslo*0.00275;
+     prevslo*0.00470;
+     errslo*0.02516;
+     runslo*0.00088;
+     trialslo*0.00257;
+
+
+
+TECHNICAL 1 OUTPUT
+
+
+     PARAMETER SPECIFICATION FOR WITHIN
+
+
+           NU
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           NU
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+                    0             0             0
+
+
+           LAMBDA
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ RT_INV             0             0             0             0             0
+ COND               0             0             0             0             0
+ BLOCK              0             0             0             0             0
+ PREV_RT_           0             0             0             0             0
+ PREV_ERR           0             0             0             0             0
+ TRIAL_Z            0             0             0             0             0
+ RUN_TRIA           0             0             0             0             0
+ COND_BLO           0             0             0             0             0
+
+
+           LAMBDA
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+ RT_INV             0             0             0
+ COND               0             0             0
+ BLOCK              0             0             0
+ PREV_RT_           0             0             0
+ PREV_ERR           0             0             0
+ TRIAL_Z            0             0             0
+ RUN_TRIA           0             0             0
+ COND_BLO           0             0             0
+
+
+           THETA
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ RT_INV             0
+ COND               0             0
+ BLOCK              0             0             0
+ PREV_RT_           0             0             0             0
+ PREV_ERR           0             0             0             0             0
+ TRIAL_Z            0             0             0             0             0
+ RUN_TRIA           0             0             0             0             0
+ COND_BLO           0             0             0             0             0
+
+
+           THETA
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+ TRIAL_Z            0
+ RUN_TRIA           0             0
+ COND_BLO           0             0             0
+
+
+           ALPHA
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           ALPHA
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+                    0             0             0
+
+
+           BETA
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ RT_INV             0             0             1             0             0
+ COND               0             0             0             0             0
+ BLOCK              0             0             0             0             0
+ PREV_RT_           0             0             0             0             0
+ PREV_ERR           0             0             0             0             0
+ TRIAL_Z            0             0             0             0             0
+ RUN_TRIA           0             0             0             0             0
+ COND_BLO           0             0             0             0             0
+
+
+           BETA
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+ RT_INV             0             0             2
+ COND               0             0             0
+ BLOCK              0             0             0
+ PREV_RT_           0             0             0
+ PREV_ERR           0             0             0
+ TRIAL_Z            0             0             0
+ RUN_TRIA           0             0             0
+ COND_BLO           0             0             0
+
+
+           PSI
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ RT_INV             3
+ COND               0             0
+ BLOCK              0             0             0
+ PREV_RT_           0             0             0             0
+ PREV_ERR           0             0             0             0             0
+ TRIAL_Z            0             0             0             0             0
+ RUN_TRIA           0             0             0             0             0
+ COND_BLO           0             0             0             0             0
+
+
+           PSI
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+ TRIAL_Z            0
+ RUN_TRIA           0             0
+ COND_BLO           0             0             0
+
+
+     PARAMETER SPECIFICATION FOR BETWEEN
+
+
+           NU
+              EXHIB         ENTITL        DETACH        MPS_SPR       MPS_SCR
+              ________      ________      ________      ________      ________
+                    4             5             6             7             8
+
+
+           NU
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+                    9            10            11            12            13
+
+
+           NU
+              P5            RT_INV
+              ________      ________
+                   14             0
+
+
+           LAMBDA
+              AGENTIC       AFFILIAT      ANTAG         INHIB         CONDSLO
+              ________      ________      ________      ________      ________
+ EXHIB             15             0             0             0             0
+ ENTITL            16             0             0             0             0
+ DETACH             0            17             0             0             0
+ MPS_SPR           18             0             0             0             0
+ MPS_SCR            0            19             0             0             0
+ MANIP              0             0            20             0             0
+ P1                 0             0            21             0             0
+ P2                 0             0             0             0             0
+ P3                 0             0             0            22             0
+ P4                 0             0             0            23             0
+ P5                 0             0             0             0             0
+ RT_INV             0             0             0             0             0
+
+
+           LAMBDA
+              PREVSLO       ERRSLO        RUNSLO        TRIALSLO      RT_INV
+              ________      ________      ________      ________      ________
+ EXHIB              0             0             0             0             0
+ ENTITL             0             0             0             0             0
+ DETACH             0             0             0             0             0
+ MPS_SPR            0             0             0             0             0
+ MPS_SCR            0             0             0             0             0
+ MANIP              0             0             0             0             0
+ P1                 0             0             0             0             0
+ P2                 0             0             0             0             0
+ P3                 0             0             0             0             0
+ P4                 0             0             0             0             0
+ P5                 0             0             0             0             0
+ RT_INV             0             0             0             0             0
+
+
+           THETA
+              EXHIB         ENTITL        DETACH        MPS_SPR       MPS_SCR
+              ________      ________      ________      ________      ________
+ EXHIB             24
+ ENTITL             0            25
+ DETACH             0             0            26
+ MPS_SPR            0             0             0            27
+ MPS_SCR            0             0             0             0            28
+ MANIP              0             0             0             0             0
+ P1                 0             0             0             0             0
+ P2                 0             0             0             0             0
+ P3                 0             0             0             0             0
+ P4                 0             0             0             0             0
+ P5                 0             0             0             0             0
+ RT_INV             0             0             0             0             0
+
+
+           THETA
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+ MANIP             29
+ P1                 0            30
+ P2                 0             0            31
+ P3                 0             0             0            32
+ P4                 0             0             0             0            33
+ P5                 0             0             0             0             0
+ RT_INV             0             0             0             0             0
+
+
+           THETA
+              P5            RT_INV
+              ________      ________
+ P5                34
+ RT_INV             0             0
+
+
+           ALPHA
+              AGENTIC       AFFILIAT      ANTAG         INHIB         CONDSLO
+              ________      ________      ________      ________      ________
+                    0             0             0             0            35
+
+
+           ALPHA
+              PREVSLO       ERRSLO        RUNSLO        TRIALSLO      RT_INV
+              ________      ________      ________      ________      ________
+                   36            37            38            39            40
+
+
+           BETA
+              AGENTIC       AFFILIAT      ANTAG         INHIB         CONDSLO
+              ________      ________      ________      ________      ________
+ AGENTIC            0             0             0             0             0
+ AFFILIAT           0             0             0             0             0
+ ANTAG              0             0             0             0             0
+ INHIB              0             0             0             0             0
+ CONDSLO           41            42            43            44             0
+ PREVSLO           45            46            47            48             0
+ ERRSLO             0             0             0             0             0
+ RUNSLO             0             0             0             0             0
+ TRIALSLO           0             0             0             0             0
+ RT_INV            49            50            51            52             0
+
+
+           BETA
+              PREVSLO       ERRSLO        RUNSLO        TRIALSLO      RT_INV
+              ________      ________      ________      ________      ________
+ AGENTIC            0             0             0             0             0
+ AFFILIAT           0             0             0             0             0
+ ANTAG              0             0             0             0             0
+ INHIB              0             0             0             0             0
+ CONDSLO            0             0             0             0             0
+ PREVSLO            0             0             0             0             0
+ ERRSLO             0             0             0             0             0
+ RUNSLO             0             0             0             0             0
+ TRIALSLO           0             0             0             0             0
+ RT_INV             0             0             0             0             0
+
+
+           PSI
+              AGENTIC       AFFILIAT      ANTAG         INHIB         CONDSLO
+              ________      ________      ________      ________      ________
+ AGENTIC            0
+ AFFILIAT          53             0
+ ANTAG             54            55            56
+ INHIB             57            58            59            60
+ CONDSLO            0             0             0             0            61
+ PREVSLO            0             0             0             0            62
+ ERRSLO             0             0             0             0            64
+ RUNSLO             0             0             0             0            67
+ TRIALSLO           0             0             0             0            71
+ RT_INV             0             0             0             0             0
+
+
+           PSI
+              PREVSLO       ERRSLO        RUNSLO        TRIALSLO      RT_INV
+              ________      ________      ________      ________      ________
+ PREVSLO           63
+ ERRSLO            65            66
+ RUNSLO            68            69            70
+ TRIALSLO          72            73            74            75
+ RT_INV             0             0             0             0            76
+
+
+     STARTING VALUES FOR WITHIN
+
+
+           NU
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           NU
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+                0.000         0.000         0.000
+
+
+           LAMBDA
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ RT_INV         1.000         0.000         0.000         0.000         0.000
+ COND           0.000         1.000         0.000         0.000         0.000
+ BLOCK          0.000         0.000         1.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000         1.000         0.000
+ PREV_ERR       0.000         0.000         0.000         0.000         1.000
+ TRIAL_Z        0.000         0.000         0.000         0.000         0.000
+ RUN_TRIA       0.000         0.000         0.000         0.000         0.000
+ COND_BLO       0.000         0.000         0.000         0.000         0.000
+
+
+           LAMBDA
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+ RT_INV         0.000         0.000         0.000
+ COND           0.000         0.000         0.000
+ BLOCK          0.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000
+ PREV_ERR       0.000         0.000         0.000
+ TRIAL_Z        1.000         0.000         0.000
+ RUN_TRIA       0.000         1.000         0.000
+ COND_BLO       0.000         0.000         1.000
+
+
+           THETA
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ RT_INV         0.000
+ COND           0.000         0.000
+ BLOCK          0.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000         0.000
+ PREV_ERR       0.000         0.000         0.000         0.000         0.000
+ TRIAL_Z        0.000         0.000         0.000         0.000         0.000
+ RUN_TRIA       0.000         0.000         0.000         0.000         0.000
+ COND_BLO       0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+ TRIAL_Z        0.000
+ RUN_TRIA       0.000         0.000
+ COND_BLO       0.000         0.000         0.000
+
+
+           ALPHA
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+                0.000         0.000         0.000
+
+
+           BETA
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ RT_INV         0.000         0.000         0.000         0.000         0.000
+ COND           0.000         0.000         0.000         0.000         0.000
+ BLOCK          0.000         0.000         0.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000         0.000         0.000
+ PREV_ERR       0.000         0.000         0.000         0.000         0.000
+ TRIAL_Z        0.000         0.000         0.000         0.000         0.000
+ RUN_TRIA       0.000         0.000         0.000         0.000         0.000
+ COND_BLO       0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+ RT_INV         0.000         0.000         0.000
+ COND           0.000         0.000         0.000
+ BLOCK          0.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000
+ PREV_ERR       0.000         0.000         0.000
+ TRIAL_Z        0.000         0.000         0.000
+ RUN_TRIA       0.000         0.000         0.000
+ COND_BLO       0.000         0.000         0.000
+
+
+           PSI
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ RT_INV         0.113
+ COND           0.000         0.125
+ BLOCK          0.000         0.000         0.125
+ PREV_RT_       0.000         0.000         0.000         0.489
+ PREV_ERR       0.000         0.000         0.000         0.000         0.017
+ TRIAL_Z        0.000         0.000         0.000         0.000         0.000
+ RUN_TRIA       0.000         0.000         0.000         0.000         0.000
+ COND_BLO       0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+ TRIAL_Z        0.497
+ RUN_TRIA       0.000         0.464
+ COND_BLO       0.000         0.000         0.064
+
+
+     STARTING VALUES FOR BETWEEN
+
+
+           NU
+              EXHIB         ENTITL        DETACH        MPS_SPR       MPS_SCR
+              ________      ________      ________      ________      ________
+                0.015        -0.007         0.007        -0.005        -0.006
+
+
+           NU
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+                0.015         0.014        -0.004         0.014         0.008
+
+
+           NU
+              P5            RT_INV
+              ________      ________
+                0.003         0.000
+
+
+           LAMBDA
+              AGENTIC       AFFILIAT      ANTAG         INHIB         CONDSLO
+              ________      ________      ________      ________      ________
+ EXHIB          1.000         0.000         0.000         0.000         0.000
+ ENTITL         1.000         0.000         0.000         0.000         0.000
+ DETACH         0.000         1.000         0.000         0.000         0.000
+ MPS_SPR        1.000         0.000         0.000         0.000         0.000
+ MPS_SCR        0.000         1.000         0.000         0.000         0.000
+ MANIP          0.000         0.000         1.000         0.000         0.000
+ P1             0.000         0.000         1.000         0.000         0.000
+ P2             0.000         0.000         0.000         1.000         0.000
+ P3             0.000         0.000         0.000         1.000         0.000
+ P4             0.000         0.000         0.000         1.000         0.000
+ P5             0.000         0.000         1.000         0.000         0.000
+ RT_INV         0.000         0.000         0.000         0.000         0.000
+
+
+           LAMBDA
+              PREVSLO       ERRSLO        RUNSLO        TRIALSLO      RT_INV
+              ________      ________      ________      ________      ________
+ EXHIB          0.000         0.000         0.000         0.000         0.000
+ ENTITL         0.000         0.000         0.000         0.000         0.000
+ DETACH         0.000         0.000         0.000         0.000         0.000
+ MPS_SPR        0.000         0.000         0.000         0.000         0.000
+ MPS_SCR        0.000         0.000         0.000         0.000         0.000
+ MANIP          0.000         0.000         0.000         0.000         0.000
+ P1             0.000         0.000         0.000         0.000         0.000
+ P2             0.000         0.000         0.000         0.000         0.000
+ P3             0.000         0.000         0.000         0.000         0.000
+ P4             0.000         0.000         0.000         0.000         0.000
+ P5             0.000         0.000         0.000         0.000         0.000
+ RT_INV         0.000         0.000         0.000         0.000         1.000
+
+
+           THETA
+              EXHIB         ENTITL        DETACH        MPS_SPR       MPS_SCR
+              ________      ________      ________      ________      ________
+ EXHIB          0.506
+ ENTITL         0.000         0.511
+ DETACH         0.000         0.000         0.512
+ MPS_SPR        0.000         0.000         0.000         0.511
+ MPS_SCR        0.000         0.000         0.000         0.000         0.512
+ MANIP          0.000         0.000         0.000         0.000         0.000
+ P1             0.000         0.000         0.000         0.000         0.000
+ P2             0.000         0.000         0.000         0.000         0.000
+ P3             0.000         0.000         0.000         0.000         0.000
+ P4             0.000         0.000         0.000         0.000         0.000
+ P5             0.000         0.000         0.000         0.000         0.000
+ RT_INV         0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+ MANIP          0.500
+ P1             0.000         0.441
+ P2             0.000         0.000         0.417
+ P3             0.000         0.000         0.000         0.442
+ P4             0.000         0.000         0.000         0.000         0.452
+ P5             0.000         0.000         0.000         0.000         0.000
+ RT_INV         0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              P5            RT_INV
+              ________      ________
+ P5             0.444
+ RT_INV         0.000         0.000
+
+
+           ALPHA
+              AGENTIC       AFFILIAT      ANTAG         INHIB         CONDSLO
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              PREVSLO       ERRSLO        RUNSLO        TRIALSLO      RT_INV
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000        -2.643
+
+
+           BETA
+              AGENTIC       AFFILIAT      ANTAG         INHIB         CONDSLO
+              ________      ________      ________      ________      ________
+ AGENTIC        0.000         0.000         0.000         0.000         0.000
+ AFFILIAT       0.000         0.000         0.000         0.000         0.000
+ ANTAG          0.000         0.000         0.000         0.000         0.000
+ INHIB          0.000         0.000         0.000         0.000         0.000
+ CONDSLO        0.000         0.000         0.000         0.000         0.000
+ PREVSLO        0.000         0.000         0.000         0.000         0.000
+ ERRSLO         0.000         0.000         0.000         0.000         0.000
+ RUNSLO         0.000         0.000         0.000         0.000         0.000
+ TRIALSLO       0.000         0.000         0.000         0.000         0.000
+ RT_INV         0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              PREVSLO       ERRSLO        RUNSLO        TRIALSLO      RT_INV
+              ________      ________      ________      ________      ________
+ AGENTIC        0.000         0.000         0.000         0.000         0.000
+ AFFILIAT       0.000         0.000         0.000         0.000         0.000
+ ANTAG          0.000         0.000         0.000         0.000         0.000
+ INHIB          0.000         0.000         0.000         0.000         0.000
+ CONDSLO        0.000         0.000         0.000         0.000         0.000
+ PREVSLO        0.000         0.000         0.000         0.000         0.000
+ ERRSLO         0.000         0.000         0.000         0.000         0.000
+ RUNSLO         0.000         0.000         0.000         0.000         0.000
+ TRIALSLO       0.000         0.000         0.000         0.000         0.000
+ RT_INV         0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              AGENTIC       AFFILIAT      ANTAG         INHIB         CONDSLO
+              ________      ________      ________      ________      ________
+ AGENTIC        1.000
+ AFFILIAT       0.000         1.000
+ ANTAG          0.000         0.000         1.000
+ INHIB          0.000         0.000         0.000         1.000
+ CONDSLO        0.000         0.000         0.000         0.000         1.000
+ PREVSLO        0.000         0.000         0.000         0.000         0.000
+ ERRSLO         0.000         0.000         0.000         0.000         0.000
+ RUNSLO         0.000         0.000         0.000         0.000         0.000
+ TRIALSLO       0.000         0.000         0.000         0.000         0.000
+ RT_INV         0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              PREVSLO       ERRSLO        RUNSLO        TRIALSLO      RT_INV
+              ________      ________      ________      ________      ________
+ PREVSLO        1.000
+ ERRSLO         0.000         1.000
+ RUNSLO         0.000         0.000         1.000
+ TRIALSLO       0.000         0.000         0.000         1.000
+ RT_INV         0.000         0.000         0.000         0.000         0.113
+
+
+
+     PRIORS FOR ALL PARAMETERS            PRIOR MEAN      PRIOR VARIANCE     PRIOR STD. DEV.
+
+     Parameter 1~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 2~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 3~IG(-1.000,0.000)          infinity            infinity            infinity
+     Parameter 4~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 5~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 6~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 7~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 8~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 9~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 10~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 11~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 12~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 13~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 14~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 15~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 16~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 17~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 18~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 19~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 20~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 21~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 22~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 23~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 24~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 25~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 26~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 27~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 28~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 29~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 30~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 31~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 32~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 33~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 34~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 35~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 36~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 37~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 38~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 39~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 40~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 41~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 42~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 43~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 44~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 45~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 46~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 47~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 48~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 49~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 50~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 51~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 52~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 53~IW(0.000,-5)
+     Parameter 54~IW(0.000,-5)
+     Parameter 55~IW(0.000,-5)
+     Parameter 56~IW(0.000,-5)
+     Parameter 57~IW(0.000,-5)
+     Parameter 58~IW(0.000,-5)
+     Parameter 59~IW(0.000,-5)
+     Parameter 60~IW(0.000,-5)
+     Parameter 61~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 62~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 63~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 64~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 65~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 66~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 67~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 68~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 69~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 70~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 71~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 72~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 73~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 74~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 75~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 76~IG(-1.000,0.000)         infinity            infinity            infinity
+
+
+TECHNICAL 8 OUTPUT
+
+
+   TECHNICAL 8 OUTPUT FOR BAYES ESTIMATION
+
+     CHAIN    BSEED
+     1        0
+     2        285380
+     3        253358
+     4        93468
+
+                     POTENTIAL       PARAMETER WITH
+     ITERATION    SCALE REDUCTION      HIGHEST PSR
+     100              1.738               22
+     200              1.437               6
+     300              1.224               22
+     400              1.266               24
+     500              1.125               6
+     600              1.152               26
+     700              1.211               21
+     800              1.294               56
+     900              1.421               56
+     1000             1.474               56
+     1100             1.544               56
+     1200             1.549               56
+     1300             1.587               56
+     1400             1.576               55
+     1500             1.630               55
+     1600             1.757               55
+     1700             1.801               55
+     1800             1.832               55
+     1900             1.745               55
+     2000             1.657               20
+     2100             1.608               55
+     2200             1.597               55
+     2300             1.632               20
+     2400             1.727               20
+     2500             1.779               20
+     2600             1.679               20
+     2700             1.721               55
+     2800             1.797               55
+     2900             1.868               55
+     3000             1.982               55
+     3100             1.998               55
+     3200             2.078               55
+     3300             2.115               55
+     3400             2.112               55
+     3500             2.174               55
+     3600             2.207               55
+     3700             2.229               55
+     3800             2.221               55
+     3900             2.230               55
+     4000             2.239               55
+     4100             2.221               55
+     4200             2.189               55
+     4300             2.174               55
+     4400             2.114               55
+     4500             2.047               55
+     4600             1.964               55
+     4700             1.889               55
+     4800             1.834               60
+     4900             1.853               60
+     5000             1.867               60
+     5100             1.868               60
+     5200             1.883               60
+     5300             1.874               60
+     5400             1.887               60
+     5500             1.894               60
+     5600             1.887               60
+     5700             1.877               60
+     5800             1.879               60
+     5900             1.867               60
+     6000             1.864               60
+     6100             1.869               60
+     6200             1.853               60
+     6300             1.849               60
+     6400             1.858               60
+     6500             1.860               60
+     6600             1.864               60
+     6700             1.868               60
+     6800             1.859               60
+     6900             1.870               55
+     7000             1.876               55
+     7100             1.920               56
+     7200             1.977               56
+     7300             2.040               56
+     7400             2.108               56
+     7500             2.144               56
+     7600             2.172               56
+     7700             2.235               56
+     7800             2.304               56
+     7900             2.370               56
+     8000             2.490               56
+     8100             2.537               55
+     8200             2.540               55
+     8300             2.467               55
+     8400             2.367               55
+     8500             2.305               55
+     8600             2.211               55
+     8700             2.170               55
+     8800             2.114               55
+     8900             2.057               55
+     9000             1.997               55
+     9100             1.957               55
+     9200             1.972               60
+     9300             1.989               60
+     9400             1.993               60
+     9500             1.989               60
+     9600             1.993               60
+     9700             2.002               60
+     9800             2.003               60
+     9900             1.976               60
+     10000            1.976               60
+     10100            1.975               60
+     10200            1.975               60
+     10300            1.970               60
+     10400            1.967               60
+     10500            1.970               60
+     10600            1.971               60
+     10700            1.966               60
+     10800            1.972               60
+     10900            1.976               60
+     11000            1.975               60
+     11100            1.963               60
+     11200            1.966               60
+     11300            1.932               60
+     11400            1.910               60
+     11500            1.841               60
+     11600            1.819               60
+     11700            1.791               60
+     11800            1.761               60
+     11900            1.740               60
+     12000            1.689               60
+     12100            1.672               60
+     12200            1.632               60
+     12300            1.608               60
+     12400            1.600               60
+     12500            1.576               60
+     12600            1.538               60
+     12700            1.533               57
+     12800            1.537               57
+     12900            1.539               57
+     13000            1.539               57
+     13100            1.540               57
+     13200            1.540               57
+     13300            1.543               57
+     13400            1.548               57
+     13500            1.549               57
+     13600            1.553               57
+     13700            1.567               15
+     13800            1.588               15
+     13900            1.608               15
+     14000            1.630               15
+     14100            1.653               15
+     14200            1.677               15
+     14300            1.700               15
+     14400            1.725               15
+     14500            1.750               15
+     14600            1.774               15
+     14700            1.802               15
+     14800            1.830               15
+     14900            1.858               15
+     15000            1.888               15
+     15100            1.920               15
+     15200            1.953               15
+     15300            1.991               15
+     15400            2.029               15
+     15500            2.067               15
+     15600            2.109               15
+     15700            2.151               15
+     15800            2.196               15
+     15900            2.243               15
+     16000            2.291               15
+     16100            2.346               15
+     16200            2.408               15
+     16300            2.468               15
+     16400            2.535               15
+     16500            2.611               15
+     16600            2.689               15
+     16700            2.770               15
+     16800            2.853               15
+     16900            2.952               15
+     17000            3.055               15
+     17100            3.177               15
+     17200            3.308               15
+     17300            3.450               15
+     17400            3.615               15
+     17500            3.903               15
+     17600            4.155               15
+     17700            4.454               15
+     17800            4.821               15
+     17900            5.280               15
+     18000            5.903               15
+     18100            6.900               15
+     18200            8.005               15
+     18300            8.018               15
+     18400            8.025               15
+     18500            8.020               15
+     18600            8.016               15
+     18700            8.012               15
+     18800            8.017               15
+     18900            8.004               15
+     19000            8.010               15
+     19100            8.020               15
+     19200            8.020               15
+     19300            8.018               15
+     19400            8.015               15
+     19500            8.010               15
+     19600            8.020               15
+     19700            8.018               15
+     19800            8.009               15
+     19900            8.006               15
+     20000            8.016               15
+     20100            8.022               15
+     20200            8.019               15
+     20300            8.025               15
+     20400            8.023               15
+     20500            8.021               15
+     20600            8.024               15
+     20700            8.026               15
+     20800            8.041               15
+     20900            8.045               15
+     21000            8.047               15
+     21100            8.049               15
+     21200            8.083               15
+     21300            8.086               15
+     21400            8.077               15
+     21500            8.081               15
+     21600            8.074               15
+     21700            8.064               15
+     21800            8.070               15
+     21900            8.062               15
+     22000            8.067               15
+     22100            8.072               15
+     22200            8.072               15
+     22300            8.063               15
+     22400            8.063               15
+     22500            8.071               15
+     22600            8.075               15
+     22700            8.073               15
+     22800            8.076               15
+     22900            8.088               15
+     23000            8.082               15
+     23100            8.079               15
+     23200            8.080               15
+     23300            8.084               15
+     23400            8.085               15
+     23500            8.093               15
+     23600            8.101               15
+     23700            8.100               15
+     23800            8.116               15
+     23900            8.126               15
+     24000            8.131               15
+     24100            8.164               15
+     24200            8.195               15
+     24300            8.226               15
+     24400            8.229               15
+     24500            8.254               15
+     24600            8.246               15
+     24700            8.244               15
+     24800            8.248               15
+     24900            8.254               15
+     25000            8.259               15
+     25100            8.250               15
+     25200            8.250               15
+     25300            8.248               15
+     25400            8.248               15
+     25500            8.250               15
+     25600            8.253               15
+     25700            8.251               15
+     25800            8.243               15
+     25900            8.243               15
+     26000            8.236               15
+     26100            8.220               15
+     26200            8.217               15
+     26300            8.223               15
+     26400            8.225               15
+     26500            8.215               15
+     26600            8.217               15
+     26700            8.213               15
+     26800            8.226               15
+     26900            8.224               15
+     27000            8.230               15
+     27100            8.229               15
+     27200            8.231               15
+     27300            8.236               15
+     27400            8.235               15
+     27500            8.238               15
+     27600            8.181               15
+     27700            8.179               15
+     27800            8.174               15
+     27900            8.178               15
+     28000            8.181               15
+     28100            8.184               15
+     28200            8.186               15
+     28300            8.179               15
+     28400            8.172               15
+     28500            8.168               15
+     28600            8.180               15
+     28700            8.172               15
+     28800            8.174               15
+     28900            8.168               15
+     29000            8.170               15
+     29100            8.166               15
+     29200            8.166               15
+     29300            8.171               15
+     29400            8.179               15
+     29500            8.187               15
+     29600            8.189               15
+     29700            8.183               15
+     29800            8.207               15
+     29900            8.202               15
+     30000            8.207               15
+     30100            8.211               15
+     30200            8.212               15
+     30300            8.216               15
+     30400            8.218               15
+     30500            8.221               15
+     30600            8.221               15
+     30700            8.224               15
+     30800            8.232               15
+     30900            8.230               15
+     31000            8.225               15
+     31100            8.221               15
+     31200            8.228               15
+     31300            8.226               15
+     31400            8.226               15
+     31500            8.228               15
+     31600            8.229               15
+     31700            8.234               15
+     31800            8.231               15
+     31900            8.234               15
+     32000            8.241               15
+     32100            8.244               15
+     32200            8.249               15
+     32300            8.236               15
+     32400            8.232               15
+     32500            8.237               15
+     32600            8.240               15
+     32700            8.241               15
+     32800            8.239               15
+     32900            8.234               15
+     33000            8.240               15
+     33100            8.240               15
+     33200            8.236               15
+     33300            8.240               15
+     33400            8.242               15
+     33500            8.239               15
+     33600            8.242               15
+     33700            8.237               15
+     33800            8.232               15
+     33900            8.240               15
+     34000            8.229               15
+     34100            8.231               15
+     34200            8.232               15
+     34300            8.232               15
+     34400            8.240               15
+     34500            8.248               15
+     34600            8.248               15
+     34700            8.242               15
+     34800            8.235               15
+     34900            8.233               15
+     35000            8.230               15
+     35100            8.230               15
+     35200            8.224               15
+     35300            8.226               15
+     35400            8.217               15
+     35500            8.214               15
+     35600            8.211               15
+     35700            8.207               15
+     35800            8.213               15
+     35900            8.207               15
+     36000            8.209               15
+     36100            8.211               15
+     36200            8.204               15
+     36300            8.201               15
+     36400            8.200               15
+     36500            8.198               15
+     36600            8.200               15
+     36700            8.196               15
+     36800            8.195               15
+     36900            8.186               15
+     37000            8.192               15
+     37100            8.180               15
+     37200            8.173               15
+     37300            8.162               15
+     37400            8.169               15
+     37500            8.173               15
+     37600            8.171               15
+     37700            8.174               15
+     37800            8.185               15
+     37900            8.179               15
+     38000            8.180               15
+     38100            8.180               15
+     38200            8.176               15
+     38300            8.176               15
+     38400            8.175               15
+     38500            8.171               15
+     38600            8.169               15
+     38700            8.174               15
+     38800            8.172               15
+     38900            8.176               15
+     39000            8.173               15
+     39100            8.173               15
+     39200            8.172               15
+     39300            8.176               15
+     39400            8.180               15
+     39500            8.184               15
+     39600            8.190               15
+     39700            8.178               15
+     39800            8.180               15
+     39900            8.172               15
+     40000            8.174               15
+     40100            8.170               15
+     40200            8.155               15
+     40300            8.165               15
+     40400            8.160               15
+     40500            8.165               15
+     40600            8.155               15
+     40700            8.157               15
+     40800            8.147               15
+     40900            8.145               15
+     41000            8.150               15
+     41100            8.155               15
+     41200            8.148               15
+     41300            8.154               15
+     41400            8.153               15
+     41500            8.156               15
+     41600            8.152               15
+     41700            8.149               15
+     41800            8.151               15
+     41900            8.150               15
+     42000            8.151               15
+     42100            8.151               15
+     42200            8.145               15
+     42300            8.142               15
+     42400            8.143               15
+     42500            8.143               15
+     42600            8.141               15
+     42700            8.146               15
+     42800            8.145               15
+     42900            8.149               15
+     43000            8.150               15
+     43100            8.150               15
+     43200            8.154               15
+     43300            8.159               15
+     43400            8.151               15
+     43500            8.152               15
+     43600            8.152               15
+     43700            8.149               15
+     43800            8.151               15
+     43900            8.152               15
+     44000            8.152               15
+     44100            8.152               15
+     44200            8.155               15
+     44300            8.154               15
+     44400            8.150               15
+     44500            8.144               15
+     44600            8.145               15
+     44700            8.146               15
+     44800            8.147               15
+     44900            8.149               15
+     45000            8.146               15
+     45100            8.150               15
+     45200            8.144               15
+     45300            8.142               15
+     45400            8.139               15
+     45500            8.134               15
+     45600            8.135               15
+     45700            8.131               15
+     45800            8.130               15
+     45900            8.132               15
+     46000            8.131               15
+     46100            8.127               15
+     46200            8.124               15
+     46300            8.123               15
+     46400            8.126               15
+     46500            8.123               15
+     46600            8.123               15
+     46700            8.121               15
+     46800            8.122               15
+     46900            8.121               15
+     47000            8.115               15
+     47100            8.080               15
+     47200            8.084               15
+     47300            8.086               15
+     47400            8.091               15
+     47500            8.091               15
+     47600            8.086               15
+     47700            8.090               15
+     47800            8.086               15
+     47900            8.090               15
+     48000            8.087               15
+     48100            8.087               15
+     48200            8.073               15
+     48300            8.069               15
+     48400            8.071               15
+     48500            8.070               15
+     48600            8.067               15
+     48700            8.066               15
+     48800            8.076               15
+     48900            8.077               15
+     49000            8.075               15
+     49100            8.071               15
+     49200            8.073               15
+     49300            8.072               15
+     49400            8.072               15
+     49500            8.072               15
+     49600            8.071               15
+     49700            8.070               15
+     49800            8.068               15
+     49900            8.047               15
+     50000            8.045               15
+
+
+PLOT INFORMATION
+
+The following plots are available:
+
+  Bayesian posterior parameter trace plots
+  Bayesian autocorrelation plots
+
+     Beginning Time:  17:06:55
+        Ending Time:  17:38:19
+       Elapsed Time:  00:31:24
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2019 Muthen & Muthen
