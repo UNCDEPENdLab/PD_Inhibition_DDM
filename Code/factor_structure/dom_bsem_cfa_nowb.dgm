@@ -1,0 +1,101 @@
+VERSION 1.1.0
+INPUT
+TITLE:
+
+Dominance BSEM CFA
+DATA:
+FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/Dom_bsem_cfa.dat";
+VARIABLE:
+NAMES = subject POSTEMP EXHIB ENTITL DETACH MPS_wbR MPS_spR MPS_scR;
+ MISSING=.;
+    USEVARIABLES= EXHIB ENTITL DETACH MPS_spR MPS_scR;
+    IDVARIABLE = subject;
+ANALYSIS:
+    ESTIMATOR=BAYES;
+    PROCESSORS=4;
+    CHAINS=4;
+    BITERATIONS=(15000);
+OUTPUT:
+    TECH1 TECH8 STANDARDIZED MODINDICES (10);
+MODEL:
+    f1 BY MPS_spR EXHIB ENTITL;
+    f2 BY MPS_scR DETACH;
+    f1 WITH f2;
+    MPS_SPR WITH EXHIB;
+INPUT_END
+3
+3
+3
+3
+BAYES
+1
+GENERAL
+0
+5
+2
+0
+exhib entitl detach mps_spr mps_scr f1 f2
+1
+-1 -1 -1 -1 -1 0 0
+0
+2
+f1
+mps_spr exhib entitl
+f2
+mps_scr detach
+1 1 f1 mps_spr    1.000    0.000    1.000    1.000
+1 1 f1 exhib    1.297    0.706    0.897    2.305
+1 1 f1 entitl    0.651    0.423    0.331    1.534
+1 1 f2 mps_scr    1.000    0.000    1.000    1.000
+1 1 f2 detach    1.131    0.108    0.904    1.341
+2 1 mps_spr exhib    0.039    0.151   -0.159    0.415
+2 1 f1 f2   -0.257    0.096   -0.468   -0.087
+4 1 exhib    0.206    0.161    0.024    0.622
+4 1 entitl    0.830    0.140    0.602    1.130
+4 1 detach    0.059    0.067    0.003    0.256
+4 1 mps_spr    0.562    0.193    0.224    0.980
+4 1 mps_scr    0.289    0.072    0.116    0.414
+5 1 f1    0.492    0.216    0.124    0.956
+5 1 f2    0.768    0.160    0.516    1.140
+11 1 f1 mps_spr    0.684    0.142    0.351    0.889
+11 1 f1 exhib    0.897    0.094    0.640    0.988
+11 1 f1 entitl    0.445    0.101    0.245    0.633
+11 1 f2 mps_scr    0.853    0.042    0.772    0.944
+11 1 f2 detach    0.972    0.035    0.866    0.999
+12 1 mps_spr exhib    0.130    0.410   -0.819    0.690
+12 1 f1 f2   -0.436    0.104   -0.621   -0.216
+14 1 exhib    0.195    0.153    0.023    0.590
+14 1 entitl    0.802    0.095    0.599    0.940
+14 1 detach    0.056    0.065    0.003    0.250
+14 1 mps_spr    0.533    0.175    0.210    0.877
+14 1 mps_scr    0.273    0.072    0.109    0.404
+15 1 f1    1.000    0.000    1.000    1.000
+15 1 f2    1.000    0.000    1.000    1.000
+21 1 f1 mps_spr    0.684    0.142    0.351    0.889
+21 1 f1 exhib    0.897    0.094    0.640    0.988
+21 1 f1 entitl    0.445    0.101    0.245    0.633
+21 1 f2 mps_scr    0.853    0.042    0.772    0.944
+21 1 f2 detach    0.972    0.035    0.866    0.999
+22 1 mps_spr exhib    0.130    0.410   -0.819    0.690
+22 1 f1 f2   -0.436    0.104   -0.621   -0.216
+24 1 exhib    0.195    0.153    0.023    0.590
+24 1 entitl    0.802    0.095    0.599    0.940
+24 1 detach    0.056    0.065    0.003    0.250
+24 1 mps_spr    0.533    0.175    0.210    0.877
+24 1 mps_scr    0.273    0.072    0.109    0.404
+25 1 f1    1.000    0.000    1.000    1.000
+25 1 f2    1.000    0.000    1.000    1.000
+31 1 f1 mps_spr    0.702    0.163    0.352    0.978
+31 1 f1 exhib    0.911    0.123    0.628    1.117
+31 1 f1 entitl    0.454    0.117    0.241    0.697
+31 1 f2 mps_scr    0.876    0.089    0.718    1.068
+31 1 f2 detach    0.987    0.084    0.827    1.158
+32 1 mps_spr exhib    0.039    0.151   -0.159    0.415
+32 1 f1 f2   -0.436    0.104   -0.621   -0.216
+34 1 exhib    0.206    0.161    0.024    0.622
+34 1 entitl    0.830    0.140    0.602    1.130
+34 1 detach    0.059    0.067    0.003    0.256
+34 1 mps_spr    0.562    0.193    0.224    0.980
+34 1 mps_scr    0.289    0.072    0.116    0.414
+35 1 f1    1.000    0.000    1.000    1.000
+35 1 f2    1.000    0.000    1.000    1.000

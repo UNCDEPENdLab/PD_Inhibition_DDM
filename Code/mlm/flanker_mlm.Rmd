@@ -60,7 +60,8 @@ flanker <- flanker %>%
     run_trial = 1:40, #NB. This is a risky solution in general, but I've verified that all subjects show the correct ordering and don't have gaps
     run_trial_z = as.vector(scale(run_trial)),
     prev_rt=dplyr::lag(rt, 1, order_by=run_trial)/1000, #convert to seconds to put it on a smaller scale, roughly comparable to the -1000/rt rt_inv
-    prev_rt_inv=dplyr::lag(rt_inv, 1, order_by=run_trial)
+    prev_rt_inv=dplyr::lag(rt_inv, 1, order_by=run_trial),
+    prev_error=factor(1-dplyr::lag(correct, 1, order_by=run_trial), levels=c(0,1), labels=c("no", "yes"))
   ) %>% ungroup()
 
 #sanity checks on structure
@@ -78,7 +79,8 @@ xtabs(~cond + block, flanker)
 prop.table(xtabs(~cond + block, flanker), 2)
 ```
 
-A few super-short RTs, and then a long RT tail
+A few super-short RTs, and then a long RT tail.
+
 ```{r, fig=TRUE, width=6, height=6}
 ggplot(flanker, aes(x=cond, y=rt)) + geom_boxplot() + facet_wrap(~block) + theme_cowplot()
 
@@ -307,9 +309,26 @@ http://www.dwoll.de/rexrepos/posts/anovaMixed.html
 https://lindeloev.github.io/shiny-rt/
 
 https://www.flutterbys.com.au/stats/tut/tut8.3b.html
+
+N.B. We are now analyzing only RTs on correct trials, not all RTs.
+
 ```{r}
 flanker <- flanker %>% filter(exclude < 3) #keep most subjects, exclude horrid ones
 save(flanker, file="../../Data/preprocessed/flanker_for_traits.RData")
+
+#filter to correct only.
+flanker <- flanker %>% filter(correct==1)
+```
+
+## m0: random intercept of subject, experiment conditions only
+```{r m0, cache=TRUE}
+m0 <- lme(rt_inv ~ cond*block, random = ~ 1 | id,
+          na.action = na.exclude, 
+          data = flanker, method='REML')
+
+summary(m0)
+anova(m0)
+car::Anova(m0, type=3)
 ```
 
 ## m1: random intercept of subject, CS structure wrt trial
@@ -499,7 +518,23 @@ AICtab(m2, m4, m5, m6, m7, m8, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE,
 
 As Clark notes, the parameterization of the intercept variances by block is funky, with one serving as a reference condition, variance = 1.0.
 
-The glmmTMB package provides a more intuitive parameterization
+The glmmTMB package provides a more intuitive parameterization.
+
+## m8a: use nesting structure, not pdDiag for per-block random intercept
+
+As elsewhere, the nesting approach is ever so slightly better than a blocked pdDiag L2 structure. Still the same model, though, and more conceptually familiar.
+
+```{r m8a, cache=TRUE}
+#this model allows for heterogeneity in the L1 residuals by block, as well as the L2 random effects by block
+m8a <- lme(rt_inv ~ trial_z + cond*block, 
+          weights=varIdent(form=~1|block),
+          random=~1|id/block,
+          na.action = na.exclude,
+          data = flanker, method='ML')
+
+summary(m8a)
+AICtab(m2, m4, m5, m6, m7, m8, m8a, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```
 
 ## m9: repeat for condition, not block, as key factor
 ```{r m9, cache=TRUE}

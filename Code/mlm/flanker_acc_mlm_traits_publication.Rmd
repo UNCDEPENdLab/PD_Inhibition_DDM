@@ -1,0 +1,459 @@
+---
+title: "Flanker Accuracy MLM Trait Relationships for Publication"
+subtitle: "PD Inhibition Project"
+author: "Michael Hallquist"
+date: "29 May 2020"
+output:
+  html_document:
+    code_folding: show
+    df_print: default
+    mathjax: default
+    number_sections: no
+    theme: spacelab
+    toc: yes
+    toc_depth: 2
+    toc_float: no
+    fig_width: 9 
+    fig_height: 6 
+  pdf_document:
+    code_folding: hide
+    df_print: default
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+---
+<style type="text/css">
+body{ max-width: 2000px; margin: auto; padding: 1em; }
+</style>
+
+```{r setup, include=FALSE}
+if (!require(pacman)) { install.packages("pacman"); library(pacman) }
+p_load(car, nlme, lme4, readr, tidyverse, emmeans, cowplot, MplusAutomation, knitr, sas7bdat, ggcorrplot, psych, lavaan)
+knitr::opts_chunk$set(echo = TRUE) #print code by default
+#knitr::opts_chunk$set(cache.path = "../../Outputs/flanker_mlms/")
+options(digits=3)
+options(width=180)
+
+#flanker data processed in flanker_mlm.Rmd
+#has the worst subjects removed, rt_inv transformation, etc.
+load("../../Data/preprocessed/flanker_for_traits.RData")
+flanker <- flanker %>% mutate(rt_inv=if_else(correct==0, NA_real_, rt_inv),  #treat incorrect RTs as missing
+                              prev_rt_z=as.vector(scale(prev_rt)))
+
+#basedir <- "C:/Users/timot/Documents/GitHub/PD_Inhibition_DDM"
+basedir <- "~/Data_Analysis/PD_Inhibition_DDM" 
+
+mpq <- get(load(file.path(basedir, "Data/preprocessed/MPQ_all_scored_final.RData"))) %>% 
+  filter(exclude_MPQ == 0) %>% select(subject, MPS_wbR:MPS_abR)
+snap <- get(load(file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RData"))) %>% filter(exclude_SNAP == 0) %>% 
+  select(subject, NEGTEMP:HDWK, DISINHP)
+
+self_reps <- inner_join(mpq, snap, by = "subject")
+
+#mpluscmd <- "/Users/mnh5174/Applications/Mplus/mplus"
+mpluscmd <- "/Applications/Mplus/mplus"
+```
+
+
+# Initial model in Mplus (m15)
+
+This model mimics m15 from flanker ACC mlms for publication. Here, I start out with a two-level model to keep life simpler, rather than having blocks nested within subjects.
+
+
+```
+m15 <- glmer(correct ~ cond + block + prev_rt_z + prev_error +
+              (1 + prev_rt_z + cond + prev_error | id) +
+              (1 | id:block),
+          na.action = na.exclude, control=glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 30000)),
+          data = flanker, family=binomial)
+```
+
+```{r m15_mplus, cache=TRUE}
+m15_mplus <- mplusObject(
+  TITLE = "Equivalent model to glmer m15",
+  DEFINE = "
+    cond = cond - 1; ! 0=congruent, 1=incongruent
+    block = block - 1; ! 0=most_incon, 1=most_con
+  ",
+  VARIABLE = "
+    WITHIN = cond block prev_rt_z prev_error;
+    USEVARIABLES = id correct cond block prev_rt_z prev_error;
+    CLUSTER = id;
+    CATEGORICAL = correct;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(10000);
+    CHAINS=2;
+    PROCESSORS=4;
+  ",
+  MODEL = "
+    %WITHIN%
+    correct ON block;
+    condslo | correct ON cond;        !random slope of cond
+    prevslo | correct ON prev_rt_z;   !random slope of rt autocorrelation
+    errslo | correct ON prev_error;   !random slope of previous error
+    
+    %BETWEEN%
+    !means of random slopes
+    [condslo];
+    [prevslo];
+    [errslo];
+    
+    !variances of random slopes
+    condslo;
+    prevslo;
+    errslo;
+    
+    !slope correlations
+    condslo prevslo errslo WITH
+       condslo prevslo errslo;
+    
+    [correct$1]; !intercept: average correct
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
+  rdata = flanker
+)
+
+mout <- mplusModeler(m15_mplus, dataout="flanker_acc_mplus.dat", 
+                        modelout="m15_acc_mplus.inp", run=TRUE, Mplus_command = mpluscmd)
+
+results <- mout$results
+
+```
+
+```{r}
+summary(mout)
+kable(mout$results$parameters$unstandardized %>% 
+        filter(!paramHeader %in% c("Intercepts", "Means", "Residual Variances")))
+```
+
+Looks good compared to the probit version of m15
+
+# ACC: Antag + Inhib MSEM
+
+```{r}
+tofactor <- self_reps %>% select(subject, MPS_agR, AGG, MISTRUST, MPS_alR, MANIP,
+      PROPER, MPS_clR, IMPUL, MPS_tdR, MPS_acR, HDWK) %>% 
+  mutate(IMPUL =-1*IMPUL) %>% #score toward constraint to make loadings upright
+  mutate_at(vars(-subject), list(~as.vector(scale(.)))) %>%
+  dplyr::rename(id=subject)
+
+for_msem <- flanker %>% inner_join(tofactor, by="id")
+anti_join(tofactor, flanker, by="id")
+```
+
+```{r acc_ac, cache=TRUE}
+m15_mplus <- mplusObject(
+  TITLE="Antagonism and Disinhibition BSEM CFA 3+3 Parcels, Flanker ACC",
+  DEFINE="
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+    cond = cond - 1; ! 0=congruent, 1=incongruent
+    block = block - 1; ! 0=most_incon, 1=most_con
+  ",
+  VARIABLE = "
+    WITHIN = cond block prev_rt_z prev_error;
+    USEVARIABLES = id correct cond block prev_rt_z prev_error
+          MANIP p1 p2 p3 p4 p5;
+    BETWEEN = MANIP p1 p2 p3 p4 p5;
+    CLUSTER = id;
+    CATEGORICAL = correct;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(10000);
+    CHAINS=2;
+    PROCESSORS=4;
+  ",
+  MODEL = "
+    %WITHIN%
+    correct ON block;
+    condslo | correct ON cond;        !random slope of cond
+    prevslo | correct ON prev_rt_z;   !random slope of rt autocorrelation
+    errslo | correct ON prev_error;   !random slope of previous error
+    
+    %BETWEEN%
+    !means of random slopes
+    [condslo];
+    [prevslo];
+    [errslo];
+    
+    !variances of random slopes
+    condslo;
+    prevslo;
+    errslo;
+    
+    !slope correlations
+    condslo prevslo errslo WITH
+       condslo prevslo errslo;
+    
+    [correct$1]; !intercept: average correct
+    
+    !TRAIT MODEL
+        
+    antag BY p5*1 ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+    antag@1;
+
+    inhib BY
+      p2*  !PROPER MPS_tdR
+      p3  !MPS_clR IMPUL
+      p4; !MPS_acR HDWK;
+    inhib@1;
+
+    antag WITH inhib;
+
+    !TRAIT MODERATION
+    
+    ! trait moderates flanker performance -- incongruency effect and stickiness of RT
+    condslo ON antag inhib;
+    prevslo ON antag inhib;
+    errslo ON antag inhib; !highly non-significant
+    
+    correct ON antag inhib;
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
+  rdata = for_msem
+)
+
+mout <- mplusModeler(m15_mplus, dataout="flanker_acc_mplus.dat", 
+                        modelout="m15_acc_ac.inp", run=TRUE, Mplus_command = mpluscmd)
+
+results <- mout$results
+
+```
+
+```{r}
+summary(mout)
+kable(mout$results$parameters$stdyx.standardized %>% 
+        filter(!paramHeader %in% c("Intercepts", "Means", "Residual Variances")))
+
+```
+
+# ACC: Dominance Model A
+
+Following discussions with the team, Tim examined whether we could get our agency factor to be a bit more pure and less general Extraversion heavy. By dropping POSTEMP and MPS_wbR, we get a very nice agency factor and good fit in CFA.
+
+```{r}
+tofactor <- self_reps %>% dplyr::select(subject, POSTEMP, EXHIB, ENTITL, DETACH, MPS_wbR, MPS_spR, MPS_scR) %>%
+  mutate(MPS_scR=-1*MPS_scR) %>% #rescore in direction of detachment (higher scores are bad)
+  mutate_at(vars(-subject), list(~as.vector(scale(.)))) %>%
+  dplyr::rename(id=subject)
+
+for_msem <- flanker %>% inner_join(tofactor, by="id")
+anti_join(tofactor, flanker, by="id")
+```
+
+
+```{r dom_modela, cache=TRUE}
+
+Dom_msem <- mplusObject(
+  TITLE="Agentic and Affiliative Extraversion MSEM Flanker ACC",
+  DEFINE="
+    cond = cond - 1; ! 0=congruent, 1=incongruent
+    block = block - 1; ! 0=most_incon, 1=most_con
+  ",
+  VARIABLE = "
+    WITHIN = cond block prev_rt_z prev_error;
+    USEVARIABLES = id correct cond block prev_rt_z prev_error 
+      EXHIB ENTITL DETACH MPS_spR MPS_scR;
+    BETWEEN = EXHIB ENTITL DETACH MPS_spR MPS_scR;
+    CLUSTER = id;
+    CATEGORICAL = correct;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(20000);
+    CHAINS=4;
+    PROCESSORS=4;
+  ",
+  MODEL = "
+    %WITHIN%
+    correct ON block;
+    condslo | correct ON cond;        !random slope of cond
+    prevslo | correct ON prev_rt_z;   !random slope of rt autocorrelation
+    errslo | correct ON prev_error;   !random slope of previous error
+    
+    %BETWEEN%
+    !means of random slopes
+    [condslo];
+    [prevslo];
+    [errslo];
+    
+    !variances of random slopes
+    condslo;
+    prevslo;
+    errslo;
+    
+    !slope correlations
+    condslo prevslo errslo WITH
+       condslo prevslo errslo;
+    
+    [correct$1]; !intercept: average correct
+    
+    !TRAIT MODEL
+    agentic BY MPS_spR* EXHIB ENTITL;
+    agentic@1;
+    
+    affiliat BY MPS_scR*1 DETACH;
+    affiliat@1;
+    
+    agentic WITH affiliat;
+
+    !TRAIT MODERATION
+
+    ! trait moderates flanker performance -- incongruency effect and stickiness of RT
+    condslo ON agentic affiliat;
+    prevslo ON agentic affiliat;
+    errslo ON agentic affiliat;
+    
+    !allow proportion correct to be predicted by traits
+    correct ON agentic affiliat;
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT ="
+    TECH1 TECH8 CINTERVAL STANDARDIZED;
+  ",
+  rdata=for_msem
+)
+ 
+mres <- mplusModeler(Dom_msem, modelout = file.path("Dom_modela_flanker_acc_msem.inp"), 
+                     hashfilename = FALSE, run=TRUE,
+                     Mplus_command = mpluscmd)
+
+summary(mres)
+kable(mres$results$parameters$unstandardized %>% 
+        filter(!paramHeader %in% c("Intercepts", "Means", "Residual Variances")))
+```
+
+# ACC: Combined 4-factor model of accuracy
+
+```{r}
+tofactor <- self_reps %>% 
+  dplyr::select(subject, EXHIB, ENTITL, DETACH, MPS_spR, MPS_scR,
+                MPS_agR, AGG, MISTRUST, MPS_alR, MANIP,
+                PROPER, MPS_clR, IMPUL, MPS_tdR, MPS_acR, HDWK) %>%
+  mutate(MPS_scR=-1*MPS_scR) %>% #rescore in direction of detachment (higher scores are bad)
+  mutate(IMPUL =-1*IMPUL) %>% #score toward constraint to make loadings upright
+  mutate_at(vars(-subject), list(~as.vector(scale(.)))) %>%
+  dplyr::rename(id=subject)
+
+for_msem <- flanker %>% inner_join(tofactor, by="id")
+```
+
+We need two modification indices from the combined CFA to move the model in the right direction.
+
+```{r combined, cache=TRUE}
+
+Combo_msem <- mplusObject(
+  TITLE="Combined 4-factor MSEM Flanker ACC",
+  DEFINE="
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+    cond = cond - 1; ! 0=congruent, 1=incongruent
+    block = block - 1; ! 0=most_incon, 1=most_con
+  ",
+  
+  VARIABLE = "
+    WITHIN = cond block prev_rt_z prev_error;
+    USEVARIABLES = id correct cond block prev_rt_z 
+      prev_error EXHIB ENTITL DETACH MPS_spR MPS_scR 
+      MANIP p1 p2 p3 p4 p5;
+    BETWEEN = EXHIB ENTITL DETACH MPS_spR MPS_scR MANIP p1 p2 p3 p4 p5;
+    CLUSTER = id;
+    CATEGORICAL = correct;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(20000);
+    CHAINS=4;
+    PROCESSORS=4;
+  ",
+  MODEL = "
+  
+%WITHIN%
+    correct ON block;
+    condslo | correct ON cond;        !random slope of cond
+    prevslo | correct ON prev_rt_z;   !random slope of rt autocorrelation
+    errslo | correct ON prev_error;   !random slope of previous error
+    
+    %BETWEEN%
+    !means of random slopes
+    [condslo];
+    [prevslo];
+    [errslo];
+    
+    !variances of random slopes
+    condslo;
+    prevslo;
+    errslo;
+    
+    !slope correlations
+    condslo prevslo errslo WITH
+       condslo prevslo errslo;
+    
+    [correct$1]; !intercept: average correct
+    
+    !TRAIT MODEL
+    agentic BY MPS_spR* EXHIB ENTITL;
+    agentic@1;
+    
+    affiliat BY MPS_scR*1 DETACH;
+    affiliat@1;
+  
+    antag BY p5* ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+    antag@1;
+
+    inhib BY
+      p2*  !PROPER MPS_tdR
+      p3  !MPS_clR IMPUL
+      p4; !MPS_acR HDWK;
+    inhib@1;
+
+    antag inhib agentic affiliat WITH antag inhib agentic affiliat;
+
+    !identified in between-persons combined CFA
+    AFFILIAT BY P1; !sig modification index
+    INHIB BY ENTITL; !sig modification index
+
+    !TRAIT MODERATION
+    
+    ! trait moderates flanker performance -- incongruency effect and stickiness of RT
+    condslo ON antag inhib agentic affiliat;
+    prevslo ON antag inhib agentic affiliat;
+    errslo ON antag inhib agentic affiliat;
+    
+    !allow proportion correct to be predicted by traits
+    correct ON antag inhib agentic affiliat;
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT ="
+    TECH1 TECH8 CINTERVAL STANDARDIZED;
+  ",
+  rdata=for_msem
+)
+ 
+mres <- mplusModeler(Combo_msem, modelout = file.path("Combined_flanker_acc_msem.inp"), 
+                     hashfilename = FALSE, run=TRUE,
+                     Mplus_command = mpluscmd)
+
+summary(mres)
+kable(mres$results$parameters$stdyx.standardized %>% 
+        filter(!paramHeader %in% c("Intercepts", "Means", "Residual Variances")))
+```

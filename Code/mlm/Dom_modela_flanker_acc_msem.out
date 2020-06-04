@@ -1,0 +1,1553 @@
+Mplus VERSION 8.4 (Mac)
+MUTHEN & MUTHEN
+06/02/2020   8:38 AM
+
+INPUT INSTRUCTIONS
+
+  TITLE:
+  Agentic and Affiliative Extraversion MSEM Flanker ACC
+  DATA:
+  FILE = "Dom_modela_flanker_acc_msem.dat";
+
+  VARIABLE:
+  NAMES = id correct rt cond block prev_rt prev_error prev_rt_z EXHIB ENTITL DETACH
+       MPS_spR MPS_scR;
+   MISSING=.;
+
+      WITHIN = cond block prev_rt_z prev_error;
+      USEVARIABLES = id correct cond block prev_rt_z prev_error
+        EXHIB ENTITL DETACH MPS_spR MPS_scR;
+      BETWEEN = EXHIB ENTITL DETACH MPS_spR MPS_scR;
+      CLUSTER = id;
+      CATEGORICAL = correct;
+
+  DEFINE:
+
+      cond = cond - 1; ! 0=congruent, 1=incongruent
+      block = block - 1; ! 0=most_incon, 1=most_con
+
+  ANALYSIS:
+
+      TYPE=TWOLEVEL RANDOM;
+      ESTIMATOR=BAYES;
+      BITERATIONS=(20000);
+      CHAINS=4;
+      PROCESSORS=4;
+
+  MODEL:
+
+      %WITHIN%
+      correct ON block;
+      condslo | correct ON cond;        !random slope of cond
+      prevslo | correct ON prev_rt_z;   !random slope of rt autocorrelation
+      errslo | correct ON prev_error;   !random slope of previous error
+
+      %BETWEEN%
+      !means of random slopes
+      [condslo];
+      [prevslo];
+      [errslo];
+
+      !variances of random slopes
+      condslo;
+      prevslo;
+      errslo;
+
+      !slope correlations
+      condslo prevslo errslo WITH
+         condslo prevslo errslo;
+
+      [correct$1]; !intercept: average correct
+
+      !TRAIT MODEL
+      agentic BY MPS_spR* EXHIB ENTITL;
+      agentic@1;
+
+      affiliat BY MPS_scR*1 DETACH;
+      affiliat@1;
+
+      agentic WITH affiliat;
+
+      !TRAIT MODERATION
+
+      ! trait moderates flanker performance -- incongruency effect and stickiness of RT
+      condslo ON agentic affiliat;
+      prevslo ON agentic affiliat;
+      errslo ON agentic affiliat;
+
+      !allow proportion correct to be predicted by traits
+      correct ON agentic affiliat;
+
+  OUTPUT:
+
+      TECH1 TECH8 CINTERVAL STANDARDIZED;
+
+  PLOT:
+  TYPE = PLOT2;
+
+
+
+*** WARNING in VARIABLE command
+  Note that only the first 8 characters of variable names are used in the output.
+  Shorten variable names to avoid any confusion.
+*** WARNING in PLOT command
+  Note that only the first 8 characters of variable names are used in plots.
+  If variable names are not unique within the first 8 characters, problems
+  may occur.
+*** WARNING
+  One or more individual-level variables have no variation within a
+  cluster for the following clusters.
+
+     Variable   Cluster IDs with no within-cluster variation
+
+      CORRECT     90 15 11 114 13 5 52 106 66 86 20 107 91 93 95
+      PREV_ERR    90 15 11 114 13 5 52 6 106 66 86 20 107 91 93 95
+
+*** WARNING
+  Data set contains cases with missing on x-variables.
+  These cases were not included in the analysis.
+  Number of cases with missing on x-variables:  496
+   4 WARNING(S) FOUND IN THE INPUT INSTRUCTIONS
+
+
+
+
+Agentic and Affiliative Extraversion MSEM Flanker ACC
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                       15504
+
+Number of dependent variables                                    6
+Number of independent variables                                  4
+Number of continuous latent variables                            5
+
+Observed dependent variables
+
+  Continuous
+   EXHIB       ENTITL      DETACH      MPS_SPR     MPS_SCR
+
+  Binary and ordered categorical (ordinal)
+   CORRECT
+
+Observed independent variables
+   COND        BLOCK       PREV_RT_    PREV_ERR
+
+Continuous latent variables
+   AGENTIC     AFFILIAT    CONDSLO     PREVSLO     ERRSLO
+
+Variables with special functions
+
+  Cluster variable      ID
+
+  Within variables
+   COND        BLOCK       PREV_RT_    PREV_ERR
+
+  Between variables
+   EXHIB       ENTITL      DETACH      MPS_SPR     MPS_SCR
+
+
+Estimator                                                    BAYES
+Specifications for Bayesian Estimation
+  Point estimate                                            MEDIAN
+  Number of Markov chain Monte Carlo (MCMC) chains               4
+  Random seed for the first chain                                0
+  Starting value information                           UNPERTURBED
+  Algorithm used for Markov chain Monte Carlo           GIBBS(PX1)
+  Convergence criterion                                  0.500D-01
+  Maximum number of iterations                               50000
+  K-th iteration used for thinning                               1
+Link                                                        PROBIT
+
+Input data file(s)
+  Dom_modela_flanker_acc_msem.dat
+Input data format  FREE
+
+
+SUMMARY OF DATA
+
+     Number of clusters                        100
+
+       Size (s)    Cluster ID with Size s
+
+        137        62
+        144        92
+        146        36
+        150        73 45
+        151        35
+        152        110
+        153        42 90 65
+        154        24 109 89 46 15
+        155        113 14 102 18 21 57 58 22 105 68 27 32 33 34 99
+        156        25 26 11 28 29 3 30 31 1 111 112 103 114 37 4 40 41
+                   12 43 13 104 49 5 50 52 53 54 56 10 16 59 6 60 61 17
+                   63 64 106 66 67 19 69 70 71 72 2 74 75 76 77 78 79 8
+                   81 84 86 87 88 20 9 107 91 108 93 94 95 96 97 98 101
+
+
+
+COVARIANCE COVERAGE OF DATA
+
+Minimum covariance coverage value   0.100
+
+     Number of missing data patterns             2
+
+
+     PROPORTION OF DATA PRESENT
+
+
+           Covariance Coverage
+              CORRECT       EXHIB         ENTITL        DETACH        MPS_SPR
+              ________      ________      ________      ________      ________
+ CORRECT        0.982
+ EXHIB          0.982         1.000
+ ENTITL         0.982         1.000         1.000
+ DETACH         0.982         1.000         1.000         1.000
+ MPS_SPR        0.982         1.000         1.000         1.000         1.000
+ MPS_SCR        0.982         1.000         1.000         1.000         1.000
+ COND           0.982         1.000         1.000         1.000         1.000
+ BLOCK          0.982         1.000         1.000         1.000         1.000
+ PREV_RT_       0.982         1.000         1.000         1.000         1.000
+ PREV_ERR       0.982         1.000         1.000         1.000         1.000
+
+
+           Covariance Coverage
+              MPS_SCR       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ MPS_SCR        1.000
+ COND           1.000         1.000
+ BLOCK          1.000         1.000         1.000
+ PREV_RT_       1.000         1.000         1.000         1.000
+ PREV_ERR       1.000         1.000         1.000         1.000         1.000
+
+
+UNIVARIATE PROPORTIONS AND COUNTS FOR CATEGORICAL VARIABLES
+
+    CORRECT
+      Category 1    0.031          471.000
+      Category 2    0.969        14751.000
+
+
+
+UNIVARIATE SAMPLE STATISTICS
+
+
+     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS
+
+         Variable/         Mean/     Skewness/   Minimum/ % with                Percentiles
+        Sample Size      Variance    Kurtosis    Maximum  Min/Max      20%/60%    40%/80%    Median
+
+     EXHIB                 0.016      -0.030      -1.771    5.00%      -1.023     -0.276      0.098
+             100.000       1.012      -0.989       1.968    2.00%       0.223      0.971
+     ENTITL               -0.004      -0.175      -2.089    1.00%      -1.024     -0.225      0.041
+             100.000       1.020      -0.785       2.171    1.00%       0.307      0.840
+     DETACH                0.008       1.172      -1.074   10.00%      -0.841     -0.607     -0.373
+             100.000       1.022       0.625       3.133    1.00%      -0.139      0.796
+     MPS_SPR              -0.003      -0.632      -2.222    4.00%      -0.954     -0.003      0.314
+             100.000       1.019      -0.572       1.582    3.00%       0.314      0.948
+     MPS_SCR              -0.005       1.387      -1.228    2.00%      -0.843     -0.459     -0.459
+             100.000       1.022       1.141       3.003    3.00%      -0.074      0.695
+     COND                  0.502      -0.007       0.000   49.82%       0.000      0.000      1.000
+           15504.000       0.250      -2.000       1.000   50.18%       1.000      1.000
+     BLOCK                 0.499       0.003       0.000   50.08%       0.000      0.000      0.000
+           15504.000       0.250      -2.000       1.000   49.92%       1.000      1.000
+     PREV_RT_Z            -0.020       1.617      -2.625    0.01%      -0.751     -0.367     -0.187
+           15504.000       0.979       4.909       6.508    0.01%       0.017      0.559
+     PREV_ERROR            0.035       5.048       0.000   96.48%       0.000      0.000      0.000
+           15504.000       0.034      23.484       1.000    3.52%       0.000      0.000
+
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+     USE THE FBITERATIONS OPTION TO INCREASE THE NUMBER OF ITERATIONS BY A FACTOR
+     OF AT LEAST TWO TO CHECK CONVERGENCE AND THAT THE PSR VALUE DOES NOT INCREASE.
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                              36
+
+
+
+MODEL RESULTS
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within Level
+
+ CORRECT    ON
+    BLOCK             -0.096       0.052      0.029      -0.198       0.003
+
+Between Level
+
+ AGENTIC  BY
+    MPS_SPR            0.774       0.110      0.000       0.570       1.005      *
+    EXHIB              0.951       0.108      0.000       0.731       1.157      *
+    ENTITL             0.480       0.112      0.000       0.267       0.708      *
+
+ AFFILIAT BY
+    MPS_SCR            0.902       0.092      0.000       0.738       1.095      *
+    DETACH             1.017       0.085      0.000       0.858       1.195      *
+
+ CONDSLO    ON
+    AGENTIC            0.176       0.103      0.039      -0.020       0.384
+    AFFILIAT          -0.027       0.090      0.379      -0.205       0.149
+
+ PREVSLO    ON
+    AGENTIC            0.064       0.075      0.200      -0.092       0.203
+    AFFILIAT           0.072       0.063      0.119      -0.048       0.199
+
+ ERRSLO     ON
+    AGENTIC            0.220       0.332      0.250      -0.510       0.824
+    AFFILIAT           0.004       0.253      0.493      -0.546       0.461
+
+ CORRECT    ON
+    AGENTIC           -0.150       0.109      0.070      -0.379       0.047
+    AFFILIAT          -0.059       0.088      0.250      -0.234       0.114
+
+ CONDSLO  WITH
+    PREVSLO            0.013       0.025      0.280      -0.033       0.066
+    ERRSLO             0.081       0.084      0.126      -0.064       0.274
+
+ PREVSLO  WITH
+    ERRSLO             0.090       0.064      0.026       0.000       0.249
+
+ AGENTIC  WITH
+    AFFILIAT          -0.429       0.098      0.000      -0.601      -0.216      *
+
+ Intercepts
+    EXHIB              0.014       0.107      0.447      -0.194       0.226
+    ENTITL            -0.005       0.106      0.482      -0.212       0.203
+    DETACH             0.009       0.104      0.467      -0.198       0.210
+    MPS_SPR           -0.005       0.106      0.483      -0.213       0.207
+    MPS_SCR           -0.004       0.104      0.485      -0.211       0.201
+    CONDSLO           -0.484       0.081      0.000      -0.642      -0.327      *
+    PREVSLO            0.285       0.055      0.000       0.181       0.397      *
+    ERRSLO             0.788       0.326      0.000       0.326       1.605      *
+
+ Thresholds
+    CORRECT$1         -2.551       0.083      0.000      -2.724      -2.396      *
+
+ Variances
+    AGENTIC            1.000       0.000      0.000       1.000       1.000
+    AFFILIAT           1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    CORRECT            0.188       0.054      0.000       0.106       0.316      *
+    EXHIB              0.198       0.130      0.000       0.014       0.493      *
+    ENTITL             0.850       0.134      0.000       0.635       1.159      *
+    DETACH             0.063       0.067      0.000       0.004       0.254      *
+    MPS_SPR            0.502       0.116      0.000       0.277       0.733      *
+    MPS_SCR            0.295       0.072      0.000       0.129       0.424      *
+    CONDSLO            0.188       0.053      0.000       0.111       0.317      *
+    PREVSLO            0.097       0.027      0.000       0.057       0.163      *
+    ERRSLO             0.496       0.359      0.000       0.176       1.547      *
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ CONDSLO | CORRECT ON
+    COND              -0.209       0.027      0.000      -0.261      -0.157      *
+
+ PREVSLO | CORRECT ON
+    PREV_RT_Z          0.174       0.024      0.000       0.128       0.221      *
+
+ ERRSLO | CORRECT ON
+    PREV_ERROR         0.092       0.028      0.000       0.047       0.152      *
+
+ CORRECT    ON
+    BLOCK             -0.042       0.025      0.044      -0.093       0.006
+
+Between Level
+
+ AGENTIC  BY
+    MPS_SPR            0.736       0.072      0.000       0.587       0.871      *
+    EXHIB              0.906       0.069      0.000       0.741       0.994      *
+    ENTITL             0.462       0.091      0.000       0.266       0.621      *
+
+ AFFILIAT BY
+    MPS_SCR            0.857       0.041      0.000       0.776       0.941      *
+    DETACH             0.972       0.033      0.000       0.876       0.998      *
+
+ CONDSLO    ON
+    AGENTIC            0.367       0.194      0.039      -0.042       0.706
+    AFFILIAT          -0.056       0.181      0.379      -0.407       0.295
+
+ PREVSLO    ON
+    AGENTIC            0.196       0.217      0.200      -0.269       0.573
+    AFFILIAT           0.223       0.181      0.119      -0.146       0.555
+
+ ERRSLO     ON
+    AGENTIC            0.286       0.366      0.250      -0.529       0.846
+    AFFILIAT           0.005       0.287      0.493      -0.556       0.541
+
+ CORRECT    ON
+    AGENTIC           -0.324       0.212      0.070      -0.714       0.101
+    AFFILIAT          -0.128       0.181      0.250      -0.461       0.243
+
+ CONDSLO  WITH
+    PREVSLO            0.102       0.170      0.280      -0.237       0.419
+    ERRSLO             0.276       0.221      0.126      -0.209       0.642
+
+ PREVSLO  WITH
+    ERRSLO             0.422       0.183      0.026      -0.002       0.708
+
+ AGENTIC  WITH
+    AFFILIAT          -0.429       0.098      0.000      -0.601      -0.216      *
+
+ Intercepts
+    EXHIB              0.014       0.101      0.447      -0.182       0.213
+    ENTITL            -0.005       0.101      0.482      -0.202       0.193
+    DETACH             0.008       0.097      0.467      -0.187       0.198
+    MPS_SPR           -0.004       0.100      0.483      -0.201       0.195
+    MPS_SCR           -0.004       0.098      0.485      -0.199       0.187
+    CONDSLO           -0.992       0.215      0.000      -1.454      -0.611      *
+    PREVSLO            0.864       0.180      0.000       0.532       1.235      *
+    ERRSLO             0.989       0.280      0.000       0.450       1.549      *
+
+ Variances
+    AGENTIC            1.000       0.000      0.000       1.000       1.000
+    AFFILIAT           1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    CORRECT            0.888       0.119      0.000       0.559       0.995      *
+    EXHIB              0.178       0.120      0.000       0.012       0.451      *
+    ENTITL             0.787       0.082      0.000       0.614       0.929      *
+    DETACH             0.056       0.061      0.000       0.004       0.232      *
+    MPS_SPR            0.459       0.106      0.000       0.242       0.655      *
+    MPS_SCR            0.266       0.070      0.000       0.115       0.398      *
+    CONDSLO            0.815       0.119      0.000       0.533       0.981      *
+    PREVSLO            0.914       0.089      0.000       0.670       0.996      *
+    ERRSLO             0.821       0.170      0.000       0.369       0.993      *
+
+
+STDY Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ CONDSLO | CORRECT ON
+    COND              -0.417       0.055      0.000      -0.522      -0.313      *
+
+ PREVSLO | CORRECT ON
+    PREV_RT_Z          0.252       0.036      0.000       0.184       0.322      *
+
+ ERRSLO | CORRECT ON
+    PREV_ERROR         0.706       0.235      0.000       0.342       1.217      *
+
+ CORRECT    ON
+    BLOCK             -0.085       0.051      0.044      -0.187       0.012
+
+Between Level
+
+ AGENTIC  BY
+    MPS_SPR            0.736       0.072      0.000       0.587       0.871      *
+    EXHIB              0.906       0.069      0.000       0.741       0.994      *
+    ENTITL             0.462       0.091      0.000       0.266       0.621      *
+
+ AFFILIAT BY
+    MPS_SCR            0.857       0.041      0.000       0.776       0.941      *
+    DETACH             0.972       0.033      0.000       0.876       0.998      *
+
+ CONDSLO    ON
+    AGENTIC            0.367       0.194      0.039      -0.042       0.706
+    AFFILIAT          -0.056       0.181      0.379      -0.407       0.295
+
+ PREVSLO    ON
+    AGENTIC            0.196       0.217      0.200      -0.269       0.573
+    AFFILIAT           0.223       0.181      0.119      -0.146       0.555
+
+ ERRSLO     ON
+    AGENTIC            0.286       0.366      0.250      -0.529       0.846
+    AFFILIAT           0.005       0.287      0.493      -0.556       0.541
+
+ CORRECT    ON
+    AGENTIC           -0.324       0.212      0.070      -0.714       0.101
+    AFFILIAT          -0.128       0.181      0.250      -0.461       0.243
+
+ CONDSLO  WITH
+    PREVSLO            0.102       0.170      0.280      -0.237       0.419
+    ERRSLO             0.276       0.221      0.126      -0.209       0.642
+
+ PREVSLO  WITH
+    ERRSLO             0.422       0.183      0.026      -0.002       0.708
+
+ AGENTIC  WITH
+    AFFILIAT          -0.429       0.098      0.000      -0.601      -0.216      *
+
+ Intercepts
+    EXHIB              0.014       0.101      0.447      -0.182       0.213
+    ENTITL            -0.005       0.101      0.482      -0.202       0.193
+    DETACH             0.008       0.097      0.467      -0.187       0.198
+    MPS_SPR           -0.004       0.100      0.483      -0.201       0.195
+    MPS_SCR           -0.004       0.098      0.485      -0.199       0.187
+    CONDSLO           -0.992       0.215      0.000      -1.454      -0.611      *
+    PREVSLO            0.864       0.180      0.000       0.532       1.235      *
+    ERRSLO             0.989       0.280      0.000       0.450       1.549      *
+
+ Variances
+    AGENTIC            1.000       0.000      0.000       1.000       1.000
+    AFFILIAT           1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    CORRECT            0.888       0.119      0.000       0.559       0.995      *
+    EXHIB              0.178       0.120      0.000       0.012       0.451      *
+    ENTITL             0.787       0.082      0.000       0.614       0.929      *
+    DETACH             0.056       0.061      0.000       0.004       0.232      *
+    MPS_SPR            0.459       0.106      0.000       0.242       0.655      *
+    MPS_SCR            0.266       0.070      0.000       0.115       0.398      *
+    CONDSLO            0.815       0.119      0.000       0.533       0.981      *
+    PREVSLO            0.914       0.089      0.000       0.670       0.996      *
+    ERRSLO             0.821       0.170      0.000       0.369       0.993      *
+
+
+STD Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ CONDSLO | CORRECT ON
+    COND              -0.478       0.065      0.000      -0.604      -0.357      *
+
+ PREVSLO | CORRECT ON
+    PREV_RT_Z          0.286       0.042      0.000       0.205       0.370      *
+
+ ERRSLO | CORRECT ON
+    PREV_ERROR         0.775       0.267      0.000       0.374       1.369      *
+
+ CORRECT    ON
+    BLOCK             -0.093       0.056      0.044      -0.206       0.013
+
+Between Level
+
+ AGENTIC  BY
+    MPS_SPR            0.774       0.110      0.000       0.570       1.005      *
+    EXHIB              0.951       0.108      0.000       0.731       1.157      *
+    ENTITL             0.480       0.112      0.000       0.267       0.708      *
+
+ AFFILIAT BY
+    MPS_SCR            0.902       0.092      0.000       0.738       1.095      *
+    DETACH             1.017       0.085      0.000       0.858       1.195      *
+
+ CONDSLO    ON
+    AGENTIC            0.367       0.194      0.039      -0.042       0.706
+    AFFILIAT          -0.056       0.181      0.379      -0.407       0.295
+
+ PREVSLO    ON
+    AGENTIC            0.196       0.217      0.200      -0.269       0.573
+    AFFILIAT           0.223       0.181      0.119      -0.146       0.555
+
+ ERRSLO     ON
+    AGENTIC            0.286       0.366      0.250      -0.529       0.846
+    AFFILIAT           0.005       0.287      0.493      -0.556       0.541
+
+ CORRECT    ON
+    AGENTIC           -0.150       0.109      0.070      -0.379       0.047
+    AFFILIAT          -0.059       0.088      0.250      -0.234       0.114
+
+ CONDSLO  WITH
+    PREVSLO            0.102       0.170      0.280      -0.237       0.419
+    ERRSLO             0.276       0.221      0.126      -0.209       0.642
+
+ PREVSLO  WITH
+    ERRSLO             0.422       0.183      0.026      -0.002       0.708
+
+ AGENTIC  WITH
+    AFFILIAT          -0.429       0.098      0.000      -0.601      -0.216      *
+
+ Intercepts
+    EXHIB              0.014       0.107      0.447      -0.194       0.226
+    ENTITL            -0.005       0.106      0.482      -0.212       0.203
+    DETACH             0.009       0.104      0.467      -0.198       0.210
+    MPS_SPR           -0.005       0.106      0.483      -0.213       0.207
+    MPS_SCR           -0.004       0.104      0.485      -0.211       0.201
+    CONDSLO           -0.992       0.215      0.000      -1.454      -0.611      *
+    PREVSLO            0.864       0.180      0.000       0.532       1.235      *
+    ERRSLO             0.989       0.280      0.000       0.450       1.549      *
+
+ Variances
+    AGENTIC            1.000       0.000      0.000       1.000       1.000
+    AFFILIAT           1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    CORRECT            0.188       0.054      0.000       0.106       0.316      *
+    EXHIB              0.198       0.130      0.000       0.014       0.493      *
+    ENTITL             0.850       0.134      0.000       0.635       1.159      *
+    DETACH             0.063       0.067      0.000       0.004       0.254      *
+    MPS_SPR            0.502       0.116      0.000       0.277       0.733      *
+    MPS_SCR            0.295       0.072      0.000       0.129       0.424      *
+    CONDSLO            0.815       0.119      0.000       0.533       0.981      *
+    PREVSLO            0.914       0.089      0.000       0.670       0.996      *
+    ERRSLO             0.821       0.170      0.000       0.369       0.993      *
+
+
+R-SQUARE
+
+Within-Level R-Square Averaged Across Clusters
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    CORRECT            0.165       0.019      0.000       0.126       0.201
+
+Between Level
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    CORRECT            0.112       0.119      0.000       0.005       0.440
+    EXHIB              0.822       0.120      0.000       0.549       0.988
+    ENTITL             0.213       0.082      0.000       0.071       0.386
+    DETACH             0.944       0.061      0.000       0.768       0.996
+    MPS_SPR            0.541       0.106      0.000       0.345       0.758
+    MPS_SCR            0.734       0.070      0.000       0.602       0.885
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    CONDSLO            0.185       0.119      0.000       0.019       0.467
+    PREVSLO            0.086       0.089      0.000       0.004       0.330
+    ERRSLO             0.179       0.170      0.000       0.007       0.631
+
+
+CREDIBILITY INTERVALS OF MODEL RESULTS
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    BLOCK           -0.229      -0.198      -0.182      -0.096      -0.012       0.003       0.035
+
+ Thresholds
+    CORRECT$1       -2.782      -2.724      -2.695      -2.551      -2.420      -2.396      -2.348
+
+Between Level
+
+ AGENTIC  BY
+    MPS_SPR          0.510       0.570       0.603       0.774       0.964       1.005       1.085
+    EXHIB            0.662       0.731       0.768       0.951       1.123       1.157       1.224
+    ENTITL           0.199       0.267       0.301       0.480       0.669       0.708       0.789
+
+ AFFILIAT BY
+    MPS_SCR          0.691       0.738       0.762       0.902       1.063       1.095       1.163
+    DETACH           0.806       0.858       0.884       1.017       1.165       1.195       1.258
+
+ CONDSLO  ON
+    AGENTIC         -0.082      -0.020       0.012       0.176       0.349       0.384       0.455
+    AFFILIAT        -0.262      -0.205      -0.176      -0.027       0.120       0.149       0.204
+
+ PREVSLO  ON
+    AGENTIC         -0.148      -0.092      -0.066       0.064       0.180       0.203       0.245
+    AFFILIAT        -0.085      -0.048      -0.029       0.072       0.177       0.199       0.241
+
+ ERRSLO   ON
+    AGENTIC         -0.791      -0.510      -0.369       0.220       0.720       0.824       1.034
+    AFFILIAT        -0.741      -0.546      -0.446       0.004       0.387       0.461       0.607
+
+ CORRECT  ON
+    AGENTIC         -0.460      -0.379      -0.339      -0.150       0.015       0.047       0.106
+    AFFILIAT        -0.295      -0.234      -0.204      -0.059       0.086       0.114       0.169
+
+ CONDSLO  WITH
+    PREVSLO         -0.050      -0.033      -0.025       0.013       0.056       0.066       0.087
+    ERRSLO          -0.124      -0.064      -0.037       0.081       0.232       0.274       0.370
+
+ PREVSLO  WITH
+    ERRSLO          -0.024       0.000       0.013       0.090       0.215       0.249       0.326
+
+ AGENTIC  WITH
+    AFFILIAT        -0.648      -0.601      -0.576      -0.429      -0.253      -0.216      -0.143
+
+ Intercepts
+    EXHIB           -0.260      -0.194      -0.158       0.014       0.191       0.226       0.299
+    ENTITL          -0.278      -0.212      -0.179      -0.005       0.170       0.203       0.267
+    DETACH          -0.270      -0.198      -0.163       0.009       0.179       0.210       0.279
+    MPS_SPR         -0.284      -0.213      -0.178      -0.005       0.171       0.207       0.278
+    MPS_SCR         -0.282      -0.211      -0.176      -0.004       0.166       0.201       0.268
+    CONDSLO         -0.698      -0.642      -0.616      -0.484      -0.352      -0.327      -0.277
+    PREVSLO          0.147       0.181       0.198       0.285       0.377       0.397       0.434
+    ERRSLO           0.208       0.326       0.386       0.788       1.439       1.605       1.948
+
+ Thresholds
+    CORRECT$1       -2.782      -2.724      -2.695      -2.551      -2.420      -2.396      -2.348
+
+ Variances
+    AGENTIC          1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    AFFILIAT         1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    CORRECT          0.086       0.106       0.117       0.188       0.291       0.316       0.371
+    EXHIB            0.005       0.014       0.024       0.198       0.442       0.493       0.591
+    ENTITL           0.583       0.635       0.666       0.850       1.100       1.159       1.285
+    DETACH           0.001       0.004       0.007       0.063       0.216       0.254       0.327
+    MPS_SPR          0.188       0.277       0.314       0.502       0.693       0.733       0.817
+    MPS_SCR          0.050       0.129       0.168       0.295       0.402       0.424       0.470
+    CONDSLO          0.094       0.111       0.121       0.188       0.292       0.317       0.374
+    PREVSLO          0.048       0.057       0.062       0.097       0.150       0.163       0.191
+    ERRSLO           0.128       0.176       0.207       0.496       1.279       1.547       2.166
+
+
+CREDIBILITY INTERVALS OF STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    BLOCK            0.000      -0.093       0.000      -0.042       0.000       0.006       0.000
+
+Between Level
+
+ AGENTIC  BY
+    MPS_SPR          0.535       0.587       0.614       0.736       0.851       0.871       0.914
+    EXHIB            0.681       0.741       0.771       0.906       0.989       0.994       0.998
+    ENTITL           0.197       0.266       0.300       0.462       0.599       0.621       0.670
+
+ AFFILIAT BY
+    MPS_SCR          0.748       0.776       0.790       0.857       0.924       0.941       0.979
+    DETACH           0.836       0.876       0.896       0.972       0.997       0.998       0.999
+
+ CONDSLO  ON
+    AGENTIC         -0.170      -0.042       0.025       0.367       0.659       0.706       0.792
+    AFFILIAT        -0.512      -0.407      -0.354      -0.056       0.242       0.295       0.396
+
+ PREVSLO  ON
+    AGENTIC         -0.413      -0.269      -0.192       0.196       0.520       0.573       0.663
+    AFFILIAT        -0.255      -0.146      -0.089       0.223       0.507       0.555       0.638
+
+ ERRSLO   ON
+    AGENTIC         -0.709      -0.529      -0.414       0.286       0.786       0.846       0.943
+    AFFILIAT        -0.674      -0.556      -0.482       0.005       0.467       0.541       0.671
+
+ CORRECT  ON
+    AGENTIC         -0.816      -0.714      -0.660      -0.324       0.034       0.101       0.225
+    AFFILIAT        -0.560      -0.461      -0.411      -0.128       0.186       0.243       0.352
+
+ CONDSLO  WITH
+    PREVSLO         -0.340      -0.237      -0.184       0.102       0.374       0.419       0.508
+    ERRSLO          -0.351      -0.209      -0.128       0.276       0.597       0.642       0.734
+
+ PREVSLO  WITH
+    ERRSLO          -0.134      -0.002       0.075       0.422       0.673       0.708       0.764
+
+ AGENTIC  WITH
+    AFFILIAT        -0.648      -0.601      -0.576      -0.429      -0.253      -0.216      -0.143
+
+ Intercepts
+    EXHIB           -0.242      -0.182      -0.150       0.014       0.181       0.213       0.278
+    ENTITL          -0.263      -0.202      -0.170      -0.005       0.162       0.193       0.251
+    DETACH          -0.248      -0.187      -0.154       0.008       0.166       0.198       0.255
+    MPS_SPR         -0.266      -0.201      -0.168      -0.004       0.162       0.195       0.257
+    MPS_SCR         -0.262      -0.199      -0.167      -0.004       0.155       0.187       0.250
+    CONDSLO         -1.618      -1.454      -1.372      -0.992      -0.667      -0.611      -0.505
+    PREVSLO          0.423       0.532       0.584       0.864       1.169       1.235       1.364
+    ERRSLO           0.285       0.450       0.533       0.989       1.455       1.549       1.743
+
+ Variances
+    AGENTIC          1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    AFFILIAT         1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    CORRECT          0.429       0.559       0.620       0.888       0.991       0.995       0.999
+    EXHIB            0.004       0.012       0.021       0.178       0.406       0.451       0.537
+    ENTITL           0.552       0.614       0.641       0.787       0.910       0.929       0.961
+    DETACH           0.001       0.004       0.006       0.056       0.197       0.232       0.300
+    MPS_SPR          0.164       0.242       0.277       0.459       0.623       0.655       0.714
+    MPS_SCR          0.042       0.115       0.147       0.266       0.376       0.398       0.441
+    CONDSLO          0.437       0.533       0.580       0.815       0.967       0.981       0.995
+    PREVSLO          0.580       0.670       0.713       0.914       0.993       0.996       0.999
+    ERRSLO           0.250       0.369       0.448       0.821       0.985       0.993       0.999
+
+
+STDY Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    BLOCK            0.000      -0.187       0.000      -0.085       0.000       0.012       0.000
+
+Between Level
+
+ AGENTIC  BY
+    MPS_SPR          0.535       0.587       0.614       0.736       0.851       0.871       0.914
+    EXHIB            0.681       0.741       0.771       0.906       0.989       0.994       0.998
+    ENTITL           0.197       0.266       0.300       0.462       0.599       0.621       0.670
+
+ AFFILIAT BY
+    MPS_SCR          0.748       0.776       0.790       0.857       0.924       0.941       0.979
+    DETACH           0.836       0.876       0.896       0.972       0.997       0.998       0.999
+
+ CONDSLO  ON
+    AGENTIC         -0.170      -0.042       0.025       0.367       0.659       0.706       0.792
+    AFFILIAT        -0.512      -0.407      -0.354      -0.056       0.242       0.295       0.396
+
+ PREVSLO  ON
+    AGENTIC         -0.413      -0.269      -0.192       0.196       0.520       0.573       0.663
+    AFFILIAT        -0.255      -0.146      -0.089       0.223       0.507       0.555       0.638
+
+ ERRSLO   ON
+    AGENTIC         -0.709      -0.529      -0.414       0.286       0.786       0.846       0.943
+    AFFILIAT        -0.674      -0.556      -0.482       0.005       0.467       0.541       0.671
+
+ CORRECT  ON
+    AGENTIC         -0.816      -0.714      -0.660      -0.324       0.034       0.101       0.225
+    AFFILIAT        -0.560      -0.461      -0.411      -0.128       0.186       0.243       0.352
+
+ CONDSLO  WITH
+    PREVSLO         -0.340      -0.237      -0.184       0.102       0.374       0.419       0.508
+    ERRSLO          -0.351      -0.209      -0.128       0.276       0.597       0.642       0.734
+
+ PREVSLO  WITH
+    ERRSLO          -0.134      -0.002       0.075       0.422       0.673       0.708       0.764
+
+ AGENTIC  WITH
+    AFFILIAT        -0.648      -0.601      -0.576      -0.429      -0.253      -0.216      -0.143
+
+ Intercepts
+    EXHIB           -0.242      -0.182      -0.150       0.014       0.181       0.213       0.278
+    ENTITL          -0.263      -0.202      -0.170      -0.005       0.162       0.193       0.251
+    DETACH          -0.248      -0.187      -0.154       0.008       0.166       0.198       0.255
+    MPS_SPR         -0.266      -0.201      -0.168      -0.004       0.162       0.195       0.257
+    MPS_SCR         -0.262      -0.199      -0.167      -0.004       0.155       0.187       0.250
+    CONDSLO         -1.618      -1.454      -1.372      -0.992      -0.667      -0.611      -0.505
+    PREVSLO          0.423       0.532       0.584       0.864       1.169       1.235       1.364
+    ERRSLO           0.285       0.450       0.533       0.989       1.455       1.549       1.743
+
+ Variances
+    AGENTIC          1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    AFFILIAT         1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    CORRECT          0.429       0.559       0.620       0.888       0.991       0.995       0.999
+    EXHIB            0.004       0.012       0.021       0.178       0.406       0.451       0.537
+    ENTITL           0.552       0.614       0.641       0.787       0.910       0.929       0.961
+    DETACH           0.001       0.004       0.006       0.056       0.197       0.232       0.300
+    MPS_SPR          0.164       0.242       0.277       0.459       0.623       0.655       0.714
+    MPS_SCR          0.042       0.115       0.147       0.266       0.376       0.398       0.441
+    CONDSLO          0.437       0.533       0.580       0.815       0.967       0.981       0.995
+    PREVSLO          0.580       0.670       0.713       0.914       0.993       0.996       0.999
+    ERRSLO           0.250       0.369       0.448       0.821       0.985       0.993       0.999
+
+
+STD Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    BLOCK            0.000      -0.206       0.000      -0.093       0.000       0.013       0.000
+
+Between Level
+
+ AGENTIC  BY
+    MPS_SPR          0.510       0.570       0.603       0.774       0.964       1.005       1.085
+    EXHIB            0.662       0.731       0.768       0.951       1.123       1.157       1.224
+    ENTITL           0.199       0.267       0.301       0.480       0.669       0.708       0.789
+
+ AFFILIAT BY
+    MPS_SCR          0.691       0.738       0.762       0.902       1.063       1.095       1.163
+    DETACH           0.806       0.858       0.884       1.017       1.165       1.195       1.258
+
+ CONDSLO  ON
+    AGENTIC         -0.170      -0.042       0.025       0.367       0.659       0.706       0.792
+    AFFILIAT        -0.512      -0.407      -0.354      -0.056       0.242       0.295       0.396
+
+ PREVSLO  ON
+    AGENTIC         -0.413      -0.269      -0.192       0.196       0.520       0.573       0.663
+    AFFILIAT        -0.255      -0.146      -0.089       0.223       0.507       0.555       0.638
+
+ ERRSLO   ON
+    AGENTIC         -0.709      -0.529      -0.414       0.286       0.786       0.846       0.943
+    AFFILIAT        -0.674      -0.556      -0.482       0.005       0.467       0.541       0.671
+
+ CORRECT  ON
+    AGENTIC         -0.460      -0.379      -0.339      -0.150       0.015       0.047       0.106
+    AFFILIAT        -0.295      -0.234      -0.204      -0.059       0.086       0.114       0.169
+
+ CONDSLO  WITH
+    PREVSLO         -0.340      -0.237      -0.184       0.102       0.374       0.419       0.508
+    ERRSLO          -0.351      -0.209      -0.128       0.276       0.597       0.642       0.734
+
+ PREVSLO  WITH
+    ERRSLO          -0.134      -0.002       0.075       0.422       0.673       0.708       0.764
+
+ AGENTIC  WITH
+    AFFILIAT        -0.648      -0.601      -0.576      -0.429      -0.253      -0.216      -0.143
+
+ Intercepts
+    EXHIB           -0.260      -0.194      -0.158       0.014       0.191       0.226       0.299
+    ENTITL          -0.278      -0.212      -0.179      -0.005       0.170       0.203       0.267
+    DETACH          -0.270      -0.198      -0.163       0.009       0.179       0.210       0.279
+    MPS_SPR         -0.284      -0.213      -0.178      -0.005       0.171       0.207       0.278
+    MPS_SCR         -0.282      -0.211      -0.176      -0.004       0.166       0.201       0.268
+    CONDSLO         -1.618      -1.454      -1.372      -0.992      -0.667      -0.611      -0.505
+    PREVSLO          0.423       0.532       0.584       0.864       1.169       1.235       1.364
+    ERRSLO           0.285       0.450       0.533       0.989       1.455       1.549       1.743
+
+ Variances
+    AGENTIC          1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    AFFILIAT         1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    CORRECT          0.086       0.106       0.117       0.188       0.291       0.316       0.371
+    EXHIB            0.005       0.014       0.024       0.198       0.442       0.493       0.591
+    ENTITL           0.583       0.635       0.666       0.850       1.100       1.159       1.285
+    DETACH           0.001       0.004       0.007       0.063       0.216       0.254       0.327
+    MPS_SPR          0.188       0.277       0.314       0.502       0.693       0.733       0.817
+    MPS_SCR          0.050       0.129       0.168       0.295       0.402       0.424       0.470
+    CONDSLO          0.437       0.533       0.580       0.815       0.967       0.981       0.995
+    PREVSLO          0.580       0.670       0.713       0.914       0.993       0.996       0.999
+    ERRSLO           0.250       0.369       0.448       0.821       0.985       0.993       0.999
+
+
+TECHNICAL 1 OUTPUT
+
+
+     PARAMETER SPECIFICATION FOR WITHIN
+
+
+           TAU
+              CORRECT$
+              ________
+                    0
+
+
+           NU
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           LAMBDA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT            0             0             0             0             0
+ COND               0             0             0             0             0
+ BLOCK              0             0             0             0             0
+ PREV_RT_           0             0             0             0             0
+ PREV_ERR           0             0             0             0             0
+
+
+           THETA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT            0
+ COND               0             0
+ BLOCK              0             0             0
+ PREV_RT_           0             0             0             0
+ PREV_ERR           0             0             0             0             0
+
+
+           ALPHA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           BETA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT            0             0             1             0             0
+ COND               0             0             0             0             0
+ BLOCK              0             0             0             0             0
+ PREV_RT_           0             0             0             0             0
+ PREV_ERR           0             0             0             0             0
+
+
+           PSI
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT            0
+ COND               0             0
+ BLOCK              0             0             0
+ PREV_RT_           0             0             0             0
+ PREV_ERR           0             0             0             0             0
+
+
+     PARAMETER SPECIFICATION FOR BETWEEN
+
+
+           TAU
+              CORRECT$
+              ________
+                   36
+
+
+           NU
+              CORRECT       EXHIB         ENTITL        DETACH        MPS_SPR
+              ________      ________      ________      ________      ________
+                    0             2             3             4             5
+
+
+           NU
+              MPS_SCR
+              ________
+                    6
+
+
+           LAMBDA
+              AGENTIC       AFFILIAT      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+ CORRECT            0             0             0             0             0
+ EXHIB              7             0             0             0             0
+ ENTITL             8             0             0             0             0
+ DETACH             0             9             0             0             0
+ MPS_SPR           10             0             0             0             0
+ MPS_SCR            0            11             0             0             0
+
+
+           LAMBDA
+              CORRECT
+              ________
+ CORRECT            0
+ EXHIB              0
+ ENTITL             0
+ DETACH             0
+ MPS_SPR            0
+ MPS_SCR            0
+
+
+           THETA
+              CORRECT       EXHIB         ENTITL        DETACH        MPS_SPR
+              ________      ________      ________      ________      ________
+ CORRECT            0
+ EXHIB              0            12
+ ENTITL             0             0            13
+ DETACH             0             0             0            14
+ MPS_SPR            0             0             0             0            15
+ MPS_SCR            0             0             0             0             0
+
+
+           THETA
+              MPS_SCR
+              ________
+ MPS_SCR           16
+
+
+           ALPHA
+              AGENTIC       AFFILIAT      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+                    0             0            17            18            19
+
+
+           ALPHA
+              CORRECT
+              ________
+                    0
+
+
+           BETA
+              AGENTIC       AFFILIAT      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+ AGENTIC            0             0             0             0             0
+ AFFILIAT           0             0             0             0             0
+ CONDSLO           20            21             0             0             0
+ PREVSLO           22            23             0             0             0
+ ERRSLO            24            25             0             0             0
+ CORRECT           26            27             0             0             0
+
+
+           BETA
+              CORRECT
+              ________
+ AGENTIC            0
+ AFFILIAT           0
+ CONDSLO            0
+ PREVSLO            0
+ ERRSLO             0
+ CORRECT            0
+
+
+           PSI
+              AGENTIC       AFFILIAT      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+ AGENTIC            0
+ AFFILIAT          28             0
+ CONDSLO            0             0            29
+ PREVSLO            0             0            30            31
+ ERRSLO             0             0            32            33            34
+ CORRECT            0             0             0             0             0
+
+
+           PSI
+              CORRECT
+              ________
+ CORRECT           35
+
+
+     STARTING VALUES FOR WITHIN
+
+
+           TAU
+              CORRECT$
+              ________
+                0.000
+
+
+           NU
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           LAMBDA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT        1.000         0.000         0.000         0.000         0.000
+ COND           0.000         1.000         0.000         0.000         0.000
+ BLOCK          0.000         0.000         1.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000         1.000         0.000
+ PREV_ERR       0.000         0.000         0.000         0.000         1.000
+
+
+           THETA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT        0.000
+ COND           0.000         0.000
+ BLOCK          0.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000         0.000
+ PREV_ERR       0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT        0.000         0.000         0.000         0.000         0.000
+ COND           0.000         0.000         0.000         0.000         0.000
+ BLOCK          0.000         0.000         0.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000         0.000         0.000
+ PREV_ERR       0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT        1.000
+ COND           0.000         0.125
+ BLOCK          0.000         0.000         0.125
+ PREV_RT_       0.000         0.000         0.000         0.489
+ PREV_ERR       0.000         0.000         0.000         0.000         0.017
+
+
+     STARTING VALUES FOR BETWEEN
+
+
+           TAU
+              CORRECT$
+              ________
+               -1.913
+
+
+           NU
+              CORRECT       EXHIB         ENTITL        DETACH        MPS_SPR
+              ________      ________      ________      ________      ________
+                0.000         0.015        -0.007         0.007        -0.005
+
+
+           NU
+              MPS_SCR
+              ________
+               -0.006
+
+
+           LAMBDA
+              AGENTIC       AFFILIAT      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+ CORRECT        0.000         0.000         0.000         0.000         0.000
+ EXHIB          1.000         0.000         0.000         0.000         0.000
+ ENTITL         1.000         0.000         0.000         0.000         0.000
+ DETACH         0.000         1.000         0.000         0.000         0.000
+ MPS_SPR        1.000         0.000         0.000         0.000         0.000
+ MPS_SCR        0.000         1.000         0.000         0.000         0.000
+
+
+           LAMBDA
+              CORRECT
+              ________
+ CORRECT        1.000
+ EXHIB          0.000
+ ENTITL         0.000
+ DETACH         0.000
+ MPS_SPR        0.000
+ MPS_SCR        0.000
+
+
+           THETA
+              CORRECT       EXHIB         ENTITL        DETACH        MPS_SPR
+              ________      ________      ________      ________      ________
+ CORRECT        0.000
+ EXHIB          0.000         0.506
+ ENTITL         0.000         0.000         0.511
+ DETACH         0.000         0.000         0.000         0.512
+ MPS_SPR        0.000         0.000         0.000         0.000         0.511
+ MPS_SCR        0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              MPS_SCR
+              ________
+ MPS_SCR        0.512
+
+
+           ALPHA
+              AGENTIC       AFFILIAT      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              CORRECT
+              ________
+                0.000
+
+
+           BETA
+              AGENTIC       AFFILIAT      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+ AGENTIC        0.000         0.000         0.000         0.000         0.000
+ AFFILIAT       0.000         0.000         0.000         0.000         0.000
+ CONDSLO        0.000         0.000         0.000         0.000         0.000
+ PREVSLO        0.000         0.000         0.000         0.000         0.000
+ ERRSLO         0.000         0.000         0.000         0.000         0.000
+ CORRECT        0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              CORRECT
+              ________
+ AGENTIC        0.000
+ AFFILIAT       0.000
+ CONDSLO        0.000
+ PREVSLO        0.000
+ ERRSLO         0.000
+ CORRECT        0.000
+
+
+           PSI
+              AGENTIC       AFFILIAT      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+ AGENTIC        1.000
+ AFFILIAT       0.000         1.000
+ CONDSLO        0.000         0.000         1.000
+ PREVSLO        0.000         0.000         0.000         1.000
+ ERRSLO         0.000         0.000         0.000         0.000         1.000
+ CORRECT        0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              CORRECT
+              ________
+ CORRECT        1.000
+
+
+
+     PRIORS FOR ALL PARAMETERS            PRIOR MEAN      PRIOR VARIANCE     PRIOR STD. DEV.
+
+     Parameter 1~N(0.000,5.000)              0.0000              5.0000              2.2361
+     Parameter 2~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 3~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 4~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 5~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 6~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 7~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 8~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 9~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 10~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 11~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 12~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 13~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 14~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 15~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 16~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 17~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 18~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 19~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 20~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 21~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 22~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 23~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 24~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 25~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 26~N(0.000,5.000)             0.0000              5.0000              2.2361
+     Parameter 27~N(0.000,5.000)             0.0000              5.0000              2.2361
+     Parameter 28~IW(0.000,3)
+     Parameter 29~IW(1.000,4)              infinity            infinity            infinity
+     Parameter 30~IW(0.000,4)              infinity            infinity            infinity
+     Parameter 31~IW(1.000,4)              infinity            infinity            infinity
+     Parameter 32~IW(0.000,4)              infinity            infinity            infinity
+     Parameter 33~IW(0.000,4)              infinity            infinity            infinity
+     Parameter 34~IW(1.000,4)              infinity            infinity            infinity
+     Parameter 35~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 36~N(0.000,5.000)             0.0000              5.0000              2.2361
+
+
+TECHNICAL 8 OUTPUT
+
+
+   TECHNICAL 8 OUTPUT FOR BAYES ESTIMATION
+
+     CHAIN    BSEED
+     1        0
+     2        285380
+     3        253358
+     4        93468
+
+                     POTENTIAL       PARAMETER WITH
+     ITERATION    SCALE REDUCTION      HIGHEST PSR
+     100              2.115               14
+     200              1.649               4
+     300              1.292               9
+     400              1.207               12
+     500              1.270               34
+     600              1.198               19
+     700              1.167               19
+     800              1.227               19
+     900              1.253               19
+     1000             1.231               12
+     1100             1.218               12
+     1200             1.200               12
+     1300             1.169               12
+     1400             1.092               12
+     1500             1.085               14
+     1600             1.078               14
+     1700             1.076               14
+     1800             1.055               35
+     1900             1.064               35
+     2000             1.045               35
+     2100             1.048               24
+     2200             1.040               24
+     2300             1.053               14
+     2400             1.056               14
+     2500             1.052               4
+     2600             1.044               26
+     2700             1.043               26
+     2800             1.047               26
+     2900             1.063               26
+     3000             1.065               26
+     3100             1.058               26
+     3200             1.047               26
+     3300             1.034               26
+     3400             1.027               26
+     3500             1.031               14
+     3600             1.032               11
+     3700             1.035               14
+     3800             1.039               14
+     3900             1.045               14
+     4000             1.049               14
+     4100             1.052               14
+     4200             1.056               14
+     4300             1.059               14
+     4400             1.052               14
+     4500             1.048               14
+     4600             1.047               14
+     4700             1.049               14
+     4800             1.044               14
+     4900             1.040               14
+     5000             1.037               14
+     5100             1.024               14
+     5200             1.020               12
+     5300             1.024               19
+     5400             1.024               19
+     5500             1.023               19
+     5600             1.022               19
+     5700             1.025               19
+     5800             1.027               19
+     5900             1.027               19
+     6000             1.023               19
+     6100             1.020               19
+     6200             1.022               19
+     6300             1.025               19
+     6400             1.024               19
+     6500             1.024               19
+     6600             1.025               19
+     6700             1.023               19
+     6800             1.020               19
+     6900             1.021               14
+     7000             1.025               14
+     7100             1.023               14
+     7200             1.023               14
+     7300             1.019               14
+     7400             1.016               14
+     7500             1.016               14
+     7600             1.014               14
+     7700             1.014               19
+     7800             1.019               19
+     7900             1.021               19
+     8000             1.021               19
+     8100             1.022               19
+     8200             1.022               19
+     8300             1.021               19
+     8400             1.017               19
+     8500             1.015               19
+     8600             1.015               19
+     8700             1.016               19
+     8800             1.017               19
+     8900             1.017               19
+     9000             1.017               19
+     9100             1.015               19
+     9200             1.013               19
+     9300             1.010               19
+     9400             1.008               4
+     9500             1.007               4
+     9600             1.006               36
+     9700             1.007               36
+     9800             1.007               36
+     9900             1.006               2
+     10000            1.006               4
+     10100            1.006               4
+     10200            1.006               4
+     10300            1.005               4
+     10400            1.006               4
+     10500            1.006               4
+     10600            1.006               18
+     10700            1.006               18
+     10800            1.007               18
+     10900            1.007               18
+     11000            1.007               18
+     11100            1.007               18
+     11200            1.007               18
+     11300            1.007               4
+     11400            1.008               34
+     11500            1.008               34
+     11600            1.008               34
+     11700            1.008               34
+     11800            1.008               34
+     11900            1.009               34
+     12000            1.008               34
+     12100            1.008               34
+     12200            1.008               34
+     12300            1.008               34
+     12400            1.008               18
+     12500            1.007               18
+     12600            1.009               19
+     12700            1.008               19
+     12800            1.009               19
+     12900            1.010               19
+     13000            1.009               19
+     13100            1.010               34
+     13200            1.011               34
+     13300            1.010               34
+     13400            1.009               34
+     13500            1.008               34
+     13600            1.007               34
+     13700            1.006               34
+     13800            1.006               34
+     13900            1.006               34
+     14000            1.005               34
+     14100            1.005               34
+     14200            1.004               34
+     14300            1.004               14
+     14400            1.005               14
+     14500            1.004               14
+     14600            1.004               14
+     14700            1.004               14
+     14800            1.004               7
+     14900            1.004               7
+     15000            1.004               25
+     15100            1.004               25
+     15200            1.004               25
+     15300            1.005               25
+     15400            1.004               25
+     15500            1.004               34
+     15600            1.005               34
+     15700            1.005               34
+     15800            1.005               34
+     15900            1.004               34
+     16000            1.003               27
+     16100            1.004               27
+     16200            1.004               27
+     16300            1.004               27
+     16400            1.004               27
+     16500            1.004               27
+     16600            1.004               27
+     16700            1.004               27
+     16800            1.004               32
+     16900            1.005               32
+     17000            1.005               32
+     17100            1.006               32
+     17200            1.006               32
+     17300            1.006               19
+     17400            1.006               19
+     17500            1.006               32
+     17600            1.006               32
+     17700            1.006               32
+     17800            1.006               32
+     17900            1.006               32
+     18000            1.006               32
+     18100            1.005               32
+     18200            1.005               32
+     18300            1.005               32
+     18400            1.004               32
+     18500            1.005               32
+     18600            1.006               32
+     18700            1.006               32
+     18800            1.007               32
+     18900            1.007               32
+     19000            1.006               32
+     19100            1.006               32
+     19200            1.006               32
+     19300            1.006               32
+     19400            1.005               32
+     19500            1.005               31
+     19600            1.005               7
+     19700            1.005               31
+     19800            1.006               36
+     19900            1.006               36
+     20000            1.006               36
+
+
+PLOT INFORMATION
+
+The following plots are available:
+
+  Sample proportions
+  Bayesian posterior parameter distributions
+  Bayesian posterior parameter trace plots
+  Bayesian autocorrelation plots
+  Bayesian prior parameter distributions
+
+     Beginning Time:  08:38:16
+        Ending Time:  08:45:05
+       Elapsed Time:  00:06:49
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2019 Muthen & Muthen

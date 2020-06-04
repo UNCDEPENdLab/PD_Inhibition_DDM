@@ -1,0 +1,509 @@
+---
+title: "Final Flanker Accuracy Analyses"
+subtitle: "PD Inhibition Project"
+author: "Michael Hallquist"
+date: "28 May 2020"
+output: 
+  html_document:
+    code_folding: show
+    df_print: default
+    mathjax: default
+    number_sections: no
+    theme: spacelab
+    toc: yes
+    toc_depth: 2
+    toc_float: no
+    fig_width: 9 
+    fig_height: 6 
+  pdf_document:
+    df_print: default
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+if (!require(pacman)) { install.packages("pacman"); library(pacman) }
+p_load(car, nlme, lme4, readr, tidyverse, emmeans, cowplot, bbmle, broom, knitr, kableExtra, flextable, stargazer, lmerTest)
+knitr::opts_chunk$set(echo = TRUE) #print code by default
+#knitr::opts_chunk$set(cache.path = "../../Outputs/flanker_mlms/")
+#options(digits=2)
+options(scipen = 2, digits = 3)
+options(width = 140)
+emm_options(disable.pbkrtest = TRUE, lmerTest.limit=2e4) #disable KR and estimate Satterthwaite
+
+#preprocessed in flanker_mlm.Rmd
+load(file="../../Data/preprocessed/flanker_for_traits.RData")
+flanker <- flanker %>% filter(exclude < 3) %>% #least restrictive exclusions
+  mutate(prev_rt=prev_rt - mean(prev_rt, na.rm=TRUE),
+         prev_rt_z = as.vector(scale(prev_rt))) #z-score rt to put parameter estimates on smaller scale
+
+render_aictab <- function(minfo, ...) {
+  mc <- match.call(expand.dots = TRUE)
+  mlist <- list(...)
+  
+  #N.B. AICtab fails if you try to assign names to the list names(mlist) <- ...
+  mnames <- sapply(3:length(mc), function(x) { as.character(mc[[x]])})
+  mdf <- do.call(rbind, minfo) %>% as.data.frame() %>% rownames_to_column("model")
+  adf <- AICtab(mlist, sort=FALSE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE, mnames=mnames) %>% 
+    as.data.frame() %>% rownames_to_column("model") %>% dplyr::select(-dLogLik)
+
+  res <- mdf %>% left_join(adf, by="model")
+  return(res)
+}
+
+flextb_vif <- function(m) {
+  flextable(data.frame(vif=car::vif(m)) %>% rownames_to_column("Predictor")) %>% autofit()
+}
+
+check_singularity <- function(lmerobj) {
+  tt <- getME(lmerobj,"theta") #RE estimates
+  ll <- getME(lmerobj,"lower") #lower bound on estimate
+  
+  #look for RE estimates that are very small (near zero) and the lower bound encompasses 0
+  low_re <- tt[ll==0 & tt < 1e-2]
+  return(low_re)
+  
+  #eventually, would be nice to provide functionality to drop these from model and refit automatically
+}
+
+minfo <- list() #used for building model summary table
+```
+
+This file contains final MLMs for accuracy statistics on the flanker task for the PD Inhibition DDM project.
+
+## m0: design effects, no interaction, random intercept of subject
+
+```{r}
+minfo <- list() #re-initialize now that we're eliminating l1 heterogeneity
+minfo[["m0"]] <- c(fixed="Congruency, Block", l2="Subject: Intercept")
+```
+
+```{r m0_lmer, cache=TRUE}
+m0 <- glmer(correct ~ cond + block + (1|id),
+          na.action = na.exclude, 
+          data = flanker, family=binomial)
+```
+
+```{r}
+flextable(car::Anova(m0, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+flextb_vif(m0)
+emmeans(m0, ~cond|block, type="response")
+anova(m0)
+```
+
+## m1: design effects, random intercept of subject
+
+Allow for interaction of congruency and block
+
+```{r}
+minfo[["m1"]] <- c(fixed="Congruency, Block, Congruency x Block", l2="Subject: Intercept")
+```
+
+```{r m1_lmer, cache=TRUE}
+m1 <- glmer(correct ~ cond*block + (1|id),
+          na.action = na.exclude, 
+          data = flanker, family=binomial)
+```
+
+```{r}
+#flextable(anova(m1) %>% rownames_to_column("Effect")) %>% autofit() #lmerTest reports Satterthwaite degrees of freedom
+flextable(car::Anova(m1, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+flextb_vif(m1)
+anova(m1)
+
+flextable(as.data.frame(emmeans(m1, ~cond|block, type="response")) %>% dplyr::select(-df)) %>% 
+  colformat_num(j=c("prob", "SE", "asymp.LCL", "asymp.UCL"), digits=3)  %>% autofit()
+flextable(render_aictab(minfo=minfo, m0, m1)) %>% autofit()
+```
+
+Conclusion: no significant condition x block interaction. Drop from subsequent models for simplicity. Also, the interaction is collinear with the condition.
+
+## m2: design effects, allow for L2 random intercept to vary by block
+
+Use nested RE specification.
+
+```{r}
+minfo[["m2"]] <- c(
+  fixed="Congruency, Block",
+  l2="Subject: Intercept\nBlock within subject: Intercept")
+```
+
+```{r m2_lmer, cache=TRUE}
+m2 <- glmer(correct ~ cond + block + (1|id/block),
+          na.action = na.exclude,
+          data = flanker, family=binomial, nAGQ=1)
+```
+
+```{r}
+car::Anova(m2, type=3)
+anova(m2)
+flextable(render_aictab(minfo=minfo, m0, m1, m2)) %>% autofit()
+```
+
+## m3: Add trial_z as fixed
+
+Non-significant effect -- do not pursue
+
+```{r}
+minfo[["m3"]] <- c(
+  fixed="Congruency, Block, Trial", 
+  l2="Subject: Intercept\nBlock within subject: Intercept")
+```
+
+```{r m3_lmer, cache=TRUE}
+m3 <- glmer(correct ~ cond + block + trial_z + (1|id/block),
+          na.action = na.exclude,
+          data = flanker, family=binomial)
+```
+
+```{r}
+flextable(car::Anova(m3, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+flextable(render_aictab(minfo=minfo, m0, m1, m2, m3)) %>% autofit()
+```
+
+## m4: Add trial_z as random only at subject level, not block-specific
+
+And drop fixed effect of trial_z from m3
+
+```{r}
+minfo[["m4"]] <- c(
+  fixed="Congruency, Block", 
+  l2="Subject:Intercept, Trial\nBlock within subject: Intercept")
+```
+
+```{r m4_lmer, cache=TRUE, include=FALSE}
+m4 <- glmer(correct ~ cond + block + (1 + trial_z | id) + (1 | id:block),
+          na.action = na.exclude,
+          data = flanker, family=binomial)
+```
+
+```{r}
+flextable(car::Anova(m4, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+flextable(render_aictab(minfo=minfo, m0, m1, m2, m3, m4)) %>% autofit()
+```
+
+## m5: Add trial_z as random both per subject and block
+
+And drop trial_z as fixed
+
+```{r}
+minfo[["m5"]] <- c(
+  fixed="Congruency, Block",
+  l2="Subject: Intercept, Trial\nBlock within subject: Intercept, Trial")
+```
+
+```{r m5_lmer, cache=TRUE}
+m5 <- glmer(correct ~ cond + block + (1 + trial_z | id/block),
+          na.action = na.exclude,
+          data = flanker, family=binomial)
+```
+
+```{r}
+summary(m5)
+flextb_vif(m5)
+flextable(car::Anova(m5, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+flextable(render_aictab(minfo=minfo, m0, m1, m2, m3, m4, m5)) %>% autofit()
+```
+
+In short, no evidence that trial helps our accuracy models at all.
+
+## m6: Add trial x block interaction as fixed, remove trial_z random
+
+```{r}
+minfo[["m6"]] <- c(
+  fixed="Congruency, Block, Trial, Block x Trial", 
+  l2="Subject: Intercept\nBlock within subject: Intercept")
+```
+
+```{r m6_lmer, cache=TRUE}
+m6 <- glmer(correct ~ cond + block + trial_z*block + (1 | id/block),
+          na.action = na.exclude,
+          data = flanker, family=binomial)
+```
+
+```{r}
+flextb_vif(m6)
+flextable(render_aictab(minfo=minfo, m1, m2, m3, m4, m5, m6)) %>% autofit()
+```
+
+No support for trial x block (and collinearity concern)
+
+## m7: Trial within run (run_trial) as fixed
+
+Marginal fixed effect. Keep it to be on the liberal end
+
+```{r}
+minfo[["m7"]] <- c(
+  fixed="Congruency, Block, Run Trial", 
+  l2="Subject: Intercept, Trial\nBlock within subject: Intercept, Trial")
+```
+
+```{r m7_lmer, cache=TRUE}
+m7 <- glmer(correct ~ cond + block + run_trial_z + (1 | id/block),
+          na.action = na.exclude,
+          data = flanker, family=binomial)
+```
+
+```{r}
+flextable(car::Anova(m7, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+flextable(render_aictab(minfo=minfo, m0, m1, m2, m3, m4, m5, m6, m7)) %>% autofit()
+```
+
+## m8: Trial within run as random
+
+Not an improvement, don't consider the id versus id/block split for run_trial_z
+
+```{r}
+minfo[["m8"]] <- c(
+  fixed="Congruency, Block", 
+  l2="Subject: Intercept, Run Trial\nBlock within subject: Intercept, Run Trial")
+```
+
+```{r m8_lmer, cache=TRUE}
+m8 <- glmer(correct ~ cond + block + run_trial_z + (1 + run_trial_z | id/block),
+          na.action = na.exclude,
+          data = flanker, family=binomial)
+```
+
+```{r}
+flextable(render_aictab(minfo=minfo, m0, m1, m2, m3, m4, m5, m6, m7, m8)) %>% autofit()
+```
+
+## m9: Add prev_rt_z as fixed effect
+
+Has a substantial effect!
+
+```{r}
+minfo[["m9"]] <- c(
+  fixed="Congruency, Block, Previous RT, Run Trial", 
+  l2="Subject: Intercept, Block within subject: Intercept")
+```
+
+```{r m9_lmer, cache=TRUE}
+m9 <- glmer(correct ~ cond + block + prev_rt_z + run_trial_z + (1 | id/block),
+          na.action = na.exclude,
+          data = flanker, family=binomial)
+```
+
+```{r}
+flextb_vif(m9)
+
+flextable(render_aictab(minfo=minfo, m1, m2, m3, m4, m5, m6, m7, m8, m9)) %>% autofit()
+```
+
+## m10: Add prev_rt_z as random at subject level only
+
+```{r}
+minfo[["m10"]] <- c(
+  fixed="Congruency, Block, Previous RT, Run Trial", 
+  l2="Subject: Intercept, Previous RT,\nBlock within subject: Intercept")
+```
+
+```{r m10_lmer, cache=TRUE}
+m10 <- glmer(correct ~ cond + block + prev_rt_z + run_trial_z + (1 + prev_rt_z | id) + (1 | id:block),
+          na.action = na.exclude, control=glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 30000)),
+          data = flanker, family=binomial)
+```
+
+```{r}
+flextb_vif(m10)
+
+flextable(render_aictab(minfo=minfo, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10)) %>% autofit()
+```
+
+## m11: Add prev_rt_z as random at subject and block level
+
+This yields a singular fit that is attributable to the variance of prev_rt_z at block within id level. Thus, although it technically improves fit a tiny bit (AIC diff ~0.5), don't retain it.
+
+```{r}
+minfo[["m11"]] <- c(
+  fixed="Congruency, Block, Previous RT, Run Trial", 
+  re_details="Subject:Intercept, Previous RT,\nBlock within subject: Intercept, Previous RT")
+```
+
+```{r m11_lmer, cache=TRUE}
+m11 <- glmer(correct ~ cond + block + prev_rt_z + run_trial_z + (1 + prev_rt_z | id/block),
+          na.action = na.exclude, control=glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 30000)),
+          data = flanker, family=binomial)
+```
+
+```{r}
+if (isSingular(m11)) { check_singularity(m11) }
+flextb_vif(m11)
+
+flextable(car::Anova(m11, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+
+flextable(render_aictab(minfo=minfo, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11)) %>% autofit()
+```
+
+## m12: Add condition as random at subject level
+
+Run trial makes this model go off the rails (poor convergence). Drop (in m13)
+
+```{r}
+minfo[["m12"]] <- c(
+  fixed="Congruency, Block, Previous RT, Run Trial", 
+  l2="Subject: Intercept, Previous RT, Congruency\nBlock within subject: Intercept")
+```
+
+```{r m12_lmer, cache=TRUE}
+m12 <- glmer(correct ~ cond + block + prev_rt_z + run_trial_z +
+              (1 + prev_rt_z + cond | id) +
+              (1 | id:block),
+          na.action = na.exclude, control=glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 30000)),
+          data = flanker, family=binomial)
+```
+
+```{r}
+if (isSingular(m12)) { check_singularity(m12) }
+flextb_vif(m12)
+
+flextable(car::Anova(m12, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+
+flextable(render_aictab(minfo=minfo, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12)) %>% autofit()
+
+```
+
+## m13: drop run_trial_z as fixed
+
+We only see a small decrement in fit. AIC goes up ~.15, so let's go with the more parsimonious model that converges!
+
+```{r}
+minfo[["m13"]] <- c(
+  fixed="Congruency, Block, Previous RT", 
+  l2="Subject: Intercept, Previous RT, Congruency\nBlock within subject: Intercept")
+```
+
+```{r m13_lmer, cache=TRUE}
+m13 <- glmer(correct ~ cond + block + prev_rt_z +
+              (1 + prev_rt_z + cond | id) +
+              (1 | id:block),
+          na.action = na.exclude, control=glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 30000)),
+          data = flanker, family=binomial)
+```
+
+```{r}
+if (isSingular(m13)) { check_singularity(m13) }
+flextb_vif(m13)
+
+flextable(car::Anova(m13, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+
+flextable(render_aictab(minfo=minfo, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13)) %>% autofit()
+
+```
+
+## m14: add prev_error as fixed
+
+Post-error shifts toward accuracy? No, p = .51, nothing to it
+
+```{r}
+minfo[["m14"]] <- c(
+  fixed="Congruency, Block, Previous RT, Previous Error", 
+  l2="Subject: Intercept, Previous RT, Congruency\nBlock within subject: Intercept")
+```
+
+```{r m14_lmer, cache=TRUE}
+m14 <- glmer(correct ~ cond + block + prev_rt_z + prev_error +
+              (1 + prev_rt_z + cond | id) +
+              (1 | id:block),
+          na.action = na.exclude, control=glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 30000)),
+          data = flanker, family=binomial)
+```
+
+```{r}
+flextb_vif(m14)
+
+flextable(car::Anova(m14, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+
+flextable(render_aictab(minfo=minfo, m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14)) %>% autofit()
+```
+
+## m15: allow prev_error to be random at subject level
+
+Keep the fixef for now to ensure it stays at zero with random in the model. Looks like there is meaningful heterogeneity in whether a previous error influence accuracy on this trial. Actually, when we include the RE, the FE becomes sig.
+
+```{r}
+minfo[["m15"]] <- c(
+  fixed="Congruency, Block, Previous RT, Previous Error", 
+  l2="Subject: Intercept, Previous RT, Congruency, Previous Error\nBlock within subject: Intercept")
+```
+
+```{r m15_lmer, cache=TRUE}
+m15 <- glmer(correct ~ cond + block + prev_rt_z + prev_error +
+              (1 + prev_rt_z + cond + prev_error | id) +
+              (1 | id:block),
+          na.action = na.exclude, control=glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 30000)),
+          data = flanker, family=binomial)
+```
+
+
+```{r}
+if (isSingular(m15)) { check_singularity(m15) }
+flextb_vif(m15)
+flextable(car::Anova(m15, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+flextable(render_aictab(minfo=minfo, m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15)) %>% autofit()
+```
+
+## m16: add interaction back in for reporting purposes
+
+```{r}
+minfo[["m16"]] <- c(
+  fixed="Congruency, Block, Congruency x Block, Previous RT, Previous Error", 
+  l2="Subject: Intercept, Previous RT, Congruency, Previous Error\nBlock within subject: Intercept")
+```
+
+```{r m16_lmer, cache=TRUE}
+m16 <- glmer(correct ~ cond * block + prev_rt_z + prev_error +
+              (1 + prev_rt_z + cond + prev_error | id) +
+              (1 | id:block),
+          na.action = na.exclude, control=glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 30000)),
+          data = flanker, family=binomial)
+```
+
+```{r}
+if (isSingular(m16)) { check_singularity(m16) }
+flextb_vif(m16)
+flextable(car::Anova(m16, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+flextable(render_aictab(minfo=minfo, m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10,
+                        m11, m12, m13, m14, m15, m16)) %>% autofit()
+```
+
+## m15 is the winner!
+
+```{r}
+library(broom.mixed)
+
+flextable(car::Anova(m15, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+summary(m15)
+
+tidy(m15,conf.int=TRUE,exponentiate=TRUE,effects="fixed")
+```
+
+
+```{r fplot, cache=TRUE, fig=TRUE}
+library(sjPlot)
+gg <- plot_model(m15, type="std", show.p=TRUE, ci.lvl=.95, dot.size=5, 
+                 line.size=2, vline.color = "black", axis.lim=c(0.15, 3.5)) + 
+  theme_bw(base_size=24) +
+  theme(panel.grid.major.y=element_blank()) +
+  ggtitle("") + ylab("Odds Ratio")
+plot(gg)
+ggsave(gg, filename="Flanker_Acc_Params.pdf", width=9, height=6, useDingbats=FALSE)
+```
+
+## m15 as probit
+
+To match Mplus
+
+```{r m15_probit, cache=TRUE}
+m15 <- glmer(correct ~ cond + block + prev_rt_z + prev_error +
+              (1 + prev_rt_z + cond + prev_error | id) +
+              (1 | id:block),
+          na.action = na.exclude, control=glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 30000)),
+          data = flanker, family = binomial(link = "probit"))
+
+summary(m15)
+```

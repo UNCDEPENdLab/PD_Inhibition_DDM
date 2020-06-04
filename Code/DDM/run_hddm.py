@@ -484,7 +484,7 @@ print(mod_dict_torun)
 #####
 
 ###configure pymp for parallel processing
-# pymp.config.nested=True
+pymp.config.nested=True
 
 #N.B. 4/9/20 per MH's suggestion, it is advised that this script be called to run one model and parallelize over the number of chains requested.
 ## however, the function will still support running multiple models, though this will now be executed serially.

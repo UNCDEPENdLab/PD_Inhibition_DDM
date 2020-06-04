@@ -1,0 +1,865 @@
+Mplus VERSION 8.4 (Mac)
+MUTHEN & MUTHEN
+06/01/2020   3:03 PM
+
+INPUT INSTRUCTIONS
+
+  TITLE:
+  Antagonism and Disinhibition BSEM CFA
+  DATA:
+  FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/AC_bsem_cfa.dat";
+
+  VARIABLE:
+  NAMES = subject MPS_acR MPS_alR MPS_agR MPS_clR MPS_tdR MISTRUST MANIP AGG DISINH
+       IMPUL PROPER HDWK;
+   MISSING=.;
+
+      USEVARIABLES=MPS_agR AGG MISTRUST MPS_alR MANIP
+        PROPER MPS_clR IMPUL MPS_tdR; !MPS_acR !HDWK
+      IDVARIABLE = subject;
+
+  ANALYSIS:
+
+      !ESTIMATOR=MLR;
+      ESTIMATOR=BAYES;
+      PROCESSORS=4;
+      CHAINS=4;
+      BITERATIONS=(10000);
+
+  MODEL:
+
+      antag BY MPS_agR AGG MISTRUST MPS_alR MANIP;
+      disinhib BY PROPER MPS_clR IMPUL MPS_tdR; !MPS_acR !HDWK
+      antag WITH disinhib;
+      !MPS_ACR  WITH HDWK;
+      MPS_ALR  WITH MISTRUST;
+      MPS_TDR  WITH PROPER;
+      !IMPUL WITH MPS_CLR;
+
+  OUTPUT:
+
+      TECH1 TECH8 STANDARDIZED MODINDICES (10);
+
+  SAVEDATA:
+
+      FILE = AC_bsem_cfa_fscores.dat;
+      SAVE = FSCORES(5000);
+      !SAVE=FSCORES;
+
+
+
+
+*** WARNING in OUTPUT command
+  MODINDICES option is not available for multiple imputation.
+  Request for MODINDICES is ignored.
+   1 WARNING(S) FOUND IN THE INPUT INSTRUCTIONS
+
+
+
+
+Antagonism and Disinhibition BSEM CFA
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                         104
+
+Number of dependent variables                                    9
+Number of independent variables                                  0
+Number of continuous latent variables                            2
+
+Observed dependent variables
+
+  Continuous
+   MPS_AGR     AGG         MISTRUST    MPS_ALR     MANIP       PROPER
+   MPS_CLR     IMPUL       MPS_TDR
+
+Continuous latent variables
+   ANTAG       DISINHIB
+
+Variables with special functions
+
+  ID variable           SUBJECT
+
+Estimator                                                    BAYES
+Specifications for Bayesian Estimation
+  Point estimate                                            MEDIAN
+  Number of Markov chain Monte Carlo (MCMC) chains               4
+  Random seed for the first chain                                0
+  Starting value information                           UNPERTURBED
+  Algorithm used for Markov chain Monte Carlo           GIBBS(PX1)
+  Convergence criterion                                  0.500D-01
+  Maximum number of iterations                               50000
+  K-th iteration used for thinning                               1
+Specifications for Bayes Factor Score Estimation
+  Number of imputed data sets                                 5000
+  Iteration intervals for thinning                               1
+
+Input data file(s)
+  ~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/AC_bsem_cfa.dat
+Input data format  FREE
+
+
+SUMMARY OF DATA
+
+
+
+SUMMARY OF MISSING DATA PATTERNS
+
+     Number of missing data patterns             1
+
+
+     MISSING DATA PATTERNS (x = not missing)
+
+           1
+ MPS_AGR   x
+ AGG       x
+ MISTRUST  x
+ MPS_ALR   x
+ MANIP     x
+ PROPER    x
+ MPS_CLR   x
+ IMPUL     x
+ MPS_TDR   x
+
+
+     MISSING DATA PATTERN FREQUENCIES
+
+    Pattern   Frequency
+          1         104
+
+
+COVARIANCE COVERAGE OF DATA
+
+Minimum covariance coverage value   0.100
+
+
+     PROPORTION OF DATA PRESENT
+
+
+           Covariance Coverage
+              MPS_AGR       AGG           MISTRUST      MPS_ALR       MANIP
+              ________      ________      ________      ________      ________
+ MPS_AGR        1.000
+ AGG            1.000         1.000
+ MISTRUST       1.000         1.000         1.000
+ MPS_ALR        1.000         1.000         1.000         1.000
+ MANIP          1.000         1.000         1.000         1.000         1.000
+ PROPER         1.000         1.000         1.000         1.000         1.000
+ MPS_CLR        1.000         1.000         1.000         1.000         1.000
+ IMPUL          1.000         1.000         1.000         1.000         1.000
+ MPS_TDR        1.000         1.000         1.000         1.000         1.000
+
+
+           Covariance Coverage
+              PROPER        MPS_CLR       IMPUL         MPS_TDR
+              ________      ________      ________      ________
+ PROPER         1.000
+ MPS_CLR        1.000         1.000
+ IMPUL          1.000         1.000         1.000
+ MPS_TDR        1.000         1.000         1.000         1.000
+
+
+
+UNIVARIATE SAMPLE STATISTICS
+
+
+     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS
+
+         Variable/         Mean/     Skewness/   Minimum/ % with                Percentiles
+        Sample Size      Variance    Kurtosis    Maximum  Min/Max      20%/60%    40%/80%    Median
+
+     MPS_AGR               3.462       0.926       0.000   11.54%       1.000      2.000      3.000
+             104.000       7.979       0.471      12.000    1.92%       4.000      5.000
+     AGG                   4.231       1.216       0.000   13.46%       1.000      2.000      3.000
+             104.000      15.235       1.308      18.000    0.96%       4.000      7.000
+     MISTRUST              5.942       0.936       0.000    6.73%       2.000      4.000      5.000
+             104.000      19.689       0.749      19.000    1.92%       7.000      9.000
+     MPS_ALR               2.808       1.085       0.000   22.12%       0.000      2.000      2.000
+             104.000       6.944       0.861      11.000    1.92%       3.000      5.000
+     MANIP                 6.356       0.093       0.000    6.73%       3.000      5.000      7.000
+             104.000      13.825      -0.445      17.000    0.96%       8.000      9.000
+     PROPER               11.192      -0.207       2.000    1.92%       7.000     10.000     11.000
+             104.000      17.713      -0.755      19.000    1.92%      12.000     15.000
+     MPS_CLR               8.548      -0.794       1.000    0.96%       6.000      8.000      9.000
+             104.000       7.517      -0.071      12.000   12.50%      10.000     11.000
+     IMPUL                 5.808       0.818       0.000    0.96%       2.000      4.000      5.000
+             104.000      14.098       0.282      17.000    0.96%       6.000      8.000
+     MPS_TDR               6.827      -0.153       1.000    0.96%       5.000      6.000      7.000
+             104.000       6.316      -0.609      12.000    1.92%       7.000      9.000
+
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+     USE THE FBITERATIONS OPTION TO INCREASE THE NUMBER OF ITERATIONS BY A FACTOR
+     OF AT LEAST TWO TO CHECK CONVERGENCE AND THAT THE PSR VALUE DOES NOT INCREASE.
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                              30
+
+Bayesian Posterior Predictive Checking using Chi-Square
+
+          95% Confidence Interval for the Difference Between
+          the Observed and the Replicated Chi-Square Values
+
+                                 -9.363            45.003
+
+          Posterior Predictive P-Value              0.101
+
+Information Criteria
+
+          Deviance (DIC)                         4500.459
+          Estimated Number of Parameters (pD)      26.723
+          Bayesian (BIC)                         4583.559
+
+RMSEA (Root Mean Square Error Of Approximation)
+
+          Estimate                           0.083
+          90 Percent C.I.                    0.053  0.110
+          Probability RMSEA <= .05           0.040
+
+CFI/TLI
+
+          CFI                                0.960
+          90 Percent C.I.                    0.928  0.983
+
+          TLI                                0.947
+          90 Percent C.I.                    0.905  0.978
+
+
+
+MODEL RESULTS
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+ ANTAG    BY
+    MPS_AGR            1.000       0.000      0.000       1.000       1.000
+    AGG                1.304       0.132      0.000       1.067       1.586      *
+    MISTRUST           0.851       0.178      0.000       0.517       1.209      *
+    MPS_ALR            0.506       0.104      0.000       0.309       0.719      *
+    MANIP              1.011       0.134      0.000       0.762       1.289      *
+
+ DISINHIB BY
+    PROPER             1.000       0.000      0.000       1.000       1.000
+    MPS_CLR            1.076       0.276      0.000       0.760       1.832      *
+    IMPUL             -1.683       0.444      0.000      -2.925      -1.187      *
+    MPS_TDR            0.369       0.106      0.003       0.147       0.570      *
+
+ ANTAG    WITH
+    DISINHIB          -1.784       0.788      0.002      -3.639      -0.569      *
+
+ MPS_ALR  WITH
+    MISTRUST           6.622       1.265      0.000       4.579       9.499      *
+
+ MPS_TDR  WITH
+    PROPER             5.665       1.171      0.000       3.758       8.321      *
+
+ Intercepts
+    MPS_AGR            3.454       0.286      0.000       2.902       4.029      *
+    AGG                4.223       0.394      0.000       3.461       5.008      *
+    MISTRUST           5.929       0.455      0.000       5.033       6.829      *
+    MPS_ALR            2.802       0.270      0.000       2.277       3.339      *
+    MANIP              6.352       0.378      0.000       5.623       7.099      *
+    PROPER            11.200       0.424      0.000      10.367      12.037      *
+    MPS_CLR            8.555       0.279      0.000       7.988       9.091      *
+    IMPUL              5.793       0.388      0.000       5.079       6.593      *
+    MPS_TDR            6.829       0.255      0.000       6.329       7.332      *
+
+ Variances
+    ANTAG              6.824       1.276      0.000       4.713       9.719      *
+    DISINHIB           4.704       2.044      0.000       1.611       9.381      *
+
+ Residual Variances
+    MPS_AGR            1.543       0.524      0.000       0.598       2.667      *
+    AGG                4.457       1.046      0.000       2.594       6.734      *
+    MISTRUST          16.036       2.473      0.000      12.099      21.727      *
+    MPS_ALR            5.653       0.868      0.000       4.243       7.627      *
+    MANIP              7.535       1.272      0.000       5.472      10.449      *
+    PROPER            13.988       2.161      0.000      10.542      18.957      *
+    MPS_CLR            2.536       0.631      0.000       1.150       3.713      *
+    IMPUL              1.381       1.195      0.000       0.070       4.423      *
+    MPS_TDR            6.073       0.908      0.000       4.604       8.150      *
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+ ANTAG    BY
+    MPS_AGR            0.904       0.037      0.000       0.820       0.964      *
+    AGG                0.851       0.041      0.000       0.756       0.920      *
+    MISTRUST           0.484       0.083      0.000       0.308       0.632      *
+    MPS_ALR            0.487       0.083      0.000       0.308       0.631      *
+    MANIP              0.694       0.061      0.000       0.559       0.795      *
+
+ DISINHIB BY
+    PROPER             0.501       0.089      0.000       0.306       0.647      *
+    MPS_CLR            0.825       0.050      0.000       0.726       0.927      *
+    IMPUL             -0.953       0.044      0.000      -0.998      -0.835      *
+    MPS_TDR            0.308       0.102      0.003       0.095       0.494      *
+
+ ANTAG    WITH
+    DISINHIB          -0.332       0.102      0.002      -0.516      -0.116      *
+
+ MPS_ALR  WITH
+    MISTRUST           0.700       0.053      0.000       0.581       0.789      *
+
+ MPS_TDR  WITH
+    PROPER             0.619       0.065      0.000       0.477       0.729      *
+
+ Intercepts
+    MPS_AGR            1.194       0.129      0.000       0.945       1.453      *
+    AGG                1.052       0.123      0.000       0.819       1.298      *
+    MISTRUST           1.290       0.135      0.000       1.029       1.557      *
+    MPS_ALR            1.026       0.122      0.000       0.789       1.270      *
+    MANIP              1.661       0.154      0.000       1.366       1.969      *
+    PROPER             2.582       0.211      0.000       2.185       3.013      *
+    MPS_CLR            3.035       0.239      0.000       2.564       3.503      *
+    IMPUL              1.502       0.146      0.000       1.223       1.793      *
+    MPS_TDR            2.623       0.212      0.000       2.216       3.051      *
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    DISINHIB           1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    MPS_AGR            0.183       0.066      0.000       0.070       0.327      *
+    AGG                0.276       0.070      0.000       0.154       0.428      *
+    MISTRUST           0.765       0.079      0.000       0.600       0.905      *
+    MPS_ALR            0.763       0.078      0.000       0.602       0.905      *
+    MANIP              0.519       0.083      0.000       0.367       0.688      *
+    PROPER             0.749       0.085      0.000       0.582       0.906      *
+    MPS_CLR            0.319       0.083      0.000       0.140       0.473      *
+    IMPUL              0.092       0.082      0.000       0.004       0.303      *
+    MPS_TDR            0.905       0.061      0.000       0.756       0.991      *
+
+
+STDY Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+ ANTAG    BY
+    MPS_AGR            0.904       0.037      0.000       0.820       0.964      *
+    AGG                0.851       0.041      0.000       0.756       0.920      *
+    MISTRUST           0.484       0.083      0.000       0.308       0.632      *
+    MPS_ALR            0.487       0.083      0.000       0.308       0.631      *
+    MANIP              0.694       0.061      0.000       0.559       0.795      *
+
+ DISINHIB BY
+    PROPER             0.501       0.089      0.000       0.306       0.647      *
+    MPS_CLR            0.825       0.050      0.000       0.726       0.927      *
+    IMPUL             -0.953       0.044      0.000      -0.998      -0.835      *
+    MPS_TDR            0.308       0.102      0.003       0.095       0.494      *
+
+ ANTAG    WITH
+    DISINHIB          -0.332       0.102      0.002      -0.516      -0.116      *
+
+ MPS_ALR  WITH
+    MISTRUST           0.700       0.053      0.000       0.581       0.789      *
+
+ MPS_TDR  WITH
+    PROPER             0.619       0.065      0.000       0.477       0.729      *
+
+ Intercepts
+    MPS_AGR            1.194       0.129      0.000       0.945       1.453      *
+    AGG                1.052       0.123      0.000       0.819       1.298      *
+    MISTRUST           1.290       0.135      0.000       1.029       1.557      *
+    MPS_ALR            1.026       0.122      0.000       0.789       1.270      *
+    MANIP              1.661       0.154      0.000       1.366       1.969      *
+    PROPER             2.582       0.211      0.000       2.185       3.013      *
+    MPS_CLR            3.035       0.239      0.000       2.564       3.503      *
+    IMPUL              1.502       0.146      0.000       1.223       1.793      *
+    MPS_TDR            2.623       0.212      0.000       2.216       3.051      *
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    DISINHIB           1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    MPS_AGR            0.183       0.066      0.000       0.070       0.327      *
+    AGG                0.276       0.070      0.000       0.154       0.428      *
+    MISTRUST           0.765       0.079      0.000       0.600       0.905      *
+    MPS_ALR            0.763       0.078      0.000       0.602       0.905      *
+    MANIP              0.519       0.083      0.000       0.367       0.688      *
+    PROPER             0.749       0.085      0.000       0.582       0.906      *
+    MPS_CLR            0.319       0.083      0.000       0.140       0.473      *
+    IMPUL              0.092       0.082      0.000       0.004       0.303      *
+    MPS_TDR            0.905       0.061      0.000       0.756       0.991      *
+
+
+STD Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+ ANTAG    BY
+    MPS_AGR            2.612       0.241      0.000       2.171       3.117      *
+    AGG                3.407       0.349      0.000       2.774       4.148      *
+    MISTRUST           2.218       0.463      0.000       1.348       3.175      *
+    MPS_ALR            1.321       0.273      0.000       0.803       1.877      *
+    MANIP              2.641       0.357      0.000       1.977       3.377      *
+
+ DISINHIB BY
+    PROPER             2.169       0.467      0.000       1.269       3.063      *
+    MPS_CLR            2.329       0.257      0.000       1.870       2.875      *
+    IMPUL             -3.658       0.340      0.000      -4.332      -2.989      *
+    MPS_TDR            0.796       0.286      0.003       0.243       1.366      *
+
+ ANTAG    WITH
+    DISINHIB          -0.332       0.102      0.002      -0.516      -0.116      *
+
+ MPS_ALR  WITH
+    MISTRUST           6.622       1.265      0.000       4.579       9.499      *
+
+ MPS_TDR  WITH
+    PROPER             5.665       1.171      0.000       3.758       8.321      *
+
+ Intercepts
+    MPS_AGR            3.454       0.286      0.000       2.902       4.029      *
+    AGG                4.223       0.394      0.000       3.461       5.008      *
+    MISTRUST           5.929       0.455      0.000       5.033       6.829      *
+    MPS_ALR            2.802       0.270      0.000       2.277       3.339      *
+    MANIP              6.352       0.378      0.000       5.623       7.099      *
+    PROPER            11.200       0.424      0.000      10.367      12.037      *
+    MPS_CLR            8.555       0.279      0.000       7.988       9.091      *
+    IMPUL              5.793       0.388      0.000       5.079       6.593      *
+    MPS_TDR            6.829       0.255      0.000       6.329       7.332      *
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    DISINHIB           1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    MPS_AGR            1.543       0.524      0.000       0.598       2.667      *
+    AGG                4.457       1.046      0.000       2.594       6.734      *
+    MISTRUST          16.036       2.473      0.000      12.099      21.727      *
+    MPS_ALR            5.653       0.868      0.000       4.243       7.627      *
+    MANIP              7.535       1.272      0.000       5.472      10.449      *
+    PROPER            13.988       2.161      0.000      10.542      18.957      *
+    MPS_CLR            2.536       0.631      0.000       1.150       3.713      *
+    IMPUL              1.381       1.195      0.000       0.070       4.423      *
+    MPS_TDR            6.073       0.908      0.000       4.604       8.150      *
+
+
+R-SQUARE
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    MPS_AGR            0.817       0.066      0.000       0.673       0.930
+    AGG                0.724       0.070      0.000       0.572       0.846
+    MISTRUST           0.235       0.079      0.000       0.095       0.400
+    MPS_ALR            0.237       0.078      0.000       0.095       0.398
+    MANIP              0.481       0.083      0.000       0.312       0.633
+    PROPER             0.251       0.085      0.000       0.094       0.418
+    MPS_CLR            0.681       0.083      0.000       0.527       0.860
+    IMPUL              0.908       0.082      0.000       0.697       0.996
+    MPS_TDR            0.095       0.061      0.000       0.009       0.244
+
+
+TECHNICAL 1 OUTPUT
+
+
+     PARAMETER SPECIFICATION
+
+
+           NU
+              MPS_AGR       AGG           MISTRUST      MPS_ALR       MANIP
+              ________      ________      ________      ________      ________
+                    1             2             3             4             5
+
+
+           NU
+              PROPER        MPS_CLR       IMPUL         MPS_TDR
+              ________      ________      ________      ________
+                    6             7             8             9
+
+
+           LAMBDA
+              ANTAG         DISINHIB
+              ________      ________
+ MPS_AGR            0             0
+ AGG               10             0
+ MISTRUST          11             0
+ MPS_ALR           12             0
+ MANIP             13             0
+ PROPER             0             0
+ MPS_CLR            0            14
+ IMPUL              0            15
+ MPS_TDR            0            16
+
+
+           THETA
+              MPS_AGR       AGG           MISTRUST      MPS_ALR       MANIP
+              ________      ________      ________      ________      ________
+ MPS_AGR           17
+ AGG                0            18
+ MISTRUST           0             0            19
+ MPS_ALR            0             0            20            21
+ MANIP              0             0             0             0            22
+ PROPER             0             0             0             0             0
+ MPS_CLR            0             0             0             0             0
+ IMPUL              0             0             0             0             0
+ MPS_TDR            0             0             0             0             0
+
+
+           THETA
+              PROPER        MPS_CLR       IMPUL         MPS_TDR
+              ________      ________      ________      ________
+ PROPER            23
+ MPS_CLR            0            24
+ IMPUL              0             0            25
+ MPS_TDR           26             0             0            27
+
+
+           ALPHA
+              ANTAG         DISINHIB
+              ________      ________
+                    0             0
+
+
+           BETA
+              ANTAG         DISINHIB
+              ________      ________
+ ANTAG              0             0
+ DISINHIB           0             0
+
+
+           PSI
+              ANTAG         DISINHIB
+              ________      ________
+ ANTAG             28
+ DISINHIB          29            30
+
+
+     STARTING VALUES
+
+
+           NU
+              MPS_AGR       AGG           MISTRUST      MPS_ALR       MANIP
+              ________      ________      ________      ________      ________
+                3.462         4.231         5.942         2.808         6.356
+
+
+           NU
+              PROPER        MPS_CLR       IMPUL         MPS_TDR
+              ________      ________      ________      ________
+               11.192         8.548         5.808         6.827
+
+
+           LAMBDA
+              ANTAG         DISINHIB
+              ________      ________
+ MPS_AGR        1.000         0.000
+ AGG            1.000         0.000
+ MISTRUST       1.000         0.000
+ MPS_ALR        1.000         0.000
+ MANIP          1.000         0.000
+ PROPER         0.000         1.000
+ MPS_CLR        0.000         1.000
+ IMPUL          0.000         1.000
+ MPS_TDR        0.000         1.000
+
+
+           THETA
+              MPS_AGR       AGG           MISTRUST      MPS_ALR       MANIP
+              ________      ________      ________      ________      ________
+ MPS_AGR        3.990
+ AGG            0.000         7.618
+ MISTRUST       0.000         0.000         9.844
+ MPS_ALR        0.000         0.000         0.000         3.472
+ MANIP          0.000         0.000         0.000         0.000         6.913
+ PROPER         0.000         0.000         0.000         0.000         0.000
+ MPS_CLR        0.000         0.000         0.000         0.000         0.000
+ IMPUL          0.000         0.000         0.000         0.000         0.000
+ MPS_TDR        0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              PROPER        MPS_CLR       IMPUL         MPS_TDR
+              ________      ________      ________      ________
+ PROPER         8.857
+ MPS_CLR        0.000         3.758
+ IMPUL          0.000         0.000         7.049
+ MPS_TDR        0.000         0.000         0.000         3.158
+
+
+           ALPHA
+              ANTAG         DISINHIB
+              ________      ________
+                0.000         0.000
+
+
+           BETA
+              ANTAG         DISINHIB
+              ________      ________
+ ANTAG          0.000         0.000
+ DISINHIB       0.000         0.000
+
+
+           PSI
+              ANTAG         DISINHIB
+              ________      ________
+ ANTAG          1.000
+ DISINHIB       0.000         1.000
+
+
+
+     PRIORS FOR ALL PARAMETERS            PRIOR MEAN      PRIOR VARIANCE     PRIOR STD. DEV.
+
+     Parameter 1~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 2~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 3~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 4~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 5~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 6~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 7~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 8~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 9~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 10~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 11~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 12~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 13~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 14~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 15~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 16~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 17~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 18~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 19~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 20~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 21~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 22~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 23~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 24~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 25~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 26~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 27~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 28~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 29~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 30~IW(0.000,-3)             infinity            infinity            infinity
+
+
+TECHNICAL 8 OUTPUT
+
+
+   TECHNICAL 8 OUTPUT FOR BAYES ESTIMATION
+
+     CHAIN    BSEED
+     1        0
+     2        285380
+     3        253358
+     4        93468
+
+                     POTENTIAL       PARAMETER WITH
+     ITERATION    SCALE REDUCTION      HIGHEST PSR
+     100              1.732               25
+     200              1.230               15
+     300              1.238               14
+     400              1.329               14
+     500              1.343               25
+     600              1.313               25
+     700              1.391               15
+     800              1.352               15
+     900              1.193               15
+     1000             1.062               15
+     1100             1.047               15
+     1200             1.048               14
+     1300             1.064               25
+     1400             1.076               25
+     1500             1.062               25
+     1600             1.029               25
+     1700             1.043               30
+     1800             1.041               25
+     1900             1.048               25
+     2000             1.047               8
+     2100             1.054               25
+     2200             1.069               25
+     2300             1.095               14
+     2400             1.135               14
+     2500             1.177               14
+     2600             1.216               14
+     2700             1.261               14
+     2800             1.277               14
+     2900             1.257               14
+     3000             1.225               14
+     3100             1.200               14
+     3200             1.188               14
+     3300             1.179               14
+     3400             1.172               14
+     3500             1.167               14
+     3600             1.170               14
+     3700             1.169               14
+     3800             1.153               14
+     3900             1.140               14
+     4000             1.127               14
+     4100             1.123               14
+     4200             1.113               14
+     4300             1.102               14
+     4400             1.086               14
+     4500             1.082               14
+     4600             1.071               14
+     4700             1.050               14
+     4800             1.041               14
+     4900             1.033               14
+     5000             1.025               14
+     5100             1.020               14
+     5200             1.016               14
+     5300             1.009               8
+     5400             1.010               8
+     5500             1.010               8
+     5600             1.009               25
+     5700             1.011               25
+     5800             1.012               25
+     5900             1.010               14
+     6000             1.010               25
+     6100             1.011               25
+     6200             1.014               25
+     6300             1.014               25
+     6400             1.012               25
+     6500             1.013               25
+     6600             1.014               25
+     6700             1.014               25
+     6800             1.012               25
+     6900             1.013               25
+     7000             1.011               25
+     7100             1.011               25
+     7200             1.013               25
+     7300             1.013               25
+     7400             1.010               25
+     7500             1.010               14
+     7600             1.012               14
+     7700             1.011               14
+     7800             1.011               25
+     7900             1.012               25
+     8000             1.013               14
+     8100             1.015               14
+     8200             1.015               14
+     8300             1.014               25
+     8400             1.014               14
+     8500             1.012               14
+     8600             1.012               14
+     8700             1.013               14
+     8800             1.014               14
+     8900             1.013               14
+     9000             1.009               14
+     9100             1.007               25
+     9200             1.007               25
+     9300             1.005               25
+     9400             1.007               25
+     9500             1.007               25
+     9600             1.006               25
+     9700             1.006               8
+     9800             1.005               25
+     9900             1.005               25
+     10000            1.005               25
+
+
+SUMMARIES OF PLAUSIBLE VALUES (N = NUMBER OF OBSERVATIONS * NUMBER OF IMPUTATIONS)
+
+
+     SAMPLE STATISTICS
+
+
+           Means
+              ANTAG         DISINHIB
+              ________      ________
+               -0.014         0.028
+
+
+           Covariances
+              ANTAG         DISINHIB
+              ________      ________
+ ANTAG          6.531
+ DISINHIB      -1.733         4.525
+
+
+           Correlations
+              ANTAG         DISINHIB
+              ________      ________
+ ANTAG          1.000
+ DISINHIB      -0.319         1.000
+
+
+SUMMARY OF PLAUSIBLE STANDARD DEVIATION (N = NUMBER OF OBSERVATIONS)
+
+
+     SAMPLE STATISTICS
+
+
+           Means
+              ANTAG_SD      DISINHIB
+              ________      ________
+                0.897         0.747
+
+
+           Covariances
+              ANTAG_SD      DISINHIB
+              ________      ________
+ ANTAG_SD       0.002
+ DISINHIB       0.001         0.020
+
+
+           Correlations
+              ANTAG_SD      DISINHIB
+              ________      ________
+ ANTAG_SD       1.000
+ DISINHIB       0.217         1.000
+
+
+SAVEDATA INFORMATION
+
+
+  Save file
+    AC_bsem_cfa_fscores.dat
+
+  Order and format of variables
+
+    MPS_AGR                          F10.3
+    AGG                              F10.3
+    MISTRUST                         F10.3
+    MPS_ALR                          F10.3
+    MANIP                            F10.3
+    PROPER                           F10.3
+    MPS_CLR                          F10.3
+    IMPUL                            F10.3
+    MPS_TDR                          F10.3
+    ANTAG Mean                       F10.3
+    ANTAG Median                     F10.3
+    ANTAG Standard Deviation         F10.3
+    ANTAG 2.5% Value                 F10.3
+    ANTAG 97.5% Value                F10.3
+    DISINHIB Mean                    F10.3
+    DISINHIB Median                  F10.3
+    DISINHIB Standard Deviation      F10.3
+    DISINHIB 2.5% Value              F10.3
+    DISINHIB 97.5% Value             F10.3
+    SUBJECT                          I4
+
+  Save file format
+    19F10.3 I4
+
+  Save file record length    10000
+
+
+     Beginning Time:  15:03:54
+        Ending Time:  15:04:01
+       Elapsed Time:  00:00:07
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2019 Muthen & Muthen

@@ -118,7 +118,7 @@ for samp in nsamp:
                
      
             for mod in models:
-                print "Assessing model fit for: ", mod
+                print('Assessing model fit for: ' +  mod)
                 
                 if use_log:
                     nchains = max(log_trimmed['NCHAINS'][log_trimmed['MODEL'] == mod])
@@ -136,7 +136,7 @@ for samp in nsamp:
             #    with pymp.Parallel(nchains) as ch:
                 
                 for chain in range(0,nchains):
-                    print chain
+                    print(chain)
                     try:
                         this_model = hddm.load(mod+'_chain'+str(chain) + '_'+ code + 'Code.model') 
                         mods.append(this_model)

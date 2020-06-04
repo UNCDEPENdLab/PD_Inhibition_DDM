@@ -1,0 +1,36 @@
+TITLE:
+Dominance BSEM CFA Model A amendment
+DATA:
+FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/Dom_bsem_cfa_modela.dat";
+ 
+VARIABLE:
+NAMES = subject EXHIB ENTITL DETACH MPS_spR MPS_scR; 
+ MISSING=.;
+ 
+    USEVARIABLES=EXHIB ENTITL DETACH MPS_spR MPS_scR;
+    IDVARIABLE = subject;
+  
+ANALYSIS:
+
+    ESTIMATOR=BAYES;
+    PROCESSORS=4;
+    CHAINS=4;
+    BITERATIONS=(35000);
+  
+MODEL:
+
+    agentic BY MPS_spR* EXHIB ENTITL;
+    affiliat BY MPS_scR* DETACH;
+    agentic WITH affiliat;
+    agentic@1;
+    affiliat@1;
+  
+OUTPUT:
+
+    TECH1 TECH8 STANDARDIZED MODINDICES (10);
+  
+SAVEDATA:
+
+    FILE = Dom_bsem_cfa_modela_fscores.dat;
+    SAVE = FSCORES(5000);
+  
