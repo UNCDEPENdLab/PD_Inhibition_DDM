@@ -1,5 +1,5 @@
 
-pacman::p_load(sas7bdat, tidyverse)
+pacman::p_load(sas7bdat, purrr)
 
 SNAP <- read.sas7bdat("~/Downloads/snap2scores.sas7bdat")
 # nrow(SNAP)
