@@ -1,0 +1,69 @@
+TITLE:
+Agentic and affiliative factors and gng
+DATA:
+FILE = "acc_mod_cfa_agenaff_a_mplus.dat";
+ 
+VARIABLE:
+NAMES = subj_idx response cond stim trial_z trial MPS_spR EXHIB ENTITL MPS_scR
+     DETACH; 
+ MISSING=.;
+ 
+    WITHIN = trial_z stim cond trst;
+    BETWEEN = MPS_spR EXHIB ENTITL MPS_scR DETACH;
+    USEVARIABLES = subj_idx response trial_z stim cond 
+    MPS_spR EXHIB ENTITL MPS_scR DETACH trst;
+    CLUSTER = subj_idx;
+    CATEGORICAL = response;
+  
+DEFINE:
+
+   trst = trial_z*stim;
+    
+ANALYSIS:
+
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(15000);
+    BCONVERGENCE=.02;
+    CHAINS=2;
+    PROCESSORS=2;
+  
+MODEL:
+
+    %WITHIN%
+    btrial | response ON trial_z;
+    bstim | response ON stim;
+    bcond | response ON cond;
+    btrst | response ON trst;
+    
+    %BETWEEN%
+    [btrial bstim bcond btrst]; !slope means
+    btrial bstim bcond btrst; !slope variances
+    
+    agentic BY MPS_spR* EXHIB ENTITL;
+    agentic@1;
+    
+    affiliat BY MPS_scR*1 DETACH;
+    affiliat@1;
+    
+    [response$1]; !person average
+    response on agentic affiliat;
+    btrst on agentic affiliat;
+    bcond on agentic affiliat;
+    bstim on agentic affiliat;
+    btrial on agentic affiliat;
+    
+    
+    !correlation of random slopes with each other
+    btrial WITH bstim;
+    btrial WITH btrst;
+    btrial WITH bcond;
+    bstim WITH btrst;
+    bstim WITH bcond;
+    bcond WITH btrst;
+    
+  
+OUTPUT:
+TECH1 TECH8 STANDARDIZED CINTERVAL;
+PLOT:
+TYPE = PLOT2;
