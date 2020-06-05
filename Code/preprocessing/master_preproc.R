@@ -265,7 +265,8 @@ xtabs(~trial , rp)
 str(rp) #after basic processing
 
 
-
+sum(is.na(rp$rt))
+sum(is.na(rp$rt_inv))
 # sanity checks -----------------------------------------------------------
 
 
@@ -360,8 +361,10 @@ nrow(rp %>% filter(rt < 350))
 #Set accuracy and RT to NA when RT < 350ms.
 
 
-rp <- rp %>% mutate(rt=if_else(rt < 350, NA_real_, rt), correct=if_else(rt < 350, NA_real_, correct))
+rp <- rp %>% mutate(rt=if_else(rt < 350, NA_real_, rt), correct=if_else(rt < 350, NA_real_, correct)) %>% mutate(rt_inv = if_else(is.na(rt), NA_real_, rt_inv))
 
+sum(is.na(rp$rt))
+sum(is.na(rp$rt_inv))
 # Winsorizing long RTs:
 
 
@@ -682,7 +685,7 @@ nrow(gng %>% filter(rt < 200 & rt != 0))/nrow(gng)
 
 gng <- gng %>% mutate(rt=if_else(rt < 200 & rt != 0, NA_real_, rt), correct=if_else(rt < 200 & rt != 0, NA_real_, correct)) #since 0's are valid no-gos
 
-
+sum(is.na(gng$rt))
 # winsorize and trim long RTs ---------------------------------------------
 
 
@@ -695,9 +698,9 @@ test <- gng  %>%
     rt_inv_winsor_grp= DescTools::Winsorize(rt_inv, probs=c(0, .99), na.rm = T),
     rt_log_winsor_grp= DescTools::Winsorize(rt_log, probs=c(0, .99), na.rm = T),
     
-    rt_trim_grp=if_else(rt > quantile(rt, 0.98, na.rm=T), NA_real_, rt),
-    rt_inv_trim_grp=if_else(rt_inv > quantile(rt_inv, 0.98, na.rm=T), NA_real_, rt_inv), #rt_inv > quantile(rt_inv, 0.99) | 
-    rt_log_trim_grp=if_else(rt_log > quantile(rt_log, 0.98, na.rm=T), NA_real_, rt_log)
+    rt_trim_grp=if_else(rt > quantile(rt, 0.99, na.rm=T), NA_real_, rt),
+    rt_inv_trim_grp=if_else(rt_inv > quantile(rt_inv, 0.99, na.rm=T), NA_real_, rt_inv), #rt_inv > quantile(rt_inv, 0.99) | 
+    rt_log_trim_grp=if_else(rt_log > quantile(rt_log, 0.99, na.rm=T), NA_real_, rt_log)
   ) %>%
   ungroup() %>% group_by(id, stim_cond) %>% #use per-subject condition and block RT quantiles to trim
   mutate(
@@ -706,10 +709,12 @@ test <- gng  %>%
     rt_log_trim=if_else(rt_log > quantile(rt_log, 0.99, na.rm=T), NA_real_, rt_log)
   ) %>% ungroup() 
 
+sum(is.na(test$rt_trim_grp))
+(384-116)/nrow(test)
 
 #the problem with per-subject trimming is that many plausible values are removed since they are unlikely compared to the subject's distribution
-# test %>% filter(is.na(rt_inv_trim)) %>% pull(rt) %>% hist(main="RTs dropped by subject-specific trim")
-# test %>% filter(is.na(rt_inv_trim_grp)) %>% pull(rt) %>% hist(main="RTs dropped by group trim")
+test %>% filter(is.na(rt_inv_trim)) %>% pull(rt) %>% hist(main="RTs dropped by subject-specific trim")
+test %>% filter(is.na(rt_inv_trim_grp)) %>% pull(rt) %>% hist(main="RTs dropped by group trim")
 
 hist(test[which(is.na(test$rt_trim_grp)),"rt"]$rt, main = "RTs dropped by group trim: raw")
 drop_rt <- test[which(is.na(test$rt_trim_grp)),c("rt", "id", "stim_cond")]; xtabs(~id+stim_cond, drop_rt)
@@ -734,6 +739,7 @@ test %>% filter(is.na(rt)) %>% nrow()
 test %>% filter(is.na(rt_trim_grp)) %>% nrow()
 test %>% filter(is.na(rt_winsor_grp)) %>% nrow()
 test %>% filter(is.na(rt_trim_grp)) %>% pull(rt) %>% hist(main="RTs dropped by group trim")
+test %>% filter(is.na(rt_log_trim_grp)) %>% nrow()
 
 # raw RT distributions
 trim <- ggplot(data = filter(test, stim == "Go" & resp == 1), aes(x = rt_trim_grp)) + geom_histogram() 
@@ -1005,6 +1011,8 @@ flanker_full <- flanker %>% filter(exclude_flanker != 3) %>% select(id, correct,
   mutate(stimblock = ifelse(as.character(stim) == "incongruent", paste0(stim, "_", block), as.character(stim))) # descriptives indicate that perhaps block only matters for incongruent stimuli, thus, create a contrast that lumps congruent together but separates stimulus by block for incongruent
 
 write.csv(flanker_full, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/flanker_full_sample_accCode.csv", row.names = FALSE)
+x <- read_csv("~/github_repos/PD_Inhibition_DDM/Data/preprocessed/go_nogo_full_sample_accCode.csv")
+length(unique(x$subj_idx))
 
 # filter NA RTs as well
 flanker_full_nafilt <- flanker %>% filter(exclude_flanker != 3) %>% select(id, correct, rt_trim_grp, cond, block, block_number,trial_z, trial,  rt_inv_trim_grp, block_number, run_trial, run_trial_z, trial,  prev_rt, prev_rt_inv) %>%

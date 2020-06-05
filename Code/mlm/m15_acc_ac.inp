@@ -1,0 +1,88 @@
+TITLE:
+Antagonism and Disinhibition BSEM CFA 3+3 Parcels, Flanker ACC
+DATA:
+FILE = "flanker_acc_mplus_297ccf19e91234bcc58c45acbab3f48c.dat";
+ 
+VARIABLE:
+NAMES = id correct rt cond block prev_rt prev_error prev_rt_z MPS_agR AGG MISTRUST
+     MPS_alR MANIP PROPER MPS_clR IMPUL MPS_tdR MPS_acR HDWK; 
+ MISSING=.;
+ 
+    WITHIN = cond block prev_rt_z prev_error;
+    USEVARIABLES = id correct cond block prev_rt_z prev_error
+          MANIP p1 p2 p3 p4 p5;
+    BETWEEN = MANIP p1 p2 p3 p4 p5;
+    CLUSTER = id;
+    CATEGORICAL = correct;
+  
+DEFINE:
+
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+    cond = cond - 1; ! 0=congruent, 1=incongruent
+    block = block - 1; ! 0=most_incon, 1=most_con
+  
+ANALYSIS:
+
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(10000);
+    CHAINS=2;
+    PROCESSORS=4;
+  
+MODEL:
+
+    %WITHIN%
+    correct ON block;
+    condslo | correct ON cond;        !random slope of cond
+    prevslo | correct ON prev_rt_z;   !random slope of rt autocorrelation
+    errslo | correct ON prev_error;   !random slope of previous error
+    
+    %BETWEEN%
+    !means of random slopes
+    [condslo];
+    [prevslo];
+    [errslo];
+    
+    !variances of random slopes
+    condslo;
+    prevslo;
+    errslo;
+    
+    !slope correlations
+    condslo prevslo errslo WITH
+       condslo prevslo errslo;
+    
+    [correct$1]; !intercept: average correct
+    
+    !TRAIT MODEL
+        
+    antag BY p5*1 ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+    antag@1;
+
+    inhib BY
+      p2*  !PROPER MPS_tdR
+      p3  !MPS_clR IMPUL
+      p4; !MPS_acR HDWK;
+    inhib@1;
+
+    antag WITH inhib;
+
+    !TRAIT MODERATION
+    
+    ! trait moderates flanker performance -- incongruency effect and stickiness of RT
+    condslo ON antag inhib;
+    prevslo ON antag inhib;
+    errslo ON antag inhib; !highly non-significant
+    
+    correct ON antag inhib;
+  
+OUTPUT:
+TECH1 TECH8 STANDARDIZED CINTERVAL;
+PLOT:
+TYPE = PLOT2;

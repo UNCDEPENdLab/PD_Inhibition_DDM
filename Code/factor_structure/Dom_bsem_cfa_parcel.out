@@ -1,6 +1,6 @@
-Mplus VERSION 8.4
+Mplus VERSION 8.4 (Mac)
 MUTHEN & MUTHEN
-05/30/2020   1:06 PM
+06/01/2020   3:04 PM
 
 INPUT INSTRUCTIONS
 
@@ -728,17 +728,9 @@ SAVEDATA INFORMATION
   Save file record length    10000
 
 
-DIAGRAM INFORMATION
-
-  Use View Diagram under the Diagram menu in the Mplus Editor to view the diagram.
-  If running Mplus from the Mplus Diagrammer, the diagram opens automatically.
-
-  Diagram output
-    c:\users\timot\documents\github\pd_inhibition_ddm\code\factor_structure\dom_bsem_cfa_parcel.dgm
-
-     Beginning Time:  13:06:44
-        Ending Time:  13:06:57
-       Elapsed Time:  00:00:13
+     Beginning Time:  15:04:29
+        Ending Time:  15:04:35
+       Elapsed Time:  00:00:06
 
 
 

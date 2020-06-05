@@ -1,0 +1,975 @@
+Mplus VERSION 8.4 (Mac)
+MUTHEN & MUTHEN
+06/01/2020   3:04 PM
+
+INPUT INSTRUCTIONS
+
+  TITLE:
+  Antagonism and Disinhibition BSEM CFA 3+3 Parcels Modindex
+  DATA:
+  FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/AC_bsem_cfa_parcel_mod.dat
+
+  VARIABLE:
+  NAMES = subject MPS_agR AGG MISTRUST MPS_alR MANIP PROPER MPS_clR IMPUL MPS_tdR
+       MPS_acR HDWK;
+   MISSING=.;
+
+      USEVARIABLES=MANIP p1 p2 p3 p4 p5;
+      IDVARIABLE = subject;
+
+  DEFINE:
+
+      p1=MEAN(MISTRUST MPS_alR);
+      p2=MEAN(PROPER MPS_tdR);
+      p3=MEAN(MPS_clR IMPUL);
+      p4=MEAN(MPS_acR HDWK);
+      p5=MEAN(MPS_agR AGG);
+
+  ANALYSIS:
+
+      ESTIMATOR=BAYES;
+      PROCESSORS=4;
+      CHAINS=4;
+      BITERATIONS=(30000);
+
+  MODEL:
+
+      antag BY p5 ! MPS_agR AGG
+        p1        ! MISTRUST MPS_alR
+        MANIP;
+
+      inhib BY
+        p2  !PROPER MPS_tdR
+        p3  !MPS_clR IMPUL
+        p4; !MPS_acR HDWK;
+
+      antag WITH inhib;
+
+      INHIB BY P1; !sig mod index
+
+  OUTPUT:
+
+      TECH1 TECH8 STANDARDIZED MODINDICES (10);
+
+  SAVEDATA:
+
+      FILE = AC_bsem_cfa_parcel_mod_fscores.dat;
+      SAVE = FSCORES(5000);
+
+
+
+
+*** WARNING
+  Input line exceeded 90 characters. Some input may be truncated.
+  FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/AC_bsem_cfa_parcel_mod.dat"
+*** WARNING in DATA command
+  Statement not terminated by a semicolon:
+  FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/AC_bsem_cfa_parcel_mod.dat"
+*** WARNING in OUTPUT command
+  MODINDICES option is not available for multiple imputation.
+  Request for MODINDICES is ignored.
+   3 WARNING(S) FOUND IN THE INPUT INSTRUCTIONS
+
+
+
+
+Antagonism and Disinhibition BSEM CFA 3+3 Parcels Modindex
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                         104
+
+Number of dependent variables                                    6
+Number of independent variables                                  0
+Number of continuous latent variables                            2
+
+Observed dependent variables
+
+  Continuous
+   MANIP       P1          P2          P3          P4          P5
+
+Continuous latent variables
+   ANTAG       INHIB
+
+Variables with special functions
+
+  ID variable           SUBJECT
+
+Estimator                                                    BAYES
+Specifications for Bayesian Estimation
+  Point estimate                                            MEDIAN
+  Number of Markov chain Monte Carlo (MCMC) chains               4
+  Random seed for the first chain                                0
+  Starting value information                           UNPERTURBED
+  Algorithm used for Markov chain Monte Carlo           GIBBS(PX1)
+  Convergence criterion                                  0.500D-01
+  Maximum number of iterations                               50000
+  K-th iteration used for thinning                               1
+Specifications for Bayes Factor Score Estimation
+  Number of imputed data sets                                 5000
+  Iteration intervals for thinning                               1
+
+Input data file(s)
+  ~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/AC_bsem_cfa_parcel_mod
+Input data format  FREE
+
+
+SUMMARY OF DATA
+
+
+
+SUMMARY OF MISSING DATA PATTERNS
+
+     Number of missing data patterns             1
+
+
+     MISSING DATA PATTERNS (x = not missing)
+
+           1
+ MANIP     x
+ P1        x
+ P2        x
+ P3        x
+ P4        x
+ P5        x
+
+
+     MISSING DATA PATTERN FREQUENCIES
+
+    Pattern   Frequency
+          1         104
+
+
+COVARIANCE COVERAGE OF DATA
+
+Minimum covariance coverage value   0.100
+
+
+     PROPORTION OF DATA PRESENT
+
+
+           Covariance Coverage
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+ MANIP          1.000
+ P1             1.000         1.000
+ P2             1.000         1.000         1.000
+ P3             1.000         1.000         1.000         1.000
+ P4             1.000         1.000         1.000         1.000         1.000
+ P5             1.000         1.000         1.000         1.000         1.000
+
+
+           Covariance Coverage
+              P5
+              ________
+ P5             1.000
+
+
+
+UNIVARIATE SAMPLE STATISTICS
+
+
+     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS
+
+         Variable/         Mean/     Skewness/   Minimum/ % with                Percentiles
+        Sample Size      Variance    Kurtosis    Maximum  Min/Max      20%/60%    40%/80%    Median
+
+     MANIP                 0.000       0.093      -1.701    6.73%      -0.898     -0.363      0.172
+             104.000       0.990      -0.445       2.849    0.96%       0.440      0.708
+     P1                    0.000       1.099      -1.197    4.81%      -0.860     -0.370     -0.128
+             104.000       0.876       1.213       3.011    0.96%       0.043      0.603
+     P2                    0.000      -0.143      -2.240    0.96%      -0.857     -0.225      0.051
+             104.000       0.824      -0.647       1.749    0.96%       0.286      0.762
+     P3                    0.000      -0.844      -2.672    0.96%      -0.788     -0.041      0.206
+             104.000       0.883       0.243       1.396    0.96%       0.371      0.817
+     P4                    0.000       0.046      -1.799    0.96%      -0.909     -0.304      0.005
+             104.000       0.873      -0.967       1.783    0.96%       0.276      0.770
+     P5                    0.000       1.049      -1.149    7.69%      -0.845     -0.463     -0.199
+             104.000       0.881       0.891       3.259    0.96%       0.065      0.752
+
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+     USE THE FBITERATIONS OPTION TO INCREASE THE NUMBER OF ITERATIONS BY A FACTOR
+     OF AT LEAST TWO TO CHECK CONVERGENCE AND THAT THE PSR VALUE DOES NOT INCREASE.
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                              20
+
+Bayesian Posterior Predictive Checking using Chi-Square
+
+          95% Confidence Interval for the Difference Between
+          the Observed and the Replicated Chi-Square Values
+
+                                -11.614            28.534
+
+          Posterior Predictive P-Value              0.190
+
+Information Criteria
+
+          Deviance (DIC)                         1596.207
+          Estimated Number of Parameters (pD)      19.132
+          Bayesian (BIC)                         1649.747
+
+RMSEA (Root Mean Square Error Of Approximation)
+
+          Estimate                           0.103
+          90 Percent C.I.                    0.000  0.162
+          Probability RMSEA <= .05           0.135
+
+CFI/TLI
+
+          CFI                                0.938
+          90 Percent C.I.                    0.847  1.000
+
+          TLI                                0.882
+          90 Percent C.I.                    0.708  1.000
+
+
+
+MODEL RESULTS
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+ ANTAG    BY
+    P5                 1.000       0.000      0.000       1.000       1.000
+    P1                 0.875       0.179      0.000       0.572       1.275      *
+    MANIP              1.048       0.191      0.000       0.733       1.486      *
+
+ INHIB    BY
+    P2                 1.000       0.000      0.000       1.000       1.000
+    P3                 1.076       0.377      0.000       0.588       2.074      *
+    P4                 0.822       0.294      0.000       0.402       1.529      *
+    P1                 0.527       0.259      0.003       0.134       1.143      *
+
+ ANTAG    WITH
+    INHIB             -0.129       0.073      0.020      -0.295      -0.006      *
+
+ Intercepts
+    MANIP             -0.001       0.101      0.495      -0.197       0.198
+    P1                -0.001       0.095      0.497      -0.186       0.187
+    P2                 0.001       0.093      0.496      -0.180       0.183
+    P3                 0.001       0.096      0.496      -0.187       0.190
+    P4                 0.001       0.095      0.497      -0.185       0.187
+    P5                -0.001       0.094      0.495      -0.185       0.184
+
+ Variances
+    ANTAG              0.588       0.155      0.000       0.333       0.937      *
+    INHIB              0.345       0.148      0.000       0.125       0.699      *
+
+ Residual Variances
+    MANIP              0.399       0.114      0.000       0.184       0.638      *
+    P1                 0.505       0.108      0.000       0.319       0.743      *
+    P2                 0.511       0.129      0.000       0.251       0.769      *
+    P3                 0.524       0.144      0.000       0.231       0.810      *
+    P4                 0.679       0.129      0.000       0.452       0.960      *
+    P5                 0.342       0.102      0.000       0.141       0.549      *
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+ ANTAG    BY
+    P5                 0.795       0.071      0.000       0.642       0.923      *
+    P1                 0.690       0.099      0.000       0.494       0.887      *
+    MANIP              0.786       0.071      0.000       0.632       0.911      *
+
+ INHIB    BY
+    P2                 0.634       0.113      0.000       0.399       0.844      *
+    P3                 0.659       0.113      0.000       0.425       0.871      *
+    P4                 0.505       0.114      0.000       0.265       0.713      *
+    P1                 0.318       0.121      0.003       0.086       0.561      *
+
+ ANTAG    WITH
+    INHIB             -0.301       0.139      0.020      -0.555      -0.014      *
+
+ Intercepts
+    MANIP             -0.001       0.098      0.495      -0.192       0.192
+    P1                -0.001       0.097      0.497      -0.192       0.192
+    P2                 0.001       0.099      0.496      -0.193       0.194
+    P3                 0.001       0.098      0.496      -0.191       0.195
+    P4                 0.001       0.098      0.497      -0.191       0.193
+    P5                -0.001       0.097      0.495      -0.190       0.190
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    INHIB              1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    MANIP              0.382       0.109      0.000       0.170       0.600      *
+    P1                 0.543       0.107      0.000       0.336       0.754      *
+    P2                 0.598       0.141      0.000       0.288       0.841      *
+    P3                 0.566       0.147      0.000       0.241       0.820      *
+    P4                 0.745       0.113      0.000       0.492       0.930      *
+    P5                 0.368       0.111      0.000       0.148       0.588      *
+
+
+STDY Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+ ANTAG    BY
+    P5                 0.795       0.071      0.000       0.642       0.923      *
+    P1                 0.690       0.099      0.000       0.494       0.887      *
+    MANIP              0.786       0.071      0.000       0.632       0.911      *
+
+ INHIB    BY
+    P2                 0.634       0.113      0.000       0.399       0.844      *
+    P3                 0.659       0.113      0.000       0.425       0.871      *
+    P4                 0.505       0.114      0.000       0.265       0.713      *
+    P1                 0.318       0.121      0.003       0.086       0.561      *
+
+ ANTAG    WITH
+    INHIB             -0.301       0.139      0.020      -0.555      -0.014      *
+
+ Intercepts
+    MANIP             -0.001       0.098      0.495      -0.192       0.192
+    P1                -0.001       0.097      0.497      -0.192       0.192
+    P2                 0.001       0.099      0.496      -0.193       0.194
+    P3                 0.001       0.098      0.496      -0.191       0.195
+    P4                 0.001       0.098      0.497      -0.191       0.193
+    P5                -0.001       0.097      0.495      -0.190       0.190
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    INHIB              1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    MANIP              0.382       0.109      0.000       0.170       0.600      *
+    P1                 0.543       0.107      0.000       0.336       0.754      *
+    P2                 0.598       0.141      0.000       0.288       0.841      *
+    P3                 0.566       0.147      0.000       0.241       0.820      *
+    P4                 0.745       0.113      0.000       0.492       0.930      *
+    P5                 0.368       0.111      0.000       0.148       0.588      *
+
+
+STD Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+ ANTAG    BY
+    P5                 0.767       0.100      0.000       0.577       0.968      *
+    P1                 0.669       0.116      0.000       0.455       0.911      *
+    MANIP              0.803       0.105      0.000       0.606       1.017      *
+
+ INHIB    BY
+    P2                 0.588       0.123      0.000       0.353       0.836      *
+    P3                 0.635       0.128      0.000       0.392       0.896      *
+    P4                 0.484       0.123      0.000       0.248       0.731      *
+    P1                 0.308       0.120      0.003       0.083       0.555      *
+
+ ANTAG    WITH
+    INHIB             -0.301       0.139      0.020      -0.555      -0.014      *
+
+ Intercepts
+    MANIP             -0.001       0.101      0.495      -0.197       0.198
+    P1                -0.001       0.095      0.497      -0.186       0.187
+    P2                 0.001       0.093      0.496      -0.180       0.183
+    P3                 0.001       0.096      0.496      -0.187       0.190
+    P4                 0.001       0.095      0.497      -0.185       0.187
+    P5                -0.001       0.094      0.495      -0.185       0.184
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    INHIB              1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    MANIP              0.399       0.114      0.000       0.184       0.638      *
+    P1                 0.505       0.108      0.000       0.319       0.743      *
+    P2                 0.511       0.129      0.000       0.251       0.769      *
+    P3                 0.524       0.144      0.000       0.231       0.810      *
+    P4                 0.679       0.129      0.000       0.452       0.960      *
+    P5                 0.342       0.102      0.000       0.141       0.549      *
+
+
+R-SQUARE
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    MANIP              0.618       0.109      0.000       0.399       0.830
+    P1                 0.457       0.107      0.000       0.246       0.664
+    P2                 0.402       0.141      0.000       0.159       0.712
+    P3                 0.434       0.147      0.000       0.180       0.759
+    P4                 0.255       0.113      0.000       0.070       0.508
+    P5                 0.632       0.111      0.000       0.412       0.852
+
+
+TECHNICAL 1 OUTPUT
+
+
+     PARAMETER SPECIFICATION
+
+
+           NU
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+                    1             2             3             4             5
+
+
+           NU
+              P5
+              ________
+                    6
+
+
+           LAMBDA
+              ANTAG         INHIB
+              ________      ________
+ MANIP              7             0
+ P1                 8             9
+ P2                 0             0
+ P3                 0            10
+ P4                 0            11
+ P5                 0             0
+
+
+           THETA
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+ MANIP             12
+ P1                 0            13
+ P2                 0             0            14
+ P3                 0             0             0            15
+ P4                 0             0             0             0            16
+ P5                 0             0             0             0             0
+
+
+           THETA
+              P5
+              ________
+ P5                17
+
+
+           ALPHA
+              ANTAG         INHIB
+              ________      ________
+                    0             0
+
+
+           BETA
+              ANTAG         INHIB
+              ________      ________
+ ANTAG              0             0
+ INHIB              0             0
+
+
+           PSI
+              ANTAG         INHIB
+              ________      ________
+ ANTAG             18
+ INHIB             19            20
+
+
+     STARTING VALUES
+
+
+           NU
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           NU
+              P5
+              ________
+                0.000
+
+
+           LAMBDA
+              ANTAG         INHIB
+              ________      ________
+ MANIP          1.000         0.000
+ P1             1.000         1.000
+ P2             0.000         1.000
+ P3             0.000         1.000
+ P4             0.000         1.000
+ P5             1.000         0.000
+
+
+           THETA
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+ MANIP          0.495
+ P1             0.000         0.438
+ P2             0.000         0.000         0.412
+ P3             0.000         0.000         0.000         0.441
+ P4             0.000         0.000         0.000         0.000         0.437
+ P5             0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              P5
+              ________
+ P5             0.441
+
+
+           ALPHA
+              ANTAG         INHIB
+              ________      ________
+                0.000         0.000
+
+
+           BETA
+              ANTAG         INHIB
+              ________      ________
+ ANTAG          0.000         0.000
+ INHIB          0.000         0.000
+
+
+           PSI
+              ANTAG         INHIB
+              ________      ________
+ ANTAG          1.000
+ INHIB          0.000         1.000
+
+
+
+     PRIORS FOR ALL PARAMETERS            PRIOR MEAN      PRIOR VARIANCE     PRIOR STD. DEV.
+
+     Parameter 1~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 2~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 3~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 4~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 5~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 6~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 7~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 8~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 9~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 10~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 11~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 12~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 13~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 14~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 15~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 16~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 17~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 18~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 19~IW(0.000,-3)             infinity            infinity            infinity
+     Parameter 20~IW(0.000,-3)             infinity            infinity            infinity
+
+
+TECHNICAL 8 OUTPUT
+
+
+   TECHNICAL 8 OUTPUT FOR BAYES ESTIMATION
+
+     CHAIN    BSEED
+     1        0
+     2        285380
+     3        253358
+     4        93468
+
+                     POTENTIAL       PARAMETER WITH
+     ITERATION    SCALE REDUCTION      HIGHEST PSR
+     100              1.248               7
+     200              1.267               10
+     300              1.185               10
+     400              1.083               20
+     500              1.104               20
+     600              1.065               10
+     700              1.074               7
+     800              1.082               7
+     900              1.038               7
+     1000             1.028               7
+     1100             1.038               7
+     1200             1.052               10
+     1300             1.067               10
+     1400             1.046               20
+     1500             1.032               7
+     1600             1.032               7
+     1700             1.027               7
+     1800             1.031               7
+     1900             1.020               7
+     2000             1.016               11
+     2100             1.011               11
+     2200             1.015               15
+     2300             1.017               15
+     2400             1.016               15
+     2500             1.017               15
+     2600             1.016               15
+     2700             1.018               10
+     2800             1.012               15
+     2900             1.011               15
+     3000             1.008               15
+     3100             1.009               15
+     3200             1.012               15
+     3300             1.013               15
+     3400             1.012               15
+     3500             1.011               15
+     3600             1.010               15
+     3700             1.010               15
+     3800             1.008               15
+     3900             1.008               15
+     4000             1.004               17
+     4100             1.006               17
+     4200             1.008               17
+     4300             1.008               17
+     4400             1.005               17
+     4500             1.003               17
+     4600             1.003               11
+     4700             1.005               11
+     4800             1.005               11
+     4900             1.004               11
+     5000             1.005               10
+     5100             1.006               10
+     5200             1.006               10
+     5300             1.003               11
+     5400             1.003               11
+     5500             1.003               11
+     5600             1.002               11
+     5700             1.002               11
+     5800             1.003               11
+     5900             1.003               11
+     6000             1.004               11
+     6100             1.004               11
+     6200             1.005               11
+     6300             1.005               11
+     6400             1.004               11
+     6500             1.004               11
+     6600             1.004               14
+     6700             1.007               14
+     6800             1.007               10
+     6900             1.008               10
+     7000             1.009               10
+     7100             1.010               10
+     7200             1.010               10
+     7300             1.009               10
+     7400             1.011               10
+     7500             1.010               10
+     7600             1.010               10
+     7700             1.009               10
+     7800             1.010               10
+     7900             1.009               10
+     8000             1.008               14
+     8100             1.007               14
+     8200             1.007               14
+     8300             1.007               14
+     8400             1.008               14
+     8500             1.008               14
+     8600             1.008               14
+     8700             1.008               14
+     8800             1.009               14
+     8900             1.008               10
+     9000             1.007               10
+     9100             1.007               14
+     9200             1.006               14
+     9300             1.005               14
+     9400             1.005               14
+     9500             1.004               14
+     9600             1.004               11
+     9700             1.004               11
+     9800             1.004               9
+     9900             1.005               10
+     10000            1.005               10
+     10100            1.006               10
+     10200            1.006               10
+     10300            1.006               10
+     10400            1.005               10
+     10500            1.005               10
+     10600            1.005               10
+     10700            1.005               10
+     10800            1.005               10
+     10900            1.005               10
+     11000            1.006               10
+     11100            1.005               10
+     11200            1.004               10
+     11300            1.004               10
+     11400            1.005               10
+     11500            1.004               10
+     11600            1.004               10
+     11700            1.004               10
+     11800            1.004               10
+     11900            1.004               10
+     12000            1.003               10
+     12100            1.004               10
+     12200            1.005               10
+     12300            1.005               10
+     12400            1.005               10
+     12500            1.006               10
+     12600            1.007               10
+     12700            1.006               10
+     12800            1.008               10
+     12900            1.008               10
+     13000            1.007               20
+     13100            1.007               20
+     13200            1.006               20
+     13300            1.006               10
+     13400            1.006               20
+     13500            1.006               20
+     13600            1.006               20
+     13700            1.006               20
+     13800            1.006               10
+     13900            1.005               10
+     14000            1.005               10
+     14100            1.005               10
+     14200            1.005               10
+     14300            1.005               20
+     14400            1.005               20
+     14500            1.005               20
+     14600            1.004               20
+     14700            1.004               10
+     14800            1.004               20
+     14900            1.004               20
+     15000            1.003               20
+     15100            1.003               20
+     15200            1.003               20
+     15300            1.003               20
+     15400            1.002               20
+     15500            1.002               20
+     15600            1.002               20
+     15700            1.002               20
+     15800            1.002               20
+     15900            1.002               20
+     16000            1.002               20
+     16100            1.003               20
+     16200            1.003               20
+     16300            1.003               20
+     16400            1.003               20
+     16500            1.003               20
+     16600            1.003               20
+     16700            1.003               20
+     16800            1.003               20
+     16900            1.003               20
+     17000            1.003               20
+     17100            1.003               20
+     17200            1.003               20
+     17300            1.003               20
+     17400            1.002               20
+     17500            1.003               20
+     17600            1.002               20
+     17700            1.003               20
+     17800            1.003               10
+     17900            1.002               20
+     18000            1.003               20
+     18100            1.003               20
+     18200            1.003               20
+     18300            1.003               20
+     18400            1.003               20
+     18500            1.004               20
+     18600            1.004               20
+     18700            1.003               20
+     18800            1.003               20
+     18900            1.003               20
+     19000            1.003               20
+     19100            1.002               20
+     19200            1.002               20
+     19300            1.002               20
+     19400            1.002               20
+     19500            1.002               20
+     19600            1.002               20
+     19700            1.002               20
+     19800            1.002               20
+     19900            1.001               20
+     20000            1.001               20
+     20100            1.001               9
+     20200            1.001               9
+     20300            1.001               9
+     20400            1.001               9
+     20500            1.001               9
+     20600            1.001               9
+     20700            1.001               9
+     20800            1.001               9
+     20900            1.002               9
+     21000            1.002               9
+     21100            1.002               9
+     21200            1.002               9
+     21300            1.003               9
+     21400            1.003               20
+     21500            1.003               20
+     21600            1.002               9
+     21700            1.002               9
+     21800            1.002               9
+     21900            1.002               9
+     22000            1.002               9
+     22100            1.002               9
+     22200            1.002               9
+     22300            1.002               9
+     22400            1.002               9
+     22500            1.002               9
+     22600            1.002               9
+     22700            1.002               9
+     22800            1.002               9
+     22900            1.002               9
+     23000            1.002               9
+     23100            1.002               9
+     23200            1.003               9
+     23300            1.003               9
+     23400            1.003               9
+     23500            1.003               9
+     23600            1.003               9
+     23700            1.003               9
+     23800            1.003               9
+     23900            1.003               9
+     24000            1.003               9
+     24100            1.003               9
+     24200            1.002               9
+     24300            1.002               9
+     24400            1.002               9
+     24500            1.002               9
+     24600            1.002               9
+     24700            1.002               9
+     24800            1.002               9
+     24900            1.002               9
+     25000            1.002               9
+     25100            1.002               9
+     25200            1.002               9
+     25300            1.002               9
+     25400            1.002               9
+     25500            1.002               9
+     25600            1.002               10
+     25700            1.002               10
+     25800            1.002               10
+     25900            1.002               10
+     26000            1.002               10
+     26100            1.002               10
+     26200            1.001               9
+     26300            1.001               9
+     26400            1.001               9
+     26500            1.001               9
+     26600            1.002               9
+     26700            1.002               9
+     26800            1.002               10
+     26900            1.002               10
+     27000            1.001               10
+     27100            1.001               10
+     27200            1.001               10
+     27300            1.001               10
+     27400            1.001               10
+     27500            1.001               10
+     27600            1.001               10
+     27700            1.001               10
+     27800            1.001               10
+     27900            1.001               10
+     28000            1.001               10
+     28100            1.001               10
+     28200            1.001               10
+     28300            1.001               10
+     28400            1.001               10
+     28500            1.001               9
+     28600            1.001               9
+     28700            1.001               9
+     28800            1.001               9
+     28900            1.001               9
+     29000            1.001               9
+     29100            1.001               9
+     29200            1.001               9
+     29300            1.001               9
+     29400            1.001               9
+     29500            1.001               9
+     29600            1.001               9
+     29700            1.002               9
+     29800            1.002               9
+     29900            1.002               9
+     30000            1.002               9
+
+
+SUMMARIES OF PLAUSIBLE VALUES (N = NUMBER OF OBSERVATIONS * NUMBER OF IMPUTATIONS)
+
+
+     SAMPLE STATISTICS
+
+
+           Means
+              ANTAG         INHIB
+              ________      ________
+                0.001        -0.002
+
+
+           Covariances
+              ANTAG         INHIB
+              ________      ________
+ ANTAG          0.553
+ INHIB         -0.124         0.313
+
+
+           Correlations
+              ANTAG         INHIB
+              ________      ________
+ ANTAG          1.000
+ INHIB         -0.297         1.000
+
+
+SUMMARY OF PLAUSIBLE STANDARD DEVIATION (N = NUMBER OF OBSERVATIONS)
+
+
+     SAMPLE STATISTICS
+
+
+           Means
+              ANTAG_SD      INHIB_SD
+              ________      ________
+                0.348         0.345
+
+
+           Covariances
+              ANTAG_SD      INHIB_SD
+              ________      ________
+ ANTAG_SD       0.000
+ INHIB_SD       0.000         0.000
+
+
+           Correlations
+              ANTAG_SD      INHIB_SD
+              ________      ________
+ ANTAG_SD       1.000
+ INHIB_SD       0.286         1.000
+
+
+SAVEDATA INFORMATION
+
+
+  Save file
+    AC_bsem_cfa_parcel_mod_fscores.dat
+
+  Order and format of variables
+
+    MANIP                            F10.3
+    P1                               F10.3
+    P2                               F10.3
+    P3                               F10.3
+    P4                               F10.3
+    P5                               F10.3
+    ANTAG Mean                       F10.3
+    ANTAG Median                     F10.3
+    ANTAG Standard Deviation         F10.3
+    ANTAG 2.5% Value                 F10.3
+    ANTAG 97.5% Value                F10.3
+    INHIB Mean                       F10.3
+    INHIB Median                     F10.3
+    INHIB Standard Deviation         F10.3
+    INHIB 2.5% Value                 F10.3
+    INHIB 97.5% Value                F10.3
+    SUBJECT                          I4
+
+  Save file format
+    16F10.3 I4
+
+  Save file record length    10000
+
+
+     Beginning Time:  15:04:11
+        Ending Time:  15:04:21
+       Elapsed Time:  00:00:10
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2019 Muthen & Muthen
