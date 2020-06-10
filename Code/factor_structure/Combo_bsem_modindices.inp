@@ -1,15 +1,15 @@
 TITLE:
-Agentic Extraversion, Antag, Inhib combination
+Extraversion, Antag, Consc combination modindices added
 DATA:
-FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/Antag_addAgen.dat";
+FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/Combo_bsem_modindices.dat";
  
 VARIABLE:
-NAMES = subject EXHIB ENTITL MPS_spR MPS_agR AGG MISTRUST MPS_alR MANIP PROPER
-     MPS_clR IMPUL MPS_tdR MPS_acR HDWK; 
+NAMES = subject EXHIB ENTITL DETACH MPS_spR MPS_scR MPS_agR AGG MISTRUST MPS_alR
+     MANIP PROPER MPS_clR IMPUL MPS_tdR MPS_acR HDWK; 
  MISSING=.;
  
-    USEVARIABLES = MANIP MPS_spR EXHIB ENTITL
-      p1 p2 p3 p4 p5;
+    USEVARIABLES=EXHIB ENTITL DETACH MPS_spR MPS_scR
+      MANIP p1 p2 p3 p4 p5;
     IDVARIABLE = subject;
   
 DEFINE:
@@ -29,6 +29,9 @@ MODEL:
     agentic BY MPS_spR* EXHIB ENTITL;
     agentic@1;
     
+    affiliat BY MPS_scR* DETACH;
+    affiliat@1;
+    
     antag BY p5* ! MPS_agR AGG
       p1        ! MISTRUST MPS_alR
       MANIP;
@@ -40,9 +43,11 @@ MODEL:
       p4;  !MPS_acR HDWK;
     inhib@1;
 
-    antag inhib agentic WITH
-      antag inhib agentic;
+    antag inhib agentic affiliat WITH
+      antag inhib agentic affiliat;
       
+    !these were identified in the 4-factor model using MLR
+    AFFILIAT BY P1; !sig modification index
     INHIB BY ENTITL; !sig modification index
     
     !this one comes from the two-factor model, but seems unimportant for 4-factor.
@@ -50,5 +55,5 @@ MODEL:
   
 OUTPUT:
 
-    TECH1 TECH8 STANDARDIZED MODINDICES (ALL 6);
+    TECH1 TECH8 STANDARDIZED MODINDICES (ALL 7);
   
