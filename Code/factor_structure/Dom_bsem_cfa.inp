@@ -19,9 +19,14 @@ ANALYSIS:
   
 MODEL:
 
-    f1 BY MPS_spR EXHIB ENTITL POSTEMP MPS_wbR;
-    f2 BY MPS_scR DETACH;
-    f1 WITH f2;
+    agentic BY MPS_spR* EXHIB ENTITL POSTEMP MPS_wbR;
+    agentic@1;
+    
+    affiliat BY MPS_scR* DETACH;
+    affiliat@1;
+    
+    agentic WITH affiliat;
+    
     MPS_SPR WITH EXHIB;
     !DETACH@0;  !heywood case in MLR, okay in Bayes (force positive variance)
   

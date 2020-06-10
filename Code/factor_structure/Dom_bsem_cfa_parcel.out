@@ -1,6 +1,6 @@
 Mplus VERSION 8.4 (Mac)
 MUTHEN & MUTHEN
-06/01/2020   3:04 PM
+06/10/2020  11:55 AM
 
 INPUT INSTRUCTIONS
 
@@ -30,11 +30,13 @@ INPUT INSTRUCTIONS
 
   MODEL:
 
-      f1 BY p1* ENTITL p2;
-      f1@1;
-      f2 BY MPS_scR* DETACH;
-      f2@1;
-      f1 WITH f2;
+      agentic BY p1* ENTITL p2;
+      agentic @1;
+
+      affiliat BY MPS_scR* DETACH;
+      affiliat@1;
+
+      agentic WITH affiliat;
       !DETACH@0;  !heywood case in MLR, okay in Bayes (force positive variance)
 
   OUTPUT:
@@ -71,7 +73,7 @@ Observed dependent variables
    ENTITL      DETACH      MPS_SCR     P1          P2
 
 Continuous latent variables
-   F1          F2
+   AGENTIC     AFFILIAT
 
 Variables with special functions
 
@@ -207,17 +209,17 @@ MODEL RESULTS
                                 Posterior  One-Tailed         95% C.I.
                     Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
 
- F1       BY
+ AGENTIC  BY
     P1                 0.579       0.125      0.000       0.313       0.817      *
     ENTITL             0.414       0.150      0.011       0.058       0.671      *
     P2                 0.711       0.130      0.000       0.439       0.953      *
 
- F2       BY
+ AFFILIAT BY
     MPS_SCR            0.863       0.083      0.000       0.712       1.036      *
     DETACH             1.005       0.077      0.000       0.861       1.160      *
 
- F1       WITH
-    F2                -0.620       0.145      0.000      -0.990      -0.397      *
+ AGENTIC  WITH
+    AFFILIAT          -0.620       0.145      0.000      -0.990      -0.397      *
 
  Intercepts
     ENTITL             0.000       0.101      0.498      -0.197       0.197
@@ -227,8 +229,8 @@ MODEL RESULTS
     P2                 0.001       0.095      0.497      -0.187       0.190
 
  Variances
-    F1                 1.000       0.000      0.000       1.000       1.000
-    F2                 1.000       0.000      0.000       1.000       1.000
+    AGENTIC            1.000       0.000      0.000       1.000       1.000
+    AFFILIAT           1.000       0.000      0.000       1.000       1.000
 
  Residual Variances
     ENTITL             0.863       0.148      0.000       0.625       1.205      *
@@ -245,17 +247,17 @@ STDYX Standardization
 
                                 Posterior  One-Tailed         95% C.I.
                     Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
- F1       BY
+ AGENTIC  BY
     P1                 0.627       0.117      0.000       0.348       0.819      *
     ENTITL             0.407       0.138      0.011       0.059       0.614      *
     P2                 0.737       0.113      0.000       0.473       0.929      *
 
- F2       BY
+ AFFILIAT BY
     MPS_SCR            0.842       0.035      0.000       0.767       0.903      *
     DETACH             0.983       0.023      0.000       0.917       1.000      *
 
- F1       WITH
-    F2                -0.620       0.145      0.000      -0.990      -0.397      *
+ AGENTIC  WITH
+    AFFILIAT          -0.620       0.145      0.000      -0.990      -0.397      *
 
  Intercepts
     ENTITL             0.000       0.098      0.498      -0.191       0.191
@@ -265,8 +267,8 @@ STDYX Standardization
     P2                 0.001       0.098      0.497      -0.191       0.194
 
  Variances
-    F1                 1.000       0.000      0.000       1.000       1.000
-    F2                 1.000       0.000      0.000       1.000       1.000
+    AGENTIC            1.000       0.000      0.000       1.000       1.000
+    AFFILIAT           1.000       0.000      0.000       1.000       1.000
 
  Residual Variances
     ENTITL             0.834       0.098      0.000       0.623       0.995      *
@@ -280,17 +282,17 @@ STDY Standardization
 
                                 Posterior  One-Tailed         95% C.I.
                     Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
- F1       BY
+ AGENTIC  BY
     P1                 0.627       0.117      0.000       0.348       0.819      *
     ENTITL             0.407       0.138      0.011       0.059       0.614      *
     P2                 0.737       0.113      0.000       0.473       0.929      *
 
- F2       BY
+ AFFILIAT BY
     MPS_SCR            0.842       0.035      0.000       0.767       0.903      *
     DETACH             0.983       0.023      0.000       0.917       1.000      *
 
- F1       WITH
-    F2                -0.620       0.145      0.000      -0.990      -0.397      *
+ AGENTIC  WITH
+    AFFILIAT          -0.620       0.145      0.000      -0.990      -0.397      *
 
  Intercepts
     ENTITL             0.000       0.098      0.498      -0.191       0.191
@@ -300,8 +302,8 @@ STDY Standardization
     P2                 0.001       0.098      0.497      -0.191       0.194
 
  Variances
-    F1                 1.000       0.000      0.000       1.000       1.000
-    F2                 1.000       0.000      0.000       1.000       1.000
+    AGENTIC            1.000       0.000      0.000       1.000       1.000
+    AFFILIAT           1.000       0.000      0.000       1.000       1.000
 
  Residual Variances
     ENTITL             0.834       0.098      0.000       0.623       0.995      *
@@ -315,17 +317,17 @@ STD Standardization
 
                                 Posterior  One-Tailed         95% C.I.
                     Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
- F1       BY
+ AGENTIC  BY
     P1                 0.579       0.125      0.000       0.313       0.817      *
     ENTITL             0.414       0.150      0.011       0.058       0.671      *
     P2                 0.711       0.130      0.000       0.439       0.953      *
 
- F2       BY
+ AFFILIAT BY
     MPS_SCR            0.863       0.083      0.000       0.712       1.036      *
     DETACH             1.005       0.077      0.000       0.861       1.160      *
 
- F1       WITH
-    F2                -0.620       0.145      0.000      -0.990      -0.397      *
+ AGENTIC  WITH
+    AFFILIAT          -0.620       0.145      0.000      -0.990      -0.397      *
 
  Intercepts
     ENTITL             0.000       0.101      0.498      -0.197       0.197
@@ -335,8 +337,8 @@ STD Standardization
     P2                 0.001       0.095      0.497      -0.187       0.190
 
  Variances
-    F1                 1.000       0.000      0.000       1.000       1.000
-    F2                 1.000       0.000      0.000       1.000       1.000
+    AGENTIC            1.000       0.000      0.000       1.000       1.000
+    AFFILIAT           1.000       0.000      0.000       1.000       1.000
 
  Residual Variances
     ENTITL             0.863       0.148      0.000       0.625       1.205      *
@@ -371,7 +373,7 @@ TECHNICAL 1 OUTPUT
 
 
            LAMBDA
-              F1            F2
+              AGENTIC       AFFILIAT
               ________      ________
  ENTITL             6             0
  DETACH             0             7
@@ -391,23 +393,23 @@ TECHNICAL 1 OUTPUT
 
 
            ALPHA
-              F1            F2
+              AGENTIC       AFFILIAT
               ________      ________
                     0             0
 
 
            BETA
-              F1            F2
+              AGENTIC       AFFILIAT
               ________      ________
- F1                 0             0
- F2                 0             0
+ AGENTIC            0             0
+ AFFILIAT           0             0
 
 
            PSI
-              F1            F2
+              AGENTIC       AFFILIAT
               ________      ________
- F1                 0
- F2                16             0
+ AGENTIC            0
+ AFFILIAT          16             0
 
 
      STARTING VALUES
@@ -420,7 +422,7 @@ TECHNICAL 1 OUTPUT
 
 
            LAMBDA
-              F1            F2
+              AGENTIC       AFFILIAT
               ________      ________
  ENTITL         1.000         0.000
  DETACH         0.000         1.000
@@ -440,23 +442,23 @@ TECHNICAL 1 OUTPUT
 
 
            ALPHA
-              F1            F2
+              AGENTIC       AFFILIAT
               ________      ________
                 0.000         0.000
 
 
            BETA
-              F1            F2
+              AGENTIC       AFFILIAT
               ________      ________
- F1             0.000         0.000
- F2             0.000         0.000
+ AGENTIC        0.000         0.000
+ AFFILIAT       0.000         0.000
 
 
            PSI
-              F1            F2
+              AGENTIC       AFFILIAT
               ________      ________
- F1             1.000
- F2             0.000         1.000
+ AGENTIC        1.000
+ AFFILIAT       0.000         1.000
 
 
 
@@ -652,23 +654,23 @@ SUMMARIES OF PLAUSIBLE VALUES (N = NUMBER OF OBSERVATIONS * NUMBER OF IMPUTATION
 
 
            Means
-              F1            F2
+              AGENTIC       AFFILIAT
               ________      ________
                -0.001         0.000
 
 
            Covariances
-              F1            F2
+              AGENTIC       AFFILIAT
               ________      ________
- F1             0.958
- F2            -0.583         0.964
+ AGENTIC        0.958
+ AFFILIAT      -0.583         0.964
 
 
            Correlations
-              F1            F2
+              AGENTIC       AFFILIAT
               ________      ________
- F1             1.000
- F2            -0.607         1.000
+ AGENTIC        1.000
+ AFFILIAT      -0.607         1.000
 
 
 SUMMARY OF PLAUSIBLE STANDARD DEVIATION (N = NUMBER OF OBSERVATIONS)
@@ -678,23 +680,23 @@ SUMMARY OF PLAUSIBLE STANDARD DEVIATION (N = NUMBER OF OBSERVATIONS)
 
 
            Means
-              F1_SD         F2_SD
+              AGENTIC_      AFFILIAT
               ________      ________
                 0.529         0.245
 
 
            Covariances
-              F1_SD         F2_SD
+              AGENTIC_      AFFILIAT
               ________      ________
- F1_SD          0.002
- F2_SD          0.000         0.000
+ AGENTIC_       0.002
+ AFFILIAT       0.000         0.000
 
 
            Correlations
-              F1_SD         F2_SD
+              AGENTIC_      AFFILIAT
               ________      ________
- F1_SD          1.000
- F2_SD          0.339         1.000
+ AGENTIC_       1.000
+ AFFILIAT       0.339         1.000
 
 
 SAVEDATA INFORMATION
@@ -710,16 +712,16 @@ SAVEDATA INFORMATION
     MPS_SCR                          F10.3
     P1                               F10.3
     P2                               F10.3
-    F1 Mean                          F10.3
-    F1 Median                        F10.3
-    F1 Standard Deviation            F10.3
-    F1 2.5% Value                    F10.3
-    F1 97.5% Value                   F10.3
-    F2 Mean                          F10.3
-    F2 Median                        F10.3
-    F2 Standard Deviation            F10.3
-    F2 2.5% Value                    F10.3
-    F2 97.5% Value                   F10.3
+    AGENTIC Mean                     F10.3
+    AGENTIC Median                   F10.3
+    AGENTIC Standard Deviation       F10.3
+    AGENTIC 2.5% Value               F10.3
+    AGENTIC 97.5% Value              F10.3
+    AFFILIAT Mean                    F10.3
+    AFFILIAT Median                  F10.3
+    AFFILIAT Standard Deviation      F10.3
+    AFFILIAT 2.5% Value              F10.3
+    AFFILIAT 97.5% Value             F10.3
     SUBJECT                          I4
 
   Save file format
@@ -728,8 +730,8 @@ SAVEDATA INFORMATION
   Save file record length    10000
 
 
-     Beginning Time:  15:04:29
-        Ending Time:  15:04:35
+     Beginning Time:  11:55:20
+        Ending Time:  11:55:26
        Elapsed Time:  00:00:06
 
 

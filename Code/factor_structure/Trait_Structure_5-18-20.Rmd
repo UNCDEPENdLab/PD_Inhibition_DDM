@@ -30,8 +30,8 @@ snap <- get(load(file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RDa
   select(subject, NEGTEMP:HDWK, DISINHP)
 
 self_reps <- inner_join(mpq, snap, by = "subject")
-#mpluscmd <- "/Applications/Mplus/mplus"
-mpluscmd <- "~/Applications/Mplus/mplus"
+mpluscmd <- "/Applications/Mplus/mplus"
+#mpluscmd <- "~/Applications/Mplus/mplus"
 ```
 
 ## General Rationale
@@ -286,14 +286,16 @@ AC_m <- mplusObject(
     BITERATIONS=(30000);
   ",
   MODEL = "
-    antag BY p5 ! MPS_agR AGG
+    antag BY p5* ! MPS_agR AGG
       p1        ! MISTRUST MPS_alR
       MANIP;
+    antag@1;
 
     inhib BY
-      p2  !PROPER MPS_tdR
+      p2*  !PROPER MPS_tdR
       p3  !MPS_clR IMPUL
       p4; !MPS_acR HDWK;
+    inhib@1;
 
     antag WITH inhib;",
   SAVEDATA = "
@@ -340,15 +342,17 @@ AC_m_mod <- mplusObject(
     BITERATIONS=(30000);
   ",
   MODEL = "
-    antag BY p5 ! MPS_agR AGG
+    antag BY p5* ! MPS_agR AGG
       p1        ! MISTRUST MPS_alR
       MANIP;
+    antag@1;
 
     inhib BY
-      p2  !PROPER MPS_tdR
+      p2*  !PROPER MPS_tdR
       p3  !MPS_clR IMPUL
       p4; !MPS_acR HDWK;
-
+    inhib@1;
+    
     antag WITH inhib;
     
     INHIB BY P1; !sig mod index
@@ -402,9 +406,14 @@ Dom_m <- mplusObject(
     BITERATIONS=(15000);
   ",
   MODEL = "
-    f1 BY MPS_spR EXHIB ENTITL POSTEMP MPS_wbR;
-    f2 BY MPS_scR DETACH;
-    f1 WITH f2;
+    agentic BY MPS_spR* EXHIB ENTITL POSTEMP MPS_wbR;
+    agentic@1;
+    
+    affiliat BY MPS_scR* DETACH;
+    affiliat@1;
+    
+    agentic WITH affiliat;
+    
     MPS_SPR WITH EXHIB;
     !DETACH@0;  !heywood case in MLR, okay in Bayes (force positive variance)
   ",
@@ -453,11 +462,13 @@ Dom_m <- mplusObject(
     BITERATIONS=(15000);
   ",
   MODEL = "
-    f1 BY p1* ENTITL p2;
-    f1@1;
-    f2 BY MPS_scR* DETACH;
-    f2@1;
-    f1 WITH f2;
+    agentic BY p1* ENTITL p2;
+    agentic @1;
+    
+    affiliat BY MPS_scR* DETACH;
+    affiliat@1;
+    
+    agentic WITH affiliat;
     !DETACH@0;  !heywood case in MLR, okay in Bayes (force positive variance)
   ",
   SAVEDATA = "
@@ -504,10 +515,12 @@ Dom_m <- mplusObject(
   ",
   MODEL = "
     agentic BY MPS_spR* EXHIB ENTITL;
-    affiliat BY MPS_scR* DETACH;
-    agentic WITH affiliat;
     agentic@1;
+    
+    affiliat BY MPS_scR* DETACH;
     affiliat@1;
+    
+    agentic WITH affiliat;
   ",
   SAVEDATA = "
     FILE = Dom_bsem_cfa_modela_fscores.dat;

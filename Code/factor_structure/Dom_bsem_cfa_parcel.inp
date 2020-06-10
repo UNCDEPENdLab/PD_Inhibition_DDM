@@ -24,11 +24,13 @@ ANALYSIS:
   
 MODEL:
 
-    f1 BY p1* ENTITL p2;
-    f1@1;
-    f2 BY MPS_scR* DETACH;
-    f2@1;
-    f1 WITH f2;
+    agentic BY p1* ENTITL p2;
+    agentic @1;
+    
+    affiliat BY MPS_scR* DETACH;
+    affiliat@1;
+    
+    agentic WITH affiliat;
     !DETACH@0;  !heywood case in MLR, okay in Bayes (force positive variance)
   
 OUTPUT:
