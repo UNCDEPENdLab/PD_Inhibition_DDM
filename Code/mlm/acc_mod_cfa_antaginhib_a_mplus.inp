@@ -1,0 +1,77 @@
+TITLE:
+Antagonism and inhibition factors and gng
+DATA:
+FILE = "acc_mod_cfa_antaginhib_a_mplus.dat";
+ 
+VARIABLE:
+NAMES = subj_idx response cond stim trial_z trial MPS_agR AGG MISTRUST MPS_alR MANIP
+     PROPER MPS_clR IMPUL MPS_tdR MPS_acR HDWK; 
+ MISSING=.;
+ 
+    WITHIN = trial_z stim cond trst;
+    BETWEEN = MANIP P1 P2 P3 P4 P5;
+    USEVARIABLES = subj_idx response trial_z stim cond 
+    MANIP P1 P2 P3 P4 P5 trst;
+    CLUSTER = subj_idx;
+    CATEGORICAL = response;
+  
+DEFINE:
+
+    P1=MEAN(MISTRUST MPS_alR);
+    P2=MEAN(PROPER MPS_tdR);
+    P3=MEAN(MPS_clR IMPUL);
+    P4=MEAN(MPS_acR HDWK);
+    P5=MEAN(MPS_agR AGG);
+   trst = trial_z*stim;
+    
+ANALYSIS:
+
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(15000);
+    BCONVERGENCE=.02;
+    CHAINS=2;
+    PROCESSORS=2;
+  
+MODEL:
+
+    %WITHIN%
+    btrial | response ON trial_z;
+    bstim | response ON stim;
+    bcond | response ON cond;
+    btrst | response ON trst;
+    
+    %BETWEEN%
+    [btrial bstim bcond btrst]; !slope means
+    btrial bstim bcond btrst; !slope variances
+    
+    ! trait model
+    antag BY P1* (a);
+    antag BY P5;
+    antag BY MANIP;
+    antag@1;
+    
+    inhib by P2* (b);
+    inhib by P3;
+    inhib by P4;
+    inhib by P1;
+    inhib@1;
+    
+    [response$1]; !person average
+    response on antag;
+    btrst on inhib;
+    bcond on inhib;
+    
+    !correlation of random slopes with each other
+    btrial WITH bstim;
+    btrial WITH btrst;
+    btrial WITH bcond;
+    bstim WITH btrst;
+    bstim WITH bcond;
+    bcond WITH btrst;
+    
+  
+OUTPUT:
+TECH1 TECH8 STANDARDIZED CINTERVAL;
+PLOT:
+TYPE = PLOT2;

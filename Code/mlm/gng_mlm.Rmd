@@ -47,6 +47,14 @@ Will likely add in prev_rt in more complex analyses
 gng <- read.csv("../../Data/preprocessed/go_nogo_full_accCode.csv") %>% mutate(bad_subj = if_else(subj_idx == 15, 1, 0)) #flagged 15 as bad as this was the one person who needed to be according to NH's preprocessing; will test how inclusion of 15 alters results
 gng <- mutate(gng, cond= factor(cond, levels = c("OneGo","ThreeGo", "FiveGo", "SevenGo")))
 gng_rt <- dplyr::filter(gng, stim == "Go", response == 1)
+gng_rt$cond_id <- with(gng_rt, interaction(cond,subj_idx))
+gng_rt <- mutate(gng_rt, block_trial_z = scale(block_trial))
+
+test(emtrends(m19, ~trial_z, var = "block_trial_z", at = list(trial_z = c(-1, 1))))
+quantile(gng_rt$prev_rt, .16, na.rm = TRUE) # to get what is equivalent to -1, 1 in z scores
+quantile(gng_rt$prev_rt, .84, na.rm = TRUE)
+
+
 ```
 
 
@@ -160,7 +168,6 @@ As expected, we see a huge boost when we allow for individual differences in the
 What if we simplify the random slope of trial so that it is not nested within block. In lme, we need to create the interaction term ourselves, unlike the `(1+trial_z | id) + (1 | id/block)` notation of `lmer`.
 
 ```{r m6, cache=TRUE}
-gng_rt$cond_id <- with(gng_rt, interaction(cond,subj_idx))
 m6 <- lme(rt_log_trim_grp ~ trial_z + cond, 
            random=list(~1+trial_z | subj_idx, ~1 | cond_id),
            weights=varIdent(form=~1|cond), 
@@ -215,7 +222,6 @@ Alternatively, rather thinking about it interms of condition, could think of it 
 
 
 ```{r m9, cache=TRUE}
-gng_rt <- mutate(gng_rt, block_trial_z = scale(block_trial))
 m9 <-  lme(rt_log_trim_grp ~ block_trial_z*cond, 
           random=~1 + block_trial_z|subj_idx/cond,
           weights=varIdent(form=~1|cond),
@@ -390,11 +396,22 @@ m19 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z,
           weights=varIdent(form=~1|cond),
           na.action = na.exclude,
           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+m19b <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z, 
+          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
+          #weights=varIdent(form=~1|cond),
+          na.action = na.exclude,
+          data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
 
 summary(m19)
 AICtab(m15, m18, m19,  sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
 
 car::vif(m19)
+
+test(emtrends(m19, ~trial_z, var = "block_trial_z", at = list(trial_z = c(-1, 1))))
+quantile(gng_rt$prev_rt, .16, na.rm = TRUE) # to get what is equivalent to -1, 1 in z scores
+quantile(gng_rt$prev_rt, .84, na.rm = TRUE)
+test(emtrends(m19, ~prev_rt, var = "block_trial_z", at = list(prev_rt = c(.26, .42))))
+random.effects(m19)
 ```
 m19 slightly preferred so keep it around for now
 ## m20: let prev_rt be random slope
@@ -707,3 +724,46 @@ AICtab(m39, m36,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
 ```
 
 Thus, m36 is the winner. 
+
+
+# Run m19 in lmer to get correct degrees of freedom 
+
+```{r}
+m19_lmer <-  lmer(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z +  
+          (1+trial_z+block_trial_z| subj_idx) +  (1 + block_trial_z|subj_idx: cond),
+          na.action = na.exclude,
+          data = gng_rt,control=lmerControl(optCtrl=list(maxfun=2e4)))
+
+m19_reml <-  lmer(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z +  
+          (1+trial_z+block_trial_z| subj_idx) +  (1 + block_trial_z|subj_idx: cond),
+          na.action = na.exclude,
+          data = gng_rt,control=lmerControl(optCtrl=list(maxfun=2e4)), REML=TRUE)
+car::vif(m19_lmer) # not particularly concerning; moderately correlated
+car::vif(m19_reml) # not particularly concerning; moderately correlated
+emm_options(lmerTest.limit = 50000)
+test(emtrends(m19_reml, ~trial_z, var = "block_trial_z", at = list(trial_z = c(-1, 1)), lmer.df = "satterthwaite"))
+quantile(gng_rt$prev_rt, .16, na.rm = TRUE) # to get what is equivalent to -1, 1 in z scores
+quantile(gng_rt$prev_rt, .84, na.rm = TRUE)
+test(emtrends(m19_reml, ~prev_rt, var = "block_trial_z", at = list(prev_rt = c(.26, .42)), lmer.df = "satterthwaite"))
+
+
+
+```
+Verify m36 for publication
+
+```{r m36, cache=TRUE}
+m36_opt <- glmer(response ~ trial_z*stim + cond + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
+          data = gng, family = "binomial", control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=50000)), contrasts = list(stim = "contr.poly", cond = "contr.poly"))
+
+summary(m36_opt)
+car::vif(m36_opt) # not particularly concerning; moderately correlated
+cond_em <- emmeans(m36_opt, ~cond)
+contrast(cond_em, "poly")
+car::Anova(m36_opt, type=3) 
+stim_em <- emmeans(m36_opt, ~stim)
+emmeans(m36_opt, ~ trial_z, at = list(trial_z = c(1, -1)))
+emtrends(m36_opt, var =  "trial_z")
+test(emtrends(m36_opt, ~ stim, var =  "trial_z"))
+
+
+```

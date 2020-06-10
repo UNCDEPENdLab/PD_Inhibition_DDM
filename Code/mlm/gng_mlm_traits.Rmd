@@ -884,3 +884,361 @@ acc_mod_affiliative_updatedag <- glmer(response ~ trial_z*stim*AFFILIATIVE_F + c
 
 Overall, feel comofortable with the new CFA F scores for Agentic Extraversion and Antagnoism, which are the primary positive effects for the paper, so that feels good. As a result, feel as though on good footing for interpreting effects from the Bayesian MSEM and for adaptings these results for brms.
 
+
+
+# Combine antag and disinhib in the same model
+rt_mod_disinhibition_a_updatedag <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*DISINHIBITION_F + prev_rt*block_trial_z, 
+          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
+          weights=varIdent(form=~1|cond),
+          na.action = na.exclude,
+          data = gng_rt_formlm, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+
+
+acc_mod_disinhibition_updatedag <- glmer(response ~ trial_z*stim*DISINHIBITION_F + cond*DISINHIBITION_F + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
+          data = gng_formlm, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+
+```{r}
+
+mpq <- get(load("~/github_dirs/PD_Inhibition_DDM/Data/preprocessed/MPQ_all_scored_final.RData")) %>% 
+  dplyr::filter(exclude_MPQ == 0) %>% select(subject, MPS_wbR:MPS_abR)
+snap <- get(load("~/github_dirs/PD_Inhibition_DDM/Data/preprocessed/SNAP_all_scored_final.RData")) %>% dplyr::filter(exclude_SNAP == 0) %>% 
+  dplyr::select(subject, NEGTEMP:HDWK, DISINHP)
+
+self_reps <- inner_join(mpq, snap, by = "subject")
+
+tofactor <- self_reps %>% dplyr::select(subject, MPS_agR, AGG, MISTRUST, MPS_alR, MANIP,
+      PROPER, MPS_clR, IMPUL, MPS_tdR, MPS_acR, HDWK) %>% 
+  mutate(IMPUL =-1*IMPUL) %>% #score toward constraint to make loadings upright
+  mutate_at(vars(-subject), list(~as.vector(scale(.)))) %>%
+  dplyr::rename(subj_idx=subject)
+
+for_msem <- gng_rt %>% inner_join(tofactor, by="subj_idx")
+gng_rt_traits_formplus <- dplyr::mutate(for_msem, bltrz = block_trial_z[,1]) %>% dplyr::select(-block_trial_z)
+rt_mod_cfa_antaginhib_a_mplus <- mplusObject(
+  TITLE = "Antagonism and inhibition factors and gng",
+  DEFINE = "
+    P1=MEAN(MISTRUST MPS_alR);
+    P2=MEAN(PROPER MPS_tdR);
+    P3=MEAN(MPS_clR IMPUL);
+    P4=MEAN(MPS_acR HDWK);
+    P5=MEAN(MPS_agR AGG);
+   trbltrz = bltrz*trial_z;
+    ",
+  VARIABLE = "
+    WITHIN = prev_rt trial_z bltrz trbltrz;
+    BETWEEN = MANIP P1 P2 P3 P4 P5;
+    USEVARIABLES = subj_idx rt_log_trim_grp bltrz prev_rt trial_z 
+      MANIP P1 P2 P3 P4 P5 trbltrz;
+    CLUSTER = subj_idx;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(15000);
+    BCONVERGENCE=.02;
+    CHAINS=2;
+    PROCESSORS=2;
+  ",
+  MODEL = "
+    %WITHIN%
+    !treat these as fixed only (keep the model sane)
+    b_trbltrz | rt_log_trim_grp ON trbltrz; 
+    b_prev_rt | rt_log_trim_grp ON prev_rt;
+    b_trial_z | rt_log_trim_grp ON trial_z;
+    b_bltrz | rt_log_trim_grp ON bltrz;
+    
+    %BETWEEN%
+    [b_trbltrz b_prev_rt b_trial_z b_bltrz]; !slope means
+    b_trbltrz b_prev_rt b_trial_z b_bltrz; !slope variances
+    
+    ! trait model
+    antag BY P1* (a);
+    antag BY P5; 
+    antag BY MANIP;
+    antag@1;
+    
+    inhib by P2* (b);
+    inhib by P3;
+    inhib by P4;
+    inhib by P1;
+    inhib@1;
+    
+    antag WITH inhib;
+    
+    [rt_log_trim_grp]; !person average
+    b_trbltrz ON antag inhib; 
+    b_prev_rt ON antag; !whether antagonism moderates the prev_rt -> accuracy relationship
+    b_trial_z ON inhib; !whether antagonism moderates the incongruency -> accuracy relationship
+    b_bltrz ON inhib; !whether antagonism moderates the prev_rt -> accuracy relationship
+    
+    
+    !allow antag as predictor of overall accuracy
+    rt_log_trim_grp on antag inhib;
+    
+    !correlation of random slopes with each other
+    b_trbltrz WITH b_prev_rt;
+    b_trbltrz WITH b_trial_z;
+    b_trbltrz WITH b_bltrz;
+    b_prev_rt WITH b_trial_z;
+    b_prev_rt WITH b_bltrz;
+    b_trial_z WITH b_bltrz;
+    
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
+  rdata = gng_rt_traits_formplus
+)
+mout <- mplusModeler(rt_mod_cfa_antaginhib_a_mplus,
+                        modelout="rt_mod_cfa_antaginhib_a_mplus.inp", run=TRUE, Mplus_command = "/Users/alisonmarie526/Applications/Mplus/mplus", hashfilename = FALSE)
+```
+
+acc_mod_disinhibition_updatedag <- glmer(response ~ trial_z*stim*DISINHIBITION_F + cond*DISINHIBITION_F + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
+          data = gng_formlm, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+
+```{r}
+
+for_msem <- gng %>% inner_join(tofactor, by="subj_idx")
+gng_traits_formplus <- for_msem
+
+acc_mod_cfa_antaginhib_a_mplus <- mplusObject(
+  TITLE = "Antagonism and inhibition factors and gng",
+  DEFINE = "
+    P1=MEAN(MISTRUST MPS_alR);
+    P2=MEAN(PROPER MPS_tdR);
+    P3=MEAN(MPS_clR IMPUL);
+    P4=MEAN(MPS_acR HDWK);
+    P5=MEAN(MPS_agR AGG);
+   trst = trial_z*stim;
+    ",
+  VARIABLE = "
+    WITHIN = trial_z stim cond trst;
+    BETWEEN = MANIP P1 P2 P3 P4 P5;
+    USEVARIABLES = subj_idx response trial_z stim cond 
+    MANIP P1 P2 P3 P4 P5 trst;
+    CLUSTER = subj_idx;
+    CATEGORICAL = response;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(15000);
+    BCONVERGENCE=.02;
+    CHAINS=2;
+    PROCESSORS=2;
+  ",
+  MODEL = "
+    %WITHIN%
+    btrial | response ON trial_z;
+    bstim | response ON stim;
+    bcond | response ON cond;
+    btrst | response ON trst;
+    
+    %BETWEEN%
+    [btrial bstim bcond btrst]; !slope means
+    btrial bstim bcond btrst; !slope variances
+    
+    ! trait model
+    antag BY P1* (a);
+    antag BY P5;
+    antag BY MANIP;
+    antag@1;
+    
+    inhib by P2* (b);
+    inhib by P3;
+    inhib by P4;
+    inhib by P1;
+    inhib@1;
+    
+    [response$1]; !person average
+    response on antag;
+    btrst on inhib;
+    bcond on inhib;
+    
+    !correlation of random slopes with each other
+    btrial WITH bstim;
+    btrial WITH btrst;
+    btrial WITH bcond;
+    bstim WITH btrst;
+    bstim WITH bcond;
+    bcond WITH btrst;
+    
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
+  rdata = gng_traits_formplus
+)
+mout <- mplusModeler(acc_mod_cfa_antaginhib_a_mplus,
+                        modelout="acc_mod_cfa_antaginhib_a_mplus.inp", run=TRUE, Mplus_command = "/Users/alisonmarie526/Applications/Mplus/mplus", hashfilename = FALSE)
+
+
+```
+
+# Combine agentic and affiliative extraversion in the same model
+rt_mod_agentic_a_updatedag <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AGENTIC_F + prev_rt*block_trial_z + AGENTIC_F*prev_rt, 
+          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
+          weights=varIdent(form=~1|cond),
+          na.action = na.exclude,
+          data = gng_rt_formlm, method='ML', control = lmeControl(opt="optim"))
+          
+rt_mod_affiliative_a_updatedag <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AFFILIATIVE_F + prev_rt*block_trial_z, 
+          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
+          weights=varIdent(form=~1|cond),
+          na.action = na.exclude,
+          data = gng_rt_formlm, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, 
+
+```{r}
+
+self_reps <- inner_join(mpq, snap, by = "subject")
+tofactor <- self_reps %>% dplyr::select(subject, MPS_spR, EXHIB, ENTITL, MPS_scR, DETACH) %>% 
+  #mutate(IMPUL =-1*IMPUL) %>% #score toward constraint to make loadings upright
+  mutate_at(vars(-subject), list(~as.vector(scale(.)))) %>%
+  dplyr::rename(subj_idx=subject)
+
+for_msem <- gng_rt %>% inner_join(tofactor, by="subj_idx")
+gng_rt_traits_formplus <- dplyr::mutate(for_msem, bltrz = block_trial_z[,1]) %>% dplyr::select(-block_trial_z)
+rt_mod_cfa_agenaff_a_mplus <- mplusObject(
+  TITLE = "Agentic and affiliative factors and gng",
+  DEFINE = "
+    trbltrz = bltrz*trial_z;
+    ",
+  VARIABLE = "
+    WITHIN = prev_rt trial_z bltrz trbltrz;
+    BETWEEN = MPS_spR EXHIB ENTITL MPS_scR DETACH;
+    USEVARIABLES = subj_idx rt_log_trim_grp bltrz prev_rt trial_z 
+      MPS_spR EXHIB ENTITL MPS_scR DETACH trbltrz;
+    CLUSTER = subj_idx;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(15000);
+    BCONVERGENCE=.02;
+    CHAINS=2;
+    PROCESSORS=2;
+  ",
+  MODEL = "
+    %WITHIN%
+    !treat these as fixed only (keep the model sane)
+    b_trbltrz | rt_log_trim_grp ON trbltrz; 
+    b_prev_rt | rt_log_trim_grp ON prev_rt;
+    b_trial_z | rt_log_trim_grp ON trial_z;
+    b_bltrz | rt_log_trim_grp ON bltrz;
+    
+    %BETWEEN%
+    [b_trbltrz b_prev_rt b_trial_z b_bltrz]; !slope means
+    b_trbltrz b_prev_rt b_trial_z b_bltrz; !slope variances
+    
+    ! trait model
+    agentic BY MPS_spR* EXHIB ENTITL;
+    agentic@1;
+    
+    affiliat BY MPS_scR*1 DETACH;
+    affiliat@1;
+    
+    agentic WITH affiliat;
+    
+    [rt_log_trim_grp]; 
+    b_trbltrz ON agentic affiliat; 
+    b_prev_rt ON agentic affiliat; 
+    b_trial_z ON agentic affiliat; 
+    b_bltrz ON agentic affiliat; 
+    
+    
+    !allow antag as predictor of overall accuracy
+    rt_log_trim_grp on agentic affiliat;
+    
+    !correlation of random slopes with each other
+    b_trbltrz WITH b_prev_rt;
+    b_trbltrz WITH b_trial_z;
+    b_trbltrz WITH b_bltrz;
+    b_prev_rt WITH b_trial_z;
+    b_prev_rt WITH b_bltrz;
+    b_trial_z WITH b_bltrz;
+    
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
+  rdata = gng_rt_traits_formplus
+)
+mout <- mplusModeler(rt_mod_cfa_agenaff_a_mplus,
+                        modelout="rt_mod_cfa_agenaff_a_mplus.inp", run=FALSE, Mplus_command = "/Users/alisonmarie526/Applications/Mplus/mplus", hashfilename = FALSE)
+
+```
+
+acc_mod_agentic_a_updatedag <- glmer(response ~ trial_z*stim + stim*AGENTIC_F + cond*AGENTIC_F + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
+          data = gng_formlm, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+
+acc_mod_affiliative_updatedag <- glmer(response ~ trial_z*stim*AFFILIATIVE_F + cond*AFFILIATIVE_F + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
+          data = gng_formlm, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+
+
+```{r}
+
+for_msem <- gng %>% inner_join(tofactor, by="subj_idx")
+gng_traits_formplus <- for_msem
+
+acc_mod_cfa_agenaff_a_mplus <- mplusObject(
+  TITLE = "Agentic and affiliative factors and gng",
+  DEFINE = "
+   trst = trial_z*stim;
+    ",
+  VARIABLE = "
+    WITHIN = trial_z stim cond trst;
+    BETWEEN = MPS_spR EXHIB ENTITL MPS_scR DETACH;
+    USEVARIABLES = subj_idx response trial_z stim cond 
+    MPS_spR EXHIB ENTITL MPS_scR DETACH trst;
+    CLUSTER = subj_idx;
+    CATEGORICAL = response;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(15000);
+    BCONVERGENCE=.02;
+    CHAINS=2;
+    PROCESSORS=2;
+  ",
+  MODEL = "
+    %WITHIN%
+    btrial | response ON trial_z;
+    bstim | response ON stim;
+    bcond | response ON cond;
+    btrst | response ON trst;
+    
+    %BETWEEN%
+    [btrial bstim bcond btrst]; !slope means
+    btrial bstim bcond btrst; !slope variances
+    
+    agentic BY MPS_spR* EXHIB ENTITL;
+    agentic@1;
+    
+    affiliat BY MPS_scR*1 DETACH;
+    affiliat@1;
+    
+    [response$1]; !person average
+    response on agentic affiliat;
+    btrst on agentic affiliat;
+    bcond on agentic affiliat;
+    bstim on agentic affiliat;
+    btrial on agentic affiliat;
+    
+    
+    !correlation of random slopes with each other
+    btrial WITH bstim;
+    btrial WITH btrst;
+    btrial WITH bcond;
+    bstim WITH btrst;
+    bstim WITH bcond;
+    bcond WITH btrst;
+    
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
+  rdata = gng_traits_formplus
+)
+mout <- mplusModeler(acc_mod_cfa_agenaff_a_mplus,
+                        modelout="acc_mod_cfa_agenaff_a_mplus.inp", run=FALSE, Mplus_command = "/Users/alisonmarie526/Applications/Mplus/mplus", hashfilename = FALSE)
+
+
+```
+

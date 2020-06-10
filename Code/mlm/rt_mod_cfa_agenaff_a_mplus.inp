@@ -1,0 +1,74 @@
+TITLE:
+Agentic and affiliative factors and gng
+DATA:
+FILE = "rt_mod_cfa_agenaff_a_mplus.dat";
+ 
+VARIABLE:
+NAMES = subj_idx rt trial_z trial rt_log_trim_grp prev_rt MPS_spR EXHIB ENTITL
+     MPS_scR DETACH bltrz; 
+ MISSING=.;
+ 
+    WITHIN = prev_rt trial_z bltrz trbltrz;
+    BETWEEN = MPS_spR EXHIB ENTITL MPS_scR DETACH;
+    USEVARIABLES = subj_idx rt_log_trim_grp bltrz prev_rt trial_z 
+      MPS_spR EXHIB ENTITL MPS_scR DETACH trbltrz;
+    CLUSTER = subj_idx;
+  
+DEFINE:
+
+    trbltrz = bltrz*trial_z;
+    
+ANALYSIS:
+
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(15000);
+    BCONVERGENCE=.02;
+    CHAINS=2;
+    PROCESSORS=2;
+  
+MODEL:
+
+    %WITHIN%
+    !treat these as fixed only (keep the model sane)
+    b_trbltrz | rt_log_trim_grp ON trbltrz; 
+    b_prev_rt | rt_log_trim_grp ON prev_rt;
+    b_trial_z | rt_log_trim_grp ON trial_z;
+    b_bltrz | rt_log_trim_grp ON bltrz;
+    
+    %BETWEEN%
+    [b_trbltrz b_prev_rt b_trial_z b_bltrz]; !slope means
+    b_trbltrz b_prev_rt b_trial_z b_bltrz; !slope variances
+    
+    ! trait model
+    agentic BY MPS_spR* EXHIB ENTITL;
+    agentic@1;
+    
+    affiliat BY MPS_scR*1 DETACH;
+    affiliat@1;
+    
+    agentic WITH affiliat;
+    
+    [rt_log_trim_grp]; 
+    b_trbltrz ON agentic affiliat; 
+    b_prev_rt ON agentic affiliat; 
+    b_trial_z ON agentic affiliat; 
+    b_bltrz ON agentic affiliat; 
+    
+    
+    !allow antag as predictor of overall accuracy
+    rt_log_trim_grp on agentic affiliat;
+    
+    !correlation of random slopes with each other
+    b_trbltrz WITH b_prev_rt;
+    b_trbltrz WITH b_trial_z;
+    b_trbltrz WITH b_bltrz;
+    b_prev_rt WITH b_trial_z;
+    b_prev_rt WITH b_bltrz;
+    b_trial_z WITH b_bltrz;
+    
+  
+OUTPUT:
+TECH1 TECH8 STANDARDIZED CINTERVAL;
+PLOT:
+TYPE = PLOT2;

@@ -1,0 +1,84 @@
+TITLE:
+Antagonism and inhibition factors and gng
+DATA:
+FILE = "rt_mod_cfa_antaginhib_a_mplus.dat";
+ 
+VARIABLE:
+NAMES = subj_idx rt trial_z trial rt_log_trim_grp prev_rt MPS_agR AGG MISTRUST
+     MPS_alR MANIP PROPER MPS_clR IMPUL MPS_tdR MPS_acR HDWK bltrz; 
+ MISSING=.;
+ 
+    WITHIN = prev_rt trial_z bltrz trbltrz;
+    BETWEEN = MANIP P1 P2 P3 P4 P5;
+    USEVARIABLES = subj_idx rt_log_trim_grp bltrz prev_rt trial_z 
+      MANIP P1 P2 P3 P4 P5 trbltrz;
+    CLUSTER = subj_idx;
+  
+DEFINE:
+
+    P1=MEAN(MISTRUST MPS_alR);
+    P2=MEAN(PROPER MPS_tdR);
+    P3=MEAN(MPS_clR IMPUL);
+    P4=MEAN(MPS_acR HDWK);
+    P5=MEAN(MPS_agR AGG);
+   trbltrz = bltrz*trial_z;
+    
+ANALYSIS:
+
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(15000);
+    BCONVERGENCE=.02;
+    CHAINS=2;
+    PROCESSORS=2;
+  
+MODEL:
+
+    %WITHIN%
+    !treat these as fixed only (keep the model sane)
+    b_trbltrz | rt_log_trim_grp ON trbltrz; 
+    b_prev_rt | rt_log_trim_grp ON prev_rt;
+    b_trial_z | rt_log_trim_grp ON trial_z;
+    b_bltrz | rt_log_trim_grp ON bltrz;
+    
+    %BETWEEN%
+    [b_trbltrz b_prev_rt b_trial_z b_bltrz]; !slope means
+    b_trbltrz b_prev_rt b_trial_z b_bltrz; !slope variances
+    
+    ! trait model
+    antag BY P1* (a);
+    antag BY P5; 
+    antag BY MANIP;
+    antag@1;
+    
+    inhib by P2* (b);
+    inhib by P3;
+    inhib by P4;
+    inhib by P1;
+    inhib@1;
+    
+    antag WITH inhib;
+    
+    [rt_log_trim_grp]; !person average
+    b_trbltrz ON antag inhib; 
+    b_prev_rt ON antag; !whether antagonism moderates the prev_rt -> accuracy relationship
+    b_trial_z ON inhib; !whether antagonism moderates the incongruency -> accuracy relationship
+    b_bltrz ON inhib; !whether antagonism moderates the prev_rt -> accuracy relationship
+    
+    
+    !allow antag as predictor of overall accuracy
+    rt_log_trim_grp on antag inhib;
+    
+    !correlation of random slopes with each other
+    b_trbltrz WITH b_prev_rt;
+    b_trbltrz WITH b_trial_z;
+    b_trbltrz WITH b_bltrz;
+    b_prev_rt WITH b_trial_z;
+    b_prev_rt WITH b_bltrz;
+    b_trial_z WITH b_bltrz;
+    
+  
+OUTPUT:
+TECH1 TECH8 STANDARDIZED CINTERVAL;
+PLOT:
+TYPE = PLOT2;
