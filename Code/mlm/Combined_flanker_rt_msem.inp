@@ -1,5 +1,5 @@
 TITLE:
-Agentic and Affiliative Extraversion MSEM Flanker RT
+Four-trait MSEM Flanker RT
 DATA:
 FILE = "Combined_flanker_rt_msem.dat";
  
@@ -32,7 +32,7 @@ ANALYSIS:
 
     TYPE=TWOLEVEL RANDOM;
     ESTIMATOR=BAYES;
-    BITERATIONS=(20000);
+    BITERATIONS=(25000);
     CHAINS=4;
     PROCESSORS=4;
   
@@ -75,28 +75,30 @@ MODEL:
     affiliat BY MPS_scR*1 DETACH;
     affiliat@1;
   
-    antag BY p5 ! MPS_agR AGG
+    antag BY p5* ! MPS_agR AGG
       p1        ! MISTRUST MPS_alR
       MANIP;
+    antag@1;
 
     inhib BY
-      p2  !PROPER MPS_tdR
+      p2*  !PROPER MPS_tdR
       p3  !MPS_clR IMPUL
       p4; !MPS_acR HDWK;
+    inhib@1;
 
     antag inhib agentic affiliat WITH antag inhib agentic affiliat;
+
+    !identified in between-persons combined CFA
+    AFFILIAT BY P1; !sig modification index
+    INHIB BY ENTITL; !sig modification index
 
     !TRAIT MODERATION
     
     ! trait moderates flanker performance -- incongruency effect and stickiness of RT
     condslo ON antag inhib agentic affiliat;
     prevslo ON antag inhib agentic affiliat;
+    errslo ON antag inhib agentic affiliat; !highly non-significant
     
-    !errslo ON antag inhib; !highly non-significant
-    
-    !N.B. Leaving out the association of antag with rt_inv 
-    !omits a hugely important relationship.
-    !Thus, allow antag as a predictor of average (person) RT
     rt_inv ON antag inhib agentic affiliat;
   
 OUTPUT:

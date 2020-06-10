@@ -1,0 +1,56 @@
+TITLE:
+Agentic Extraversion, Antag, Inhib combination
+DATA:
+FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/Antag_addAgen.dat";
+ 
+VARIABLE:
+NAMES = subject EXHIB ENTITL MPS_spR MPS_agR AGG MISTRUST MPS_alR MANIP PROPER
+     MPS_clR IMPUL MPS_tdR MPS_acR HDWK; 
+ MISSING=.;
+ 
+    USEVARIABLES = MANIP MPS_spR EXHIB ENTITL
+      p1 p2 p3 p4 p5;
+    IDVARIABLE = subject;
+  
+DEFINE:
+
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+  
+ANALYSIS:
+
+    ESTIMATOR=BAYES;
+    PROCESSORS=4;
+    CHAINS=4;
+    BITERATIONS=(35000);
+  
+MODEL:
+
+    agentic BY MPS_spR* EXHIB ENTITL;
+    agentic@1;
+    
+    antag BY p5* ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+    antag@1;
+
+    inhib BY
+      p2*  !PROPER MPS_tdR
+      p3   !MPS_clR IMPUL
+      p4;  !MPS_acR HDWK;
+    inhib@1;
+
+    antag inhib agentic WITH
+      antag inhib agentic;
+      
+    !two cross-loadings for Inhib suggested by MLR
+    INHIB BY ENTITL;
+    INHIB BY P1;
+  
+OUTPUT:
+
+    TECH1 TECH8 STANDARDIZED MODINDICES (10);
+  

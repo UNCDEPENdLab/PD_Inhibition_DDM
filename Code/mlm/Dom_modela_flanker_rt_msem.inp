@@ -75,12 +75,9 @@ MODEL:
     ! trait moderates flanker performance -- incongruency effect and stickiness of RT
     condslo ON agentic affiliat;
     prevslo ON agentic affiliat;
-    
     errslo ON agentic affiliat;
-    
-    !N.B. Leaving out the association of antag with rt_inv 
-    !omits a hugely important relationship.
-    !Thus, allow antag as a predictor of average (person) RT
+
+    ! prediction of average RT    
     rt_inv ON agentic affiliat;
   
 OUTPUT:
