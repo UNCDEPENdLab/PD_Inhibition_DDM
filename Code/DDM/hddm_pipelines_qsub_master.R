@@ -26,13 +26,13 @@ nsamples <- paste0("samp",c(#1000,
   # 2000))#,#,
   #5000, 
   10000))#, 20000, 40000, 80000))
-tasks <- c("flanker",
+tasks <- c("flanker")#,
   #"recent_probes")#, 
-  "go_nogo")
+  # "go_nogo")
 
 full_sample <- c(#"clean_sample",
   "full_sample")
-wt_scaling_factor <- .025
+wt_scaling_factor <- .05
 nburn_percentile <- .2
 coding <- "acc"
 
@@ -58,6 +58,9 @@ models <- all_models
 
 #for running flanker longer on model that is getting close to soft limit
 models[["full_sample"]][["flanker"]] <- "v_stimblock_trial_prev_rt_st_a"
+
+## finalized models to run: 6/8/20
+
 
 ## load completed log and see who never finished running. More customized
 
