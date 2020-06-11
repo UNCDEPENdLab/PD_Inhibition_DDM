@@ -2,7 +2,18 @@
 title: "PD_DDM Trait Structure Analysis"
 author: "Timothy Allen"
 date: "5/18/2020"
-output: html_document
+output:
+  html_document:
+    code_folding: show
+    df_print: default
+    mathjax: default
+    number_sections: no
+    theme: spacelab
+    toc: yes
+    toc_depth: 2
+    toc_float: no
+    fig_width: 9 
+    fig_height: 6 
 ---
 
 ```{r setup, include=FALSE}
@@ -20,6 +31,7 @@ snap <- get(load(file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RDa
 
 self_reps <- inner_join(mpq, snap, by = "subject")
 mpluscmd <- "/Applications/Mplus/mplus"
+#mpluscmd <- "~/Applications/Mplus/mplus"
 ```
 
 ## General Rationale
@@ -274,14 +286,16 @@ AC_m <- mplusObject(
     BITERATIONS=(30000);
   ",
   MODEL = "
-    antag BY p5 ! MPS_agR AGG
+    antag BY p5* ! MPS_agR AGG
       p1        ! MISTRUST MPS_alR
       MANIP;
+    antag@1;
 
     inhib BY
-      p2  !PROPER MPS_tdR
+      p2*  !PROPER MPS_tdR
       p3  !MPS_clR IMPUL
       p4; !MPS_acR HDWK;
+    inhib@1;
 
     antag WITH inhib;",
   SAVEDATA = "
@@ -328,15 +342,17 @@ AC_m_mod <- mplusObject(
     BITERATIONS=(30000);
   ",
   MODEL = "
-    antag BY p5 ! MPS_agR AGG
+    antag BY p5* ! MPS_agR AGG
       p1        ! MISTRUST MPS_alR
       MANIP;
+    antag@1;
 
     inhib BY
-      p2  !PROPER MPS_tdR
+      p2*  !PROPER MPS_tdR
       p3  !MPS_clR IMPUL
       p4; !MPS_acR HDWK;
-
+    inhib@1;
+    
     antag WITH inhib;
     
     INHIB BY P1; !sig mod index
@@ -390,9 +406,14 @@ Dom_m <- mplusObject(
     BITERATIONS=(15000);
   ",
   MODEL = "
-    f1 BY MPS_spR EXHIB ENTITL POSTEMP MPS_wbR;
-    f2 BY MPS_scR DETACH;
-    f1 WITH f2;
+    agentic BY MPS_spR* EXHIB ENTITL POSTEMP MPS_wbR;
+    agentic@1;
+    
+    affiliat BY MPS_scR* DETACH;
+    affiliat@1;
+    
+    agentic WITH affiliat;
+    
     MPS_SPR WITH EXHIB;
     !DETACH@0;  !heywood case in MLR, okay in Bayes (force positive variance)
   ",
@@ -441,11 +462,13 @@ Dom_m <- mplusObject(
     BITERATIONS=(15000);
   ",
   MODEL = "
-    f1 BY p1* ENTITL p2;
-    f1@1;
-    f2 BY MPS_scR* DETACH;
-    f2@1;
-    f1 WITH f2;
+    agentic BY p1* ENTITL p2;
+    agentic @1;
+    
+    affiliat BY MPS_scR* DETACH;
+    affiliat@1;
+    
+    agentic WITH affiliat;
     !DETACH@0;  !heywood case in MLR, okay in Bayes (force positive variance)
   ",
   SAVEDATA = "
@@ -492,10 +515,12 @@ Dom_m <- mplusObject(
   ",
   MODEL = "
     agentic BY MPS_spR* EXHIB ENTITL;
-    affiliat BY MPS_scR* DETACH;
-    agentic WITH affiliat;
     agentic@1;
+    
+    affiliat BY MPS_scR* DETACH;
     affiliat@1;
+    
+    agentic WITH affiliat;
   ",
   SAVEDATA = "
     FILE = Dom_bsem_cfa_modela_fscores.dat;
@@ -518,7 +543,149 @@ write.csv(mres$results$savedata, file="Dom_bsem_cfa_modela_savedata.csv", row.na
 
 ```
 
-## Combined model?
+## Add affiliative extraversion to Antag + Inhib model
+
+```{r ac_add_aff, cache=TRUE}
+tofactor <- self_reps %>% 
+  dplyr::select(subject, EXHIB, ENTITL, DETACH, MPS_spR, MPS_scR,
+                MPS_agR, AGG, MISTRUST, MPS_alR, MANIP,
+                PROPER, MPS_clR, IMPUL, MPS_tdR, MPS_acR, HDWK) %>%
+  mutate(MPS_scR=-1*MPS_scR) %>% #rescore in direction of detachment (higher scores are bad)
+  mutate(IMPUL =-1*IMPUL) %>% #score toward constraint to make loadings upright
+  mutate_at(vars(-subject), list(~as.vector(scale(.))))
+
+Combo_m <- mplusObject(
+  TITLE="Aff Extraversion, Antag, Inhib combination",
+  DEFINE="
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+  ",
+  VARIABLE="
+    USEVARIABLES=DETACH MPS_scR
+      MANIP p1 p2 p3 p4 p5;
+    IDVARIABLE = subject;
+  ",
+  ANALYSIS="
+    ESTIMATOR=BAYES;
+    PROCESSORS=4;
+    CHAINS=4;
+    BITERATIONS=(35000);
+  ",
+  MODEL = "
+    affiliat BY MPS_scR* DETACH;
+    affiliat@1;
+    
+    antag BY p5* ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+    antag@1;
+
+    inhib BY
+      p2*  !PROPER MPS_tdR
+      p3   !MPS_clR IMPUL
+      p4;  !MPS_acR HDWK;
+    inhib@1;
+
+    antag inhib affiliat WITH
+      antag inhib affiliat;
+      
+    !these were identified in the 4-factor model using MLR
+    AFFILIAT BY P1; !sig modification index
+
+    !this one comes from the two-factor model, but seems unimportant for 4-factor.
+    !INHIB BY P1; !mod index
+  ",
+  OUTPUT ="
+    TECH1 TECH8 STANDARDIZED MODINDICES (10);
+  ",
+  rdata=tofactor
+)
+  
+mres <- mplusModeler(Combo_m, modelout = file.path(basedir, "Code", "factor_structure", "Antag_addAff.inp"), 
+                     hashfilename = FALSE, run=TRUE,
+                     Mplus_command = mpluscmd)
+
+summary(mres)
+kable(mres$results$parameters$stdyx.standardized)
+
+#write.csv(mres$results$savedata, file="Combo_bsem_cfa_withmodindices_savedata.csv", row.names=FALSE)
+
+```
+
+## Add agentic extraversion to Antag + Inhib model
+
+```{r ac_add_agen, cache=TRUE}
+tofactor <- self_reps %>% 
+  dplyr::select(subject, EXHIB, ENTITL, DETACH, MPS_spR, MPS_scR,
+                MPS_agR, AGG, MISTRUST, MPS_alR, MANIP,
+                PROPER, MPS_clR, IMPUL, MPS_tdR, MPS_acR, HDWK) %>%
+  mutate(MPS_scR=-1*MPS_scR) %>% #rescore in direction of detachment (higher scores are bad)
+  mutate(IMPUL =-1*IMPUL) %>% #score toward constraint to make loadings upright
+  mutate_at(vars(-subject), list(~as.vector(scale(.))))
+
+Combo_m <- mplusObject(
+  TITLE="Agentic Extraversion, Antag, Inhib combination",
+  DEFINE="
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+  ",
+  VARIABLE="
+    USEVARIABLES = MANIP MPS_spR EXHIB ENTITL
+      p1 p2 p3 p4 p5;
+    IDVARIABLE = subject;
+  ",
+  ANALYSIS="
+    ESTIMATOR=BAYES;
+    PROCESSORS=4;
+    CHAINS=4;
+    BITERATIONS=(35000);
+  ",
+  MODEL = "
+    agentic BY MPS_spR* EXHIB ENTITL;
+    agentic@1;
+    
+    antag BY p5* ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+    antag@1;
+
+    inhib BY
+      p2*  !PROPER MPS_tdR
+      p3   !MPS_clR IMPUL
+      p4;  !MPS_acR HDWK;
+    inhib@1;
+
+    antag inhib agentic WITH
+      antag inhib agentic;
+      
+    !two cross-loadings for Inhib suggested by MLR
+    INHIB BY ENTITL;
+    INHIB BY P1;
+  ",
+  OUTPUT ="
+    TECH1 TECH8 STANDARDIZED MODINDICES (10);
+  ",
+  rdata=tofactor
+)
+  
+mres <- mplusModeler(Combo_m, modelout = file.path(basedir, "Code", "factor_structure", "Antag_addAgen.inp"), 
+                     hashfilename = FALSE, run=TRUE,
+                     Mplus_command = mpluscmd)
+
+summary(mres)
+kable(mres$results$parameters$stdyx.standardized)
+
+#write.csv(mres$results$savedata, file="Combo_bsem_cfa_withmodindices_savedata.csv", row.names=FALSE)
+
+```
+
+## Combined four-factor model
 
 ```{r combined, cache=TRUE}
 tofactor <- self_reps %>% 

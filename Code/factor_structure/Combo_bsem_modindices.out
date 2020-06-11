@@ -1,0 +1,1304 @@
+Mplus VERSION 8.4 (Mac)
+MUTHEN & MUTHEN
+06/10/2020  11:56 AM
+
+INPUT INSTRUCTIONS
+
+  TITLE:
+  Extraversion, Antag, Consc combination modindices added
+  DATA:
+  FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/Combo_bsem_modindices.dat"
+
+  VARIABLE:
+  NAMES = subject EXHIB ENTITL DETACH MPS_spR MPS_scR MPS_agR AGG MISTRUST MPS_alR
+       MANIP PROPER MPS_clR IMPUL MPS_tdR MPS_acR HDWK;
+   MISSING=.;
+
+      USEVARIABLES=EXHIB ENTITL DETACH MPS_spR MPS_scR
+        MANIP p1 p2 p3 p4 p5;
+      IDVARIABLE = subject;
+
+  DEFINE:
+
+      p1=MEAN(MISTRUST MPS_alR);
+      p2=MEAN(PROPER MPS_tdR);
+      p3=MEAN(MPS_clR IMPUL);
+      p4=MEAN(MPS_acR HDWK);
+      p5=MEAN(MPS_agR AGG);
+
+  ANALYSIS:
+
+      ESTIMATOR=BAYES;
+      PROCESSORS=4;
+      CHAINS=4;
+      BITERATIONS=(35000);
+
+  MODEL:
+
+      agentic BY MPS_spR* EXHIB ENTITL;
+      agentic@1;
+
+      affiliat BY MPS_scR* DETACH;
+      affiliat@1;
+
+      antag BY p5* ! MPS_agR AGG
+        p1        ! MISTRUST MPS_alR
+        MANIP;
+      antag@1;
+
+      inhib BY
+        p2*  !PROPER MPS_tdR
+        p3   !MPS_clR IMPUL
+        p4;  !MPS_acR HDWK;
+      inhib@1;
+
+      antag inhib agentic affiliat WITH
+        antag inhib agentic affiliat;
+
+      !these were identified in the 4-factor model using MLR
+      AFFILIAT BY P1; !sig modification index
+      INHIB BY ENTITL; !sig modification index
+
+      !this one comes from the two-factor model, but seems unimportant for 4-factor.
+      !INHIB BY P1; !mod index
+
+  OUTPUT:
+
+      TECH1 TECH8 STANDARDIZED MODINDICES (10);
+
+  SAVEDATA:
+
+      FILE = Combined_cfa_modela_modindices_fscores.dat;
+      SAVE = FSCORES(5000);
+
+
+
+
+*** WARNING
+  Input line exceeded 90 characters. Some input may be truncated.
+  FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/Combo_bsem_modindices.dat";
+*** WARNING in OUTPUT command
+  MODINDICES option is not available for multiple imputation.
+  Request for MODINDICES is ignored.
+   2 WARNING(S) FOUND IN THE INPUT INSTRUCTIONS
+
+
+
+
+Extraversion, Antag, Consc combination modindices added
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                         104
+
+Number of dependent variables                                   11
+Number of independent variables                                  0
+Number of continuous latent variables                            4
+
+Observed dependent variables
+
+  Continuous
+   EXHIB       ENTITL      DETACH      MPS_SPR     MPS_SCR     MANIP
+   P1          P2          P3          P4          P5
+
+Continuous latent variables
+   AGENTIC     AFFILIAT    ANTAG       INHIB
+
+Variables with special functions
+
+  ID variable           SUBJECT
+
+Estimator                                                    BAYES
+Specifications for Bayesian Estimation
+  Point estimate                                            MEDIAN
+  Number of Markov chain Monte Carlo (MCMC) chains               4
+  Random seed for the first chain                                0
+  Starting value information                           UNPERTURBED
+  Algorithm used for Markov chain Monte Carlo           GIBBS(PX1)
+  Convergence criterion                                  0.500D-01
+  Maximum number of iterations                               50000
+  K-th iteration used for thinning                               1
+Specifications for Bayes Factor Score Estimation
+  Number of imputed data sets                                 5000
+  Iteration intervals for thinning                               1
+
+Input data file(s)
+  ~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/Combo_bsem_modindices.
+Input data format  FREE
+
+
+SUMMARY OF DATA
+
+
+
+SUMMARY OF MISSING DATA PATTERNS
+
+     Number of missing data patterns             1
+
+
+     MISSING DATA PATTERNS (x = not missing)
+
+           1
+ EXHIB     x
+ ENTITL    x
+ DETACH    x
+ MPS_SPR   x
+ MPS_SCR   x
+ MANIP     x
+ P1        x
+ P2        x
+ P3        x
+ P4        x
+ P5        x
+
+
+     MISSING DATA PATTERN FREQUENCIES
+
+    Pattern   Frequency
+          1         104
+
+
+COVARIANCE COVERAGE OF DATA
+
+Minimum covariance coverage value   0.100
+
+
+     PROPORTION OF DATA PRESENT
+
+
+           Covariance Coverage
+              EXHIB         ENTITL        DETACH        MPS_SPR       MPS_SCR
+              ________      ________      ________      ________      ________
+ EXHIB          1.000
+ ENTITL         1.000         1.000
+ DETACH         1.000         1.000         1.000
+ MPS_SPR        1.000         1.000         1.000         1.000
+ MPS_SCR        1.000         1.000         1.000         1.000         1.000
+ MANIP          1.000         1.000         1.000         1.000         1.000
+ P1             1.000         1.000         1.000         1.000         1.000
+ P2             1.000         1.000         1.000         1.000         1.000
+ P3             1.000         1.000         1.000         1.000         1.000
+ P4             1.000         1.000         1.000         1.000         1.000
+ P5             1.000         1.000         1.000         1.000         1.000
+
+
+           Covariance Coverage
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+ MANIP          1.000
+ P1             1.000         1.000
+ P2             1.000         1.000         1.000
+ P3             1.000         1.000         1.000         1.000
+ P4             1.000         1.000         1.000         1.000         1.000
+ P5             1.000         1.000         1.000         1.000         1.000
+
+
+           Covariance Coverage
+              P5
+              ________
+ P5             1.000
+
+
+
+UNIVARIATE SAMPLE STATISTICS
+
+
+     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS
+
+         Variable/         Mean/     Skewness/   Minimum/ % with                Percentiles
+        Sample Size      Variance    Kurtosis    Maximum  Min/Max      20%/60%    40%/80%    Median
+
+     EXHIB                 0.000      -0.003      -1.771    4.81%      -1.023     -0.276     -0.026
+             104.000       0.990      -0.957       1.968    1.92%       0.223      0.971
+     ENTITL                0.000      -0.184      -2.089    0.96%      -1.024     -0.225      0.041
+             104.000       0.990      -0.730       2.171    0.96%       0.307      0.840
+     DETACH                0.000       1.200      -1.074    9.62%      -0.841     -0.373     -0.373
+             104.000       0.990       0.758       3.133    0.96%      -0.139      0.796
+     MPS_SPR               0.000      -0.635      -2.222    3.85%      -0.954     -0.003      0.155
+             104.000       0.990      -0.513       1.582    2.88%       0.314      0.948
+     MPS_SCR               0.000       1.387      -1.228    1.92%      -0.843     -0.459     -0.459
+             104.000       0.990       1.216       3.003    2.88%      -0.074      0.695
+     MANIP                 0.000       0.093      -1.701    6.73%      -0.898     -0.363      0.172
+             104.000       0.990      -0.445       2.849    0.96%       0.440      0.708
+     P1                    0.000       1.099      -1.197    4.81%      -0.860     -0.370     -0.128
+             104.000       0.876       1.213       3.011    0.96%       0.043      0.603
+     P2                    0.000      -0.143      -2.240    0.96%      -0.857     -0.225      0.051
+             104.000       0.824      -0.647       1.749    0.96%       0.286      0.762
+     P3                    0.000      -0.844      -2.672    0.96%      -0.788     -0.041      0.206
+             104.000       0.883       0.243       1.396    0.96%       0.371      0.817
+     P4                    0.000       0.046      -1.799    0.96%      -0.909     -0.304      0.005
+             104.000       0.873      -0.967       1.783    0.96%       0.276      0.770
+     P5                    0.000       1.049      -1.149    7.69%      -0.845     -0.463     -0.199
+             104.000       0.881       0.891       3.259    0.96%       0.065      0.752
+
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+     USE THE FBITERATIONS OPTION TO INCREASE THE NUMBER OF ITERATIONS BY A FACTOR
+     OF AT LEAST TWO TO CHECK CONVERGENCE AND THAT THE PSR VALUE DOES NOT INCREASE.
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                              41
+
+Bayesian Posterior Predictive Checking using Chi-Square
+
+          95% Confidence Interval for the Difference Between
+          the Observed and the Replicated Chi-Square Values
+
+                                 -3.197            69.020
+
+          Posterior Predictive P-Value              0.040
+
+Information Criteria
+
+          Deviance (DIC)                         2822.392
+          Estimated Number of Parameters (pD)      43.957
+          Bayesian (BIC)                         2923.729
+
+RMSEA (Root Mean Square Error Of Approximation)
+
+          Estimate                           0.098
+          90 Percent C.I.                    0.069  0.130
+          Probability RMSEA <= .05           0.004
+
+CFI/TLI
+
+          CFI                                0.926
+          90 Percent C.I.                    0.869  0.963
+
+          TLI                                0.877
+          90 Percent C.I.                    0.782  0.939
+
+
+
+MODEL RESULTS
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+ AGENTIC  BY
+    MPS_SPR            0.779       0.098      0.000       0.594       0.977      *
+    EXHIB              0.861       0.097      0.000       0.671       1.052      *
+    ENTITL             0.650       0.130      0.000       0.416       0.926      *
+
+ AFFILIAT BY
+    MPS_SCR            0.889       0.081      0.000       0.741       1.059      *
+    DETACH             0.995       0.073      0.000       0.854       1.143      *
+    P1                 0.383       0.096      0.000       0.196       0.573      *
+
+ ANTAG    BY
+    P5                 0.725       0.097      0.000       0.534       0.917      *
+    P1                 0.438       0.096      0.000       0.255       0.630      *
+    MANIP              0.835       0.101      0.000       0.641       1.035      *
+
+ INHIB    BY
+    P2                 0.626       0.115      0.000       0.404       0.851      *
+    P3                 0.666       0.117      0.000       0.440       0.898      *
+    P4                 0.433       0.117      0.001       0.204       0.664      *
+    ENTITL             0.501       0.138      0.000       0.249       0.789      *
+
+ ANTAG    WITH
+    INHIB             -0.242       0.147      0.052      -0.523       0.051
+    AGENTIC            0.442       0.138      0.001       0.178       0.729      *
+    AFFILIAT           0.376       0.121      0.002       0.132       0.608      *
+
+ INHIB    WITH
+    AGENTIC           -0.342       0.142      0.011      -0.600      -0.053      *
+    AFFILIAT           0.269       0.127      0.019       0.015       0.512      *
+
+ AGENTIC  WITH
+    AFFILIAT          -0.439       0.107      0.000      -0.635      -0.217      *
+
+ Intercepts
+    EXHIB              0.000       0.101      0.498      -0.198       0.200
+    ENTITL             0.001       0.102      0.497      -0.200       0.202
+    DETACH            -0.002       0.101      0.492      -0.198       0.199
+    MPS_SPR            0.000       0.101      0.499      -0.199       0.198
+    MPS_SCR           -0.002       0.101      0.493      -0.201       0.199
+    MANIP             -0.001       0.103      0.496      -0.201       0.203
+    P1                -0.001       0.096      0.494      -0.193       0.186
+    P2                 0.001       0.093      0.495      -0.183       0.183
+    P3                 0.001       0.096      0.495      -0.190       0.189
+    P4                 0.000       0.095      0.498      -0.187       0.188
+    P5                -0.001       0.096      0.498      -0.190       0.188
+
+ Variances
+    AGENTIC            1.000       0.000      0.000       1.000       1.000
+    AFFILIAT           1.000       0.000      0.000       1.000       1.000
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    INHIB              1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    EXHIB              0.321       0.103      0.000       0.137       0.543      *
+    ENTITL             0.604       0.128      0.000       0.381       0.884      *
+    DETACH             0.089       0.054      0.000       0.007       0.210      *
+    MPS_SPR            0.446       0.095      0.000       0.286       0.657      *
+    MPS_SCR            0.279       0.058      0.000       0.175       0.402      *
+    MANIP              0.362       0.106      0.000       0.172       0.590      *
+    P1                 0.473       0.080      0.000       0.346       0.657      *
+    P2                 0.484       0.117      0.000       0.272       0.736      *
+    P3                 0.497       0.127      0.000       0.260       0.762      *
+    P4                 0.731       0.121      0.000       0.533       1.008      *
+    P5                 0.413       0.095      0.000       0.252       0.624      *
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+ AGENTIC  BY
+    MPS_SPR            0.759       0.061      0.000       0.621       0.860      *
+    EXHIB              0.835       0.060      0.000       0.699       0.936      *
+    ENTITL             0.627       0.111      0.000       0.419       0.852      *
+
+ AFFILIAT BY
+    MPS_SCR            0.860       0.034      0.000       0.786       0.919      *
+    DETACH             0.958       0.027      0.000       0.894       0.997      *
+    P1                 0.395       0.090      0.000       0.205       0.558      *
+
+ ANTAG    BY
+    P5                 0.748       0.069      0.000       0.590       0.861      *
+    P1                 0.452       0.088      0.000       0.268       0.614      *
+    MANIP              0.811       0.064      0.000       0.666       0.918      *
+
+ INHIB    BY
+    P2                 0.668       0.099      0.000       0.453       0.837      *
+    P3                 0.686       0.097      0.000       0.476       0.856      *
+    P4                 0.452       0.108      0.001       0.218       0.639      *
+    ENTITL             0.484       0.126      0.000       0.245       0.738      *
+
+ ANTAG    WITH
+    INHIB             -0.242       0.147      0.052      -0.523       0.051
+    AGENTIC            0.442       0.138      0.001       0.178       0.729      *
+    AFFILIAT           0.376       0.121      0.002       0.132       0.608      *
+
+ INHIB    WITH
+    AGENTIC           -0.342       0.142      0.011      -0.600      -0.053      *
+    AFFILIAT           0.269       0.127      0.019       0.015       0.512      *
+
+ AGENTIC  WITH
+    AFFILIAT          -0.439       0.107      0.000      -0.635      -0.217      *
+
+ Intercepts
+    EXHIB              0.000       0.097      0.498      -0.191       0.192
+    ENTITL             0.001       0.098      0.497      -0.191       0.194
+    DETACH            -0.002       0.097      0.492      -0.190       0.190
+    MPS_SPR            0.000       0.097      0.499      -0.191       0.190
+    MPS_SCR           -0.002       0.097      0.493      -0.192       0.190
+    MANIP             -0.001       0.099      0.496      -0.194       0.194
+    P1                -0.001       0.098      0.494      -0.195       0.190
+    P2                 0.001       0.099      0.495      -0.193       0.192
+    P3                 0.001       0.098      0.495      -0.193       0.194
+    P4                 0.000       0.098      0.498      -0.192       0.193
+    P5                -0.001       0.098      0.498      -0.193       0.191
+
+ Variances
+    AGENTIC            1.000       0.000      0.000       1.000       1.000
+    AFFILIAT           1.000       0.000      0.000       1.000       1.000
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    INHIB              1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    EXHIB              0.302       0.099      0.000       0.124       0.511      *
+    ENTITL             0.568       0.113      0.000       0.347       0.787      *
+    DETACH             0.081       0.051      0.000       0.007       0.202      *
+    MPS_SPR            0.424       0.090      0.000       0.260       0.614      *
+    MPS_SCR            0.261       0.058      0.000       0.155       0.382      *
+    MANIP              0.342       0.102      0.000       0.157       0.557      *
+    P1                 0.502       0.079      0.000       0.358       0.668      *
+    P2                 0.553       0.127      0.000       0.299       0.795      *
+    P3                 0.529       0.129      0.000       0.268       0.773      *
+    P4                 0.796       0.093      0.000       0.592       0.952      *
+    P5                 0.441       0.101      0.000       0.258       0.652      *
+
+
+STDY Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+ AGENTIC  BY
+    MPS_SPR            0.759       0.061      0.000       0.621       0.860      *
+    EXHIB              0.835       0.060      0.000       0.699       0.936      *
+    ENTITL             0.627       0.111      0.000       0.419       0.852      *
+
+ AFFILIAT BY
+    MPS_SCR            0.860       0.034      0.000       0.786       0.919      *
+    DETACH             0.958       0.027      0.000       0.894       0.997      *
+    P1                 0.395       0.090      0.000       0.205       0.558      *
+
+ ANTAG    BY
+    P5                 0.748       0.069      0.000       0.590       0.861      *
+    P1                 0.452       0.088      0.000       0.268       0.614      *
+    MANIP              0.811       0.064      0.000       0.666       0.918      *
+
+ INHIB    BY
+    P2                 0.668       0.099      0.000       0.453       0.837      *
+    P3                 0.686       0.097      0.000       0.476       0.856      *
+    P4                 0.452       0.108      0.001       0.218       0.639      *
+    ENTITL             0.484       0.126      0.000       0.245       0.738      *
+
+ ANTAG    WITH
+    INHIB             -0.242       0.147      0.052      -0.523       0.051
+    AGENTIC            0.442       0.138      0.001       0.178       0.729      *
+    AFFILIAT           0.376       0.121      0.002       0.132       0.608      *
+
+ INHIB    WITH
+    AGENTIC           -0.342       0.142      0.011      -0.600      -0.053      *
+    AFFILIAT           0.269       0.127      0.019       0.015       0.512      *
+
+ AGENTIC  WITH
+    AFFILIAT          -0.439       0.107      0.000      -0.635      -0.217      *
+
+ Intercepts
+    EXHIB              0.000       0.097      0.498      -0.191       0.192
+    ENTITL             0.001       0.098      0.497      -0.191       0.194
+    DETACH            -0.002       0.097      0.492      -0.190       0.190
+    MPS_SPR            0.000       0.097      0.499      -0.191       0.190
+    MPS_SCR           -0.002       0.097      0.493      -0.192       0.190
+    MANIP             -0.001       0.099      0.496      -0.194       0.194
+    P1                -0.001       0.098      0.494      -0.195       0.190
+    P2                 0.001       0.099      0.495      -0.193       0.192
+    P3                 0.001       0.098      0.495      -0.193       0.194
+    P4                 0.000       0.098      0.498      -0.192       0.193
+    P5                -0.001       0.098      0.498      -0.193       0.191
+
+ Variances
+    AGENTIC            1.000       0.000      0.000       1.000       1.000
+    AFFILIAT           1.000       0.000      0.000       1.000       1.000
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    INHIB              1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    EXHIB              0.302       0.099      0.000       0.124       0.511      *
+    ENTITL             0.568       0.113      0.000       0.347       0.787      *
+    DETACH             0.081       0.051      0.000       0.007       0.202      *
+    MPS_SPR            0.424       0.090      0.000       0.260       0.614      *
+    MPS_SCR            0.261       0.058      0.000       0.155       0.382      *
+    MANIP              0.342       0.102      0.000       0.157       0.557      *
+    P1                 0.502       0.079      0.000       0.358       0.668      *
+    P2                 0.553       0.127      0.000       0.299       0.795      *
+    P3                 0.529       0.129      0.000       0.268       0.773      *
+    P4                 0.796       0.093      0.000       0.592       0.952      *
+    P5                 0.441       0.101      0.000       0.258       0.652      *
+
+
+STD Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+ AGENTIC  BY
+    MPS_SPR            0.779       0.098      0.000       0.594       0.977      *
+    EXHIB              0.861       0.097      0.000       0.671       1.052      *
+    ENTITL             0.650       0.130      0.000       0.416       0.926      *
+
+ AFFILIAT BY
+    MPS_SCR            0.889       0.081      0.000       0.741       1.059      *
+    DETACH             0.995       0.073      0.000       0.854       1.143      *
+    P1                 0.383       0.096      0.000       0.196       0.573      *
+
+ ANTAG    BY
+    P5                 0.725       0.097      0.000       0.534       0.917      *
+    P1                 0.438       0.096      0.000       0.255       0.630      *
+    MANIP              0.835       0.101      0.000       0.641       1.035      *
+
+ INHIB    BY
+    P2                 0.626       0.115      0.000       0.404       0.851      *
+    P3                 0.666       0.117      0.000       0.440       0.898      *
+    P4                 0.433       0.117      0.001       0.204       0.664      *
+    ENTITL             0.501       0.138      0.000       0.249       0.789      *
+
+ ANTAG    WITH
+    INHIB             -0.242       0.147      0.052      -0.523       0.051
+    AGENTIC            0.442       0.138      0.001       0.178       0.729      *
+    AFFILIAT           0.376       0.121      0.002       0.132       0.608      *
+
+ INHIB    WITH
+    AGENTIC           -0.342       0.142      0.011      -0.600      -0.053      *
+    AFFILIAT           0.269       0.127      0.019       0.015       0.512      *
+
+ AGENTIC  WITH
+    AFFILIAT          -0.439       0.107      0.000      -0.635      -0.217      *
+
+ Intercepts
+    EXHIB              0.000       0.101      0.498      -0.198       0.200
+    ENTITL             0.001       0.102      0.497      -0.200       0.202
+    DETACH            -0.002       0.101      0.492      -0.198       0.199
+    MPS_SPR            0.000       0.101      0.499      -0.199       0.198
+    MPS_SCR           -0.002       0.101      0.493      -0.201       0.199
+    MANIP             -0.001       0.103      0.496      -0.201       0.203
+    P1                -0.001       0.096      0.494      -0.193       0.186
+    P2                 0.001       0.093      0.495      -0.183       0.183
+    P3                 0.001       0.096      0.495      -0.190       0.189
+    P4                 0.000       0.095      0.498      -0.187       0.188
+    P5                -0.001       0.096      0.498      -0.190       0.188
+
+ Variances
+    AGENTIC            1.000       0.000      0.000       1.000       1.000
+    AFFILIAT           1.000       0.000      0.000       1.000       1.000
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    INHIB              1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    EXHIB              0.321       0.103      0.000       0.137       0.543      *
+    ENTITL             0.604       0.128      0.000       0.381       0.884      *
+    DETACH             0.089       0.054      0.000       0.007       0.210      *
+    MPS_SPR            0.446       0.095      0.000       0.286       0.657      *
+    MPS_SCR            0.279       0.058      0.000       0.175       0.402      *
+    MANIP              0.362       0.106      0.000       0.172       0.590      *
+    P1                 0.473       0.080      0.000       0.346       0.657      *
+    P2                 0.484       0.117      0.000       0.272       0.736      *
+    P3                 0.497       0.127      0.000       0.260       0.762      *
+    P4                 0.731       0.121      0.000       0.533       1.008      *
+    P5                 0.413       0.095      0.000       0.252       0.624      *
+
+
+R-SQUARE
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    EXHIB              0.698       0.099      0.000       0.489       0.876
+    ENTITL             0.432       0.113      0.000       0.213       0.653
+    DETACH             0.919       0.051      0.000       0.798       0.993
+    MPS_SPR            0.576       0.090      0.000       0.386       0.740
+    MPS_SCR            0.739       0.058      0.000       0.618       0.845
+    MANIP              0.658       0.102      0.000       0.443       0.843
+    P1                 0.498       0.079      0.000       0.332       0.641
+    P2                 0.447       0.127      0.000       0.205       0.701
+    P3                 0.471       0.129      0.000       0.227       0.732
+    P4                 0.204       0.093      0.000       0.048       0.408
+    P5                 0.559       0.101      0.000       0.348       0.742
+
+
+TECHNICAL 1 OUTPUT
+
+
+     PARAMETER SPECIFICATION
+
+
+           NU
+              EXHIB         ENTITL        DETACH        MPS_SPR       MPS_SCR
+              ________      ________      ________      ________      ________
+                    1             2             3             4             5
+
+
+           NU
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+                    6             7             8             9            10
+
+
+           NU
+              P5
+              ________
+                   11
+
+
+           LAMBDA
+              AGENTIC       AFFILIAT      ANTAG         INHIB
+              ________      ________      ________      ________
+ EXHIB             12             0             0             0
+ ENTITL            13             0             0            14
+ DETACH             0            15             0             0
+ MPS_SPR           16             0             0             0
+ MPS_SCR            0            17             0             0
+ MANIP              0             0            18             0
+ P1                 0            19            20             0
+ P2                 0             0             0            21
+ P3                 0             0             0            22
+ P4                 0             0             0            23
+ P5                 0             0            24             0
+
+
+           THETA
+              EXHIB         ENTITL        DETACH        MPS_SPR       MPS_SCR
+              ________      ________      ________      ________      ________
+ EXHIB             25
+ ENTITL             0            26
+ DETACH             0             0            27
+ MPS_SPR            0             0             0            28
+ MPS_SCR            0             0             0             0            29
+ MANIP              0             0             0             0             0
+ P1                 0             0             0             0             0
+ P2                 0             0             0             0             0
+ P3                 0             0             0             0             0
+ P4                 0             0             0             0             0
+ P5                 0             0             0             0             0
+
+
+           THETA
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+ MANIP             30
+ P1                 0            31
+ P2                 0             0            32
+ P3                 0             0             0            33
+ P4                 0             0             0             0            34
+ P5                 0             0             0             0             0
+
+
+           THETA
+              P5
+              ________
+ P5                35
+
+
+           ALPHA
+              AGENTIC       AFFILIAT      ANTAG         INHIB
+              ________      ________      ________      ________
+                    0             0             0             0
+
+
+           BETA
+              AGENTIC       AFFILIAT      ANTAG         INHIB
+              ________      ________      ________      ________
+ AGENTIC            0             0             0             0
+ AFFILIAT           0             0             0             0
+ ANTAG              0             0             0             0
+ INHIB              0             0             0             0
+
+
+           PSI
+              AGENTIC       AFFILIAT      ANTAG         INHIB
+              ________      ________      ________      ________
+ AGENTIC            0
+ AFFILIAT          36             0
+ ANTAG             37            38             0
+ INHIB             39            40            41             0
+
+
+     STARTING VALUES
+
+
+           NU
+              EXHIB         ENTITL        DETACH        MPS_SPR       MPS_SCR
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           NU
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           NU
+              P5
+              ________
+                0.000
+
+
+           LAMBDA
+              AGENTIC       AFFILIAT      ANTAG         INHIB
+              ________      ________      ________      ________
+ EXHIB          1.000         0.000         0.000         0.000
+ ENTITL         1.000         0.000         0.000         1.000
+ DETACH         0.000         1.000         0.000         0.000
+ MPS_SPR        1.000         0.000         0.000         0.000
+ MPS_SCR        0.000         1.000         0.000         0.000
+ MANIP          0.000         0.000         1.000         0.000
+ P1             0.000         1.000         1.000         0.000
+ P2             0.000         0.000         0.000         1.000
+ P3             0.000         0.000         0.000         1.000
+ P4             0.000         0.000         0.000         1.000
+ P5             0.000         0.000         1.000         0.000
+
+
+           THETA
+              EXHIB         ENTITL        DETACH        MPS_SPR       MPS_SCR
+              ________      ________      ________      ________      ________
+ EXHIB          0.495
+ ENTITL         0.000         0.495
+ DETACH         0.000         0.000         0.495
+ MPS_SPR        0.000         0.000         0.000         0.495
+ MPS_SCR        0.000         0.000         0.000         0.000         0.495
+ MANIP          0.000         0.000         0.000         0.000         0.000
+ P1             0.000         0.000         0.000         0.000         0.000
+ P2             0.000         0.000         0.000         0.000         0.000
+ P3             0.000         0.000         0.000         0.000         0.000
+ P4             0.000         0.000         0.000         0.000         0.000
+ P5             0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+ MANIP          0.495
+ P1             0.000         0.438
+ P2             0.000         0.000         0.412
+ P3             0.000         0.000         0.000         0.441
+ P4             0.000         0.000         0.000         0.000         0.437
+ P5             0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              P5
+              ________
+ P5             0.441
+
+
+           ALPHA
+              AGENTIC       AFFILIAT      ANTAG         INHIB
+              ________      ________      ________      ________
+                0.000         0.000         0.000         0.000
+
+
+           BETA
+              AGENTIC       AFFILIAT      ANTAG         INHIB
+              ________      ________      ________      ________
+ AGENTIC        0.000         0.000         0.000         0.000
+ AFFILIAT       0.000         0.000         0.000         0.000
+ ANTAG          0.000         0.000         0.000         0.000
+ INHIB          0.000         0.000         0.000         0.000
+
+
+           PSI
+              AGENTIC       AFFILIAT      ANTAG         INHIB
+              ________      ________      ________      ________
+ AGENTIC        1.000
+ AFFILIAT       0.000         1.000
+ ANTAG          0.000         0.000         1.000
+ INHIB          0.000         0.000         0.000         1.000
+
+
+
+     PRIORS FOR ALL PARAMETERS            PRIOR MEAN      PRIOR VARIANCE     PRIOR STD. DEV.
+
+     Parameter 1~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 2~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 3~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 4~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 5~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 6~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 7~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 8~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 9~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 10~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 11~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 12~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 13~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 14~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 15~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 16~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 17~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 18~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 19~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 20~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 21~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 22~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 23~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 24~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 25~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 26~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 27~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 28~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 29~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 30~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 31~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 32~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 33~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 34~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 35~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 36~IW(0.000,-5)
+     Parameter 37~IW(0.000,-5)
+     Parameter 38~IW(0.000,-5)
+     Parameter 39~IW(0.000,-5)
+     Parameter 40~IW(0.000,-5)
+     Parameter 41~IW(0.000,-5)
+
+
+TECHNICAL 8 OUTPUT
+
+
+   TECHNICAL 8 OUTPUT FOR BAYES ESTIMATION
+
+     CHAIN    BSEED
+     1        0
+     2        285380
+     3        253358
+     4        93468
+
+                     POTENTIAL       PARAMETER WITH
+     ITERATION    SCALE REDUCTION      HIGHEST PSR
+     100              1.200               25
+     200              1.209               27
+     300              1.121               15
+     400              1.135               27
+     500              1.081               3
+     600              1.054               27
+     700              1.096               27
+     800              1.151               27
+     900              1.181               27
+     1000             1.121               27
+     1100             1.071               27
+     1200             1.064               30
+     1300             1.057               30
+     1400             1.053               30
+     1500             1.045               27
+     1600             1.040               27
+     1700             1.036               30
+     1800             1.031               3
+     1900             1.033               3
+     2000             1.029               3
+     2100             1.029               3
+     2200             1.036               27
+     2300             1.039               27
+     2400             1.031               27
+     2500             1.036               27
+     2600             1.031               27
+     2700             1.025               27
+     2800             1.017               27
+     2900             1.018               27
+     3000             1.021               27
+     3100             1.023               27
+     3200             1.022               27
+     3300             1.018               27
+     3400             1.024               27
+     3500             1.020               27
+     3600             1.025               27
+     3700             1.030               27
+     3800             1.030               27
+     3900             1.025               27
+     4000             1.024               27
+     4100             1.023               27
+     4200             1.016               27
+     4300             1.012               30
+     4400             1.008               30
+     4500             1.007               30
+     4600             1.006               30
+     4700             1.006               30
+     4800             1.007               27
+     4900             1.010               27
+     5000             1.011               27
+     5100             1.012               27
+     5200             1.014               27
+     5300             1.015               27
+     5400             1.015               27
+     5500             1.019               27
+     5600             1.019               27
+     5700             1.017               27
+     5800             1.023               27
+     5900             1.027               27
+     6000             1.028               27
+     6100             1.025               27
+     6200             1.025               27
+     6300             1.023               27
+     6400             1.020               27
+     6500             1.017               27
+     6600             1.018               27
+     6700             1.017               27
+     6800             1.014               27
+     6900             1.011               27
+     7000             1.009               27
+     7100             1.012               27
+     7200             1.012               27
+     7300             1.011               27
+     7400             1.010               27
+     7500             1.008               27
+     7600             1.008               27
+     7700             1.006               27
+     7800             1.006               27
+     7900             1.008               27
+     8000             1.011               27
+     8100             1.013               27
+     8200             1.016               27
+     8300             1.019               27
+     8400             1.023               27
+     8500             1.025               27
+     8600             1.024               27
+     8700             1.022               27
+     8800             1.021               27
+     8900             1.023               27
+     9000             1.023               27
+     9100             1.022               27
+     9200             1.020               27
+     9300             1.018               27
+     9400             1.017               27
+     9500             1.016               27
+     9600             1.016               27
+     9700             1.016               27
+     9800             1.018               27
+     9900             1.020               27
+     10000            1.020               27
+     10100            1.019               27
+     10200            1.019               27
+     10300            1.019               27
+     10400            1.017               27
+     10500            1.015               27
+     10600            1.015               27
+     10700            1.015               27
+     10800            1.015               27
+     10900            1.014               27
+     11000            1.013               27
+     11100            1.013               27
+     11200            1.010               27
+     11300            1.009               27
+     11400            1.009               27
+     11500            1.009               27
+     11600            1.008               27
+     11700            1.007               27
+     11800            1.006               3
+     11900            1.007               3
+     12000            1.006               25
+     12100            1.006               25
+     12200            1.006               3
+     12300            1.006               3
+     12400            1.006               3
+     12500            1.007               3
+     12600            1.007               3
+     12700            1.008               3
+     12800            1.008               3
+     12900            1.007               3
+     13000            1.009               3
+     13100            1.008               3
+     13200            1.007               3
+     13300            1.008               3
+     13400            1.007               3
+     13500            1.008               3
+     13600            1.008               3
+     13700            1.008               3
+     13800            1.008               25
+     13900            1.009               25
+     14000            1.010               25
+     14100            1.010               25
+     14200            1.011               25
+     14300            1.012               25
+     14400            1.013               25
+     14500            1.015               25
+     14600            1.016               25
+     14700            1.017               25
+     14800            1.017               25
+     14900            1.018               25
+     15000            1.017               25
+     15100            1.017               25
+     15200            1.016               25
+     15300            1.016               25
+     15400            1.016               25
+     15500            1.015               25
+     15600            1.014               25
+     15700            1.013               25
+     15800            1.013               25
+     15900            1.012               25
+     16000            1.011               25
+     16100            1.012               25
+     16200            1.012               25
+     16300            1.012               25
+     16400            1.012               25
+     16500            1.012               37
+     16600            1.012               37
+     16700            1.013               25
+     16800            1.013               25
+     16900            1.013               25
+     17000            1.013               25
+     17100            1.013               25
+     17200            1.013               25
+     17300            1.013               37
+     17400            1.012               25
+     17500            1.012               25
+     17600            1.012               25
+     17700            1.011               37
+     17800            1.011               37
+     17900            1.011               37
+     18000            1.011               37
+     18100            1.011               37
+     18200            1.011               37
+     18300            1.011               37
+     18400            1.011               25
+     18500            1.011               25
+     18600            1.011               25
+     18700            1.011               25
+     18800            1.011               25
+     18900            1.011               25
+     19000            1.011               25
+     19100            1.011               25
+     19200            1.010               25
+     19300            1.010               25
+     19400            1.009               37
+     19500            1.009               37
+     19600            1.009               25
+     19700            1.009               25
+     19800            1.009               25
+     19900            1.010               25
+     20000            1.010               25
+     20100            1.011               25
+     20200            1.011               25
+     20300            1.011               25
+     20400            1.012               25
+     20500            1.012               25
+     20600            1.011               25
+     20700            1.011               25
+     20800            1.010               25
+     20900            1.010               25
+     21000            1.010               25
+     21100            1.010               25
+     21200            1.010               25
+     21300            1.010               25
+     21400            1.010               25
+     21500            1.010               25
+     21600            1.010               25
+     21700            1.009               25
+     21800            1.009               25
+     21900            1.009               25
+     22000            1.009               25
+     22100            1.009               25
+     22200            1.008               25
+     22300            1.009               25
+     22400            1.009               25
+     22500            1.009               25
+     22600            1.009               25
+     22700            1.009               25
+     22800            1.009               25
+     22900            1.010               25
+     23000            1.010               25
+     23100            1.010               25
+     23200            1.010               25
+     23300            1.010               25
+     23400            1.010               25
+     23500            1.010               25
+     23600            1.010               25
+     23700            1.009               25
+     23800            1.009               25
+     23900            1.008               37
+     24000            1.007               37
+     24100            1.007               37
+     24200            1.007               37
+     24300            1.007               37
+     24400            1.007               37
+     24500            1.006               37
+     24600            1.007               37
+     24700            1.007               37
+     24800            1.007               37
+     24900            1.007               37
+     25000            1.007               37
+     25100            1.007               37
+     25200            1.007               37
+     25300            1.007               37
+     25400            1.007               37
+     25500            1.007               37
+     25600            1.007               37
+     25700            1.007               30
+     25800            1.007               30
+     25900            1.007               30
+     26000            1.008               30
+     26100            1.007               30
+     26200            1.007               30
+     26300            1.007               30
+     26400            1.006               30
+     26500            1.006               30
+     26600            1.006               30
+     26700            1.006               30
+     26800            1.005               30
+     26900            1.005               30
+     27000            1.005               30
+     27100            1.005               30
+     27200            1.005               30
+     27300            1.005               30
+     27400            1.005               30
+     27500            1.005               30
+     27600            1.005               30
+     27700            1.005               30
+     27800            1.005               30
+     27900            1.005               30
+     28000            1.005               30
+     28100            1.005               30
+     28200            1.005               30
+     28300            1.005               30
+     28400            1.005               30
+     28500            1.005               30
+     28600            1.005               30
+     28700            1.004               30
+     28800            1.004               30
+     28900            1.004               30
+     29000            1.004               30
+     29100            1.004               30
+     29200            1.004               30
+     29300            1.004               30
+     29400            1.004               30
+     29500            1.004               30
+     29600            1.004               30
+     29700            1.004               30
+     29800            1.005               30
+     29900            1.005               30
+     30000            1.005               30
+     30100            1.005               30
+     30200            1.005               30
+     30300            1.004               30
+     30400            1.005               30
+     30500            1.005               30
+     30600            1.004               30
+     30700            1.004               30
+     30800            1.004               30
+     30900            1.004               30
+     31000            1.004               30
+     31100            1.004               30
+     31200            1.004               30
+     31300            1.004               30
+     31400            1.004               30
+     31500            1.004               30
+     31600            1.003               30
+     31700            1.003               30
+     31800            1.003               30
+     31900            1.003               30
+     32000            1.003               30
+     32100            1.003               30
+     32200            1.003               30
+     32300            1.003               30
+     32400            1.003               30
+     32500            1.003               30
+     32600            1.003               30
+     32700            1.003               30
+     32800            1.003               30
+     32900            1.003               30
+     33000            1.003               30
+     33100            1.003               30
+     33200            1.003               30
+     33300            1.003               30
+     33400            1.003               30
+     33500            1.003               30
+     33600            1.003               30
+     33700            1.003               30
+     33800            1.003               30
+     33900            1.003               30
+     34000            1.002               30
+     34100            1.002               30
+     34200            1.002               30
+     34300            1.002               30
+     34400            1.002               30
+     34500            1.002               30
+     34600            1.002               30
+     34700            1.002               30
+     34800            1.002               30
+     34900            1.002               30
+     35000            1.002               30
+
+
+SUMMARIES OF PLAUSIBLE VALUES (N = NUMBER OF OBSERVATIONS * NUMBER OF IMPUTATIONS)
+
+
+     SAMPLE STATISTICS
+
+
+           Means
+              AGENTIC       AFFILIAT      ANTAG         INHIB
+              ________      ________      ________      ________
+               -0.002         0.006         0.005         0.000
+
+
+           Covariances
+              AGENTIC       AFFILIAT      ANTAG         INHIB
+              ________      ________      ________      ________
+ AGENTIC        0.940
+ AFFILIAT      -0.415         0.934
+ ANTAG          0.435         0.360         0.944
+ INHIB         -0.314         0.261        -0.244         0.931
+
+
+           Correlations
+              AGENTIC       AFFILIAT      ANTAG         INHIB
+              ________      ________      ________      ________
+ AGENTIC        1.000
+ AFFILIAT      -0.443         1.000
+ ANTAG          0.461         0.383         1.000
+ INHIB         -0.336         0.280        -0.261         1.000
+
+
+SUMMARY OF PLAUSIBLE STANDARD DEVIATION (N = NUMBER OF OBSERVATIONS)
+
+
+     SAMPLE STATISTICS
+
+
+           Means
+              AGENTIC_      AFFILIAT      ANTAG_SD      INHIB_SD
+              ________      ________      ________      ________
+                0.422         0.274         0.442         0.548
+
+
+           Covariances
+              AGENTIC_      AFFILIAT      ANTAG_SD      INHIB_SD
+              ________      ________      ________      ________
+ AGENTIC_       0.000
+ AFFILIAT       0.000         0.000
+ ANTAG_SD       0.000         0.000         0.000
+ INHIB_SD       0.000         0.000         0.000         0.000
+
+
+           Correlations
+              AGENTIC_      AFFILIAT      ANTAG_SD      INHIB_SD
+              ________      ________      ________      ________
+ AGENTIC_       1.000
+ AFFILIAT       0.272         1.000
+ ANTAG_SD       0.761         0.313         1.000
+ INHIB_SD       0.534         0.403         0.542         1.000
+
+
+SAVEDATA INFORMATION
+
+
+  Save file
+    Combined_cfa_modela_modindices_fscores.dat
+
+  Order and format of variables
+
+    EXHIB                            F10.3
+    ENTITL                           F10.3
+    DETACH                           F10.3
+    MPS_SPR                          F10.3
+    MPS_SCR                          F10.3
+    MANIP                            F10.3
+    P1                               F10.3
+    P2                               F10.3
+    P3                               F10.3
+    P4                               F10.3
+    P5                               F10.3
+    AGENTIC Mean                     F10.3
+    AGENTIC Median                   F10.3
+    AGENTIC Standard Deviation       F10.3
+    AGENTIC 2.5% Value               F10.3
+    AGENTIC 97.5% Value              F10.3
+    AFFILIAT Mean                    F10.3
+    AFFILIAT Median                  F10.3
+    AFFILIAT Standard Deviation      F10.3
+    AFFILIAT 2.5% Value              F10.3
+    AFFILIAT 97.5% Value             F10.3
+    ANTAG Mean                       F10.3
+    ANTAG Median                     F10.3
+    ANTAG Standard Deviation         F10.3
+    ANTAG 2.5% Value                 F10.3
+    ANTAG 97.5% Value                F10.3
+    INHIB Mean                       F10.3
+    INHIB Median                     F10.3
+    INHIB Standard Deviation         F10.3
+    INHIB 2.5% Value                 F10.3
+    INHIB 97.5% Value                F10.3
+    SUBJECT                          I4
+
+  Save file format
+    31F10.3 I4
+
+  Save file record length    10000
+
+
+     Beginning Time:  11:56:08
+        Ending Time:  11:56:25
+       Elapsed Time:  00:00:17
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2019 Muthen & Muthen

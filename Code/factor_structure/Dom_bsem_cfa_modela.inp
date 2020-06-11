@@ -20,10 +20,12 @@ ANALYSIS:
 MODEL:
 
     agentic BY MPS_spR* EXHIB ENTITL;
-    affiliat BY MPS_scR* DETACH;
-    agentic WITH affiliat;
     agentic@1;
+    
+    affiliat BY MPS_scR* DETACH;
     affiliat@1;
+    
+    agentic WITH affiliat;
   
 OUTPUT:
 

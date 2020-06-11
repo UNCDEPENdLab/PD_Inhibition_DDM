@@ -28,15 +28,17 @@ ANALYSIS:
   
 MODEL:
 
-    antag BY p5 ! MPS_agR AGG
+    antag BY p5* ! MPS_agR AGG
       p1        ! MISTRUST MPS_alR
       MANIP;
+    antag@1;
 
     inhib BY
-      p2  !PROPER MPS_tdR
+      p2*  !PROPER MPS_tdR
       p3  !MPS_clR IMPUL
       p4; !MPS_acR HDWK;
-
+    inhib@1;
+    
     antag WITH inhib;
     
     INHIB BY P1; !sig mod index

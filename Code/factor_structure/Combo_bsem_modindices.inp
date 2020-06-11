@@ -1,0 +1,67 @@
+TITLE:
+Extraversion, Antag, Consc combination modindices added
+DATA:
+FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/Combo_bsem_modindices.dat";
+ 
+VARIABLE:
+NAMES = subject EXHIB ENTITL DETACH MPS_spR MPS_scR MPS_agR AGG MISTRUST MPS_alR
+     MANIP PROPER MPS_clR IMPUL MPS_tdR MPS_acR HDWK; 
+ MISSING=.;
+ 
+    USEVARIABLES=EXHIB ENTITL DETACH MPS_spR MPS_scR
+      MANIP p1 p2 p3 p4 p5;
+    IDVARIABLE = subject;
+  
+DEFINE:
+
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+  
+ANALYSIS:
+
+    ESTIMATOR=BAYES;
+    PROCESSORS=4;
+    CHAINS=4;
+    BITERATIONS=(35000);
+  
+MODEL:
+
+    agentic BY MPS_spR* EXHIB ENTITL;
+    agentic@1;
+    
+    affiliat BY MPS_scR* DETACH;
+    affiliat@1;
+    
+    antag BY p5* ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+    antag@1;
+
+    inhib BY
+      p2*  !PROPER MPS_tdR
+      p3   !MPS_clR IMPUL
+      p4;  !MPS_acR HDWK;
+    inhib@1;
+
+    antag inhib agentic affiliat WITH
+      antag inhib agentic affiliat;
+      
+    !these were identified in the 4-factor model using MLR
+    AFFILIAT BY P1; !sig modification index
+    INHIB BY ENTITL; !sig modification index
+    
+    !this one comes from the two-factor model, but seems unimportant for 4-factor.
+    !INHIB BY P1; !mod index
+  
+OUTPUT:
+
+    TECH1 TECH8 STANDARDIZED MODINDICES (10);
+  
+SAVEDATA:
+
+    FILE = Combined_cfa_modela_modindices_fscores.dat;
+    SAVE = FSCORES(5000);
+  

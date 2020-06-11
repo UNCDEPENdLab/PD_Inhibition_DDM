@@ -67,3 +67,6 @@ Code/mlm/gng_mlm_cache/*
 #venv for GNG fitting. available on ACI if needed.
 Code/DDM/gng_sim_test/hddm_local/*
 Code/DDM/gng_sim_test/hddm/*
+
+#mplus graphics objects (Big)
+*.gh5
