@@ -136,14 +136,14 @@ for(t in names(all_chains_descriptives)){
   if(t == "flanker"){
     summ_flank <- summ_all %>%
       mutate(Parameter = ifelse(grepl("v_c_stim_treatment_congruent_t_incongruent_subj_",Parameter), "v_incongruent",
-                                ifelse(grepl("v_intercept_subj_",Parameter), "v_congruent", 
+                                ifelse(grepl("v_intercept_subj_",Parameter), "v_intercept", 
                                        ifelse(grepl("a_subj_",Parameter), "a_intercept", 
                                               ifelse(grepl("v_prev_rt_subj_",Parameter), "v_prev_rt", 
                                                      ifelse(grepl("v_trial_z_subj_",Parameter), "v_trial", Parameter))))),
              task = t) %>% select(id, task, Parameter, MAP, se, CI_low, CI_high, pd) 
     # summ_flank %>% tibble() %>% print(n = 500)
-    summ_flank[which(summ_flank$Parameter == "v_incongruent"),"MAP"] <- summ_flank[which(summ_flank$Parameter == "v_congruent"),"MAP"] + summ_flank[which(summ_flank$Parameter == "v_incongruent"),"MAP"]
-    y <- abs(summ_gng[which(summ_flank$Parameter == "v_congruent"),"MAP"])
+    summ_flank[which(summ_flank$Parameter == "v_incongruent"),"MAP"] <- summ_flank[which(summ_flank$Parameter == "v_intercept"),"MAP"] + summ_flank[which(summ_flank$Parameter == "v_incongruent"),"MAP"]
+    y <- abs(summ_gng[which(summ_flank$Parameter == "v_intercept"),"MAP"])
     
     x <- summ_gng[which(summ_flank$Parameter == "v_incongruent"),"MAP"]
     
@@ -155,19 +155,19 @@ for(t in names(all_chains_descriptives)){
   if(t == "recent_probes"){
     summ_rp <- summ_all %>%
       mutate(Parameter = ifelse(grepl("v_c_stim_treatment_positive_t_negative_familiar_subj_",Parameter), "v_negative_familiar",
-                                ifelse(grepl("v_intercept_subj_",Parameter), "v_positive", 
+                                ifelse(grepl("v_intercept_subj_",Parameter), "v_intercept", 
                                        ifelse(grepl("a_subj_",Parameter), "a_intercept", 
                                               ifelse(grepl("v_c_stim_treatment_positive_t_negative_unfamiliar_subj_",Parameter), "v_negative_unfamiliar", 
                                                      ifelse(grepl("v_c_stim_treatment_positive_t_negative_rc_subj_",Parameter), "v_negative_response_conflict", 
                                                             ifelse(grepl("v_c_stim_treatment_positive_t_negative_highly_familiar_subj_",Parameter), "v_negative_highly_familiar", Parameter)))))),
              task = t) %>% select(id, task, Parameter, MAP, se, CI_low, CI_high, pd) 
     
-    summ_rp[which(summ_flank$Parameter == "v_negative_familiar"),"MAP"] <- summ_flank[which(summ_flank$Parameter == "v_positive"),"MAP"] + summ_flank[which(summ_flank$Parameter == "v_negative_familiar"),"MAP"]
-    summ_rp[which(summ_flank$Parameter == "v_negative_unfamiliar"),"MAP"] <- summ_flank[which(summ_flank$Parameter == "v_positive"),"MAP"] + summ_flank[which(summ_flank$Parameter == "v_negative_unfamiliar"),"MAP"]
-    summ_rp[which(summ_flank$Parameter == "v_negative_highly_familiar"),"MAP"] <- summ_flank[which(summ_flank$Parameter == "v_positive"),"MAP"] + summ_flank[which(summ_flank$Parameter == "v_negative_highly_familiar"),"MAP"]
-    summ_rp[which(summ_flank$Parameter == "v_negative_response_conflict"),"MAP"] <- summ_flank[which(summ_flank$Parameter == "v_positive"),"MAP"] + summ_flank[which(summ_flank$Parameter == "v_negative_response_conflict"),"MAP"]
+    summ_rp[which(summ_flank$Parameter == "v_negative_familiar"),"MAP"] <- summ_flank[which(summ_flank$Parameter == "v_intercept"),"MAP"] + summ_flank[which(summ_flank$Parameter == "v_negative_familiar"),"MAP"]
+    summ_rp[which(summ_flank$Parameter == "v_negative_unfamiliar"),"MAP"] <- summ_flank[which(summ_flank$Parameter == "v_intercept"),"MAP"] + summ_flank[which(summ_flank$Parameter == "v_negative_unfamiliar"),"MAP"]
+    summ_rp[which(summ_flank$Parameter == "v_negative_highly_familiar"),"MAP"] <- summ_flank[which(summ_flank$Parameter == "v_intercept"),"MAP"] + summ_flank[which(summ_flank$Parameter == "v_negative_highly_familiar"),"MAP"]
+    summ_rp[which(summ_flank$Parameter == "v_negative_response_conflict"),"MAP"] <- summ_flank[which(summ_flank$Parameter == "v_intercept"),"MAP"] + summ_flank[which(summ_flank$Parameter == "v_negative_response_conflict"),"MAP"]
     
-    y <- summ_rp[which(summ_rp$Parameter == "v_positive"),"MAP"]
+    y <- summ_rp[which(summ_rp$Parameter == "v_intercept"),"MAP"]
     x <- summ_rp[which(summ_rp$Parameter == "v_negative_familiar"),"MAP"]
     a <- summ_rp[which(summ_rp$Parameter == "v_negative_unfamiliar"),"MAP"]
     b <- summ_rp[which(summ_rp$Parameter == "v_negative_highly_familiar"),"MAP"]
@@ -181,17 +181,17 @@ for(t in names(all_chains_descriptives)){
   if(t == "go_nogo"){
     summ_gng <- summ_all %>% 
       mutate(Parameter = ifelse(grepl("v_c_stim_treatment_go_t_no_go_subj_",Parameter), "v_nogo",
-                                ifelse(grepl("v_intercept_subj_", Parameter), "v_go",
+                                ifelse(grepl("v_intercept_subj_", Parameter), "v_intercept",
                                        ifelse(grepl("a_intercept_subj_", Parameter), "a_intercept",
                                               ifelse(grepl("a_block_trial_subj_", Parameter), "a_trials_from_go",Parameter)))),
              task = t) %>% select(id, task, Parameter, MAP, se, CI_low, CI_high, pd) 
     
-    summ_gng[which(summ_gng$Parameter == "v_nogo"),"MAP"] <- summ_gng[which(summ_gng$Parameter == "v_go"),"MAP"] + summ_gng[which(summ_gng$Parameter == "v_nogo"),"MAP"]
+    summ_gng[which(summ_gng$Parameter == "v_nogo"),"MAP"] <- summ_gng[which(summ_gng$Parameter == "v_intercept"),"MAP"] + summ_gng[which(summ_gng$Parameter == "v_nogo"),"MAP"]
     
     
     y <- abs(summ_gng[which(summ_gng$Parameter == "v_nogo"),"MAP"])
     # y <- summ_gng[which(summ_gng$Parameter == "v_nogo"),"MAP"]
-    x <- summ_gng[which(summ_gng$Parameter == "v_go"),"MAP"]
+    x <- summ_gng[which(summ_gng$Parameter == "v_intercept"),"MAP"]
     
     z <- data.frame(v_go = x, v_nogo = y) %>% reshape2::melt() %>% rename(condition = variable, MAP = value)
     ggplot(data = z, aes(x = MAP, color = condition)) + geom_density()
@@ -210,5 +210,9 @@ summs_all <- rbind(summ_flank, summ_gng, summ_rp)
 
 summs_all <- summs_all %>% mutate(parameter = ifelse(startsWith(Parameter, "v_"), "v", "a"),
                      Parameter = ifelse(startsWith(Parameter, "v_"), sub("v_", "",Parameter), sub("a_", "",Parameter))) %>% rename(beta_contrast = Parameter)
+
+
+summs_all <- summs_all %>% dplyr::select(-CI_low, -CI_high, -pd) %>% gather(key ="key", value = "value",MAP, se) %>% mutate(key = paste0(parameter,"_",key)) %>% dplyr::select(-parameter) %>% spread(key = "key", value =  "value")
+
 
 write.csv(summs_all, file = "~/github_repos/PD_Inhibition_DDM/Code/brms/posterior_summaries.csv")
