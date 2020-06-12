@@ -1,0 +1,3093 @@
+Mplus VERSION 8.4 (Mac)
+MUTHEN & MUTHEN
+06/11/2020   9:31 PM
+
+INPUT INSTRUCTIONS
+
+  TITLE:
+  Combined 4-factor MSEM Flanker ACC
+  DATA:
+  FILE = "acc_m15_ACE.dat";
+
+  VARIABLE:
+  NAMES = id correct rt cond block prev_rt prev_error prev_rt_z EXHIB ENTITL DETACH
+       MPS_spR MPS_scR MPS_agR AGG MISTRUST MPS_alR MANIP PROPER MPS_clR IMPUL MPS_tdR
+       MPS_acR HDWK;
+   MISSING=.;
+
+      WITHIN = cond block prev_rt_z prev_error;
+      USEVARIABLES = id correct cond block prev_rt_z
+        prev_error EXHIB ENTITL DETACH MPS_spR MPS_scR
+        MANIP p1 p2 p3 p4 p5;
+      BETWEEN = EXHIB ENTITL DETACH MPS_spR MPS_scR MANIP p1 p2 p3 p4 p5;
+      CLUSTER = id;
+      CATEGORICAL = correct;
+
+  DEFINE:
+
+      p1=MEAN(MISTRUST MPS_alR);
+      p2=MEAN(PROPER MPS_tdR);
+      p3=MEAN(MPS_clR IMPUL);
+      p4=MEAN(MPS_acR HDWK);
+      p5=MEAN(MPS_agR AGG);
+      cond = cond - 1; ! 0=congruent, 1=incongruent
+      block = block - 1; ! 0=most_incon, 1=most_con
+
+  ANALYSIS:
+
+      TYPE=TWOLEVEL RANDOM;
+      ESTIMATOR=BAYES;
+      BITERATIONS=200000 (120000);
+      CHAINS=4;
+      PROCESSORS=4;
+
+  MODEL:
+
+
+  %WITHIN%
+      correct ON block;
+      condslo | correct ON cond;        !random slope of cond
+      prevslo | correct ON prev_rt_z;   !random slope of rt autocorrelation
+      errslo | correct ON prev_error;   !random slope of previous error
+
+      %BETWEEN%
+      !means of random slopes
+      [condslo];
+      [prevslo];
+      [errslo];
+
+      !variances of random slopes
+      condslo;
+      prevslo;
+      errslo;
+
+      !slope correlations
+      condslo prevslo errslo WITH
+         condslo prevslo errslo;
+
+      [correct$1]; !intercept: average correct
+
+      !TRAIT MODEL
+      agentic BY MPS_spR* EXHIB ENTITL;
+      agentic@1;
+
+      affiliat BY MPS_scR*1 DETACH;
+      affiliat@1;
+
+      antag BY p5* ! MPS_agR AGG
+        p1        ! MISTRUST MPS_alR
+        MANIP;
+      antag@1;
+
+      constraint BY
+        p2*  !PROPER MPS_tdR
+        p3  !MPS_clR IMPUL
+        p4; !MPS_acR HDWK;
+      constraint@1;
+
+      antag constraint agentic affiliat WITH
+        antag constraint agentic affiliat;
+
+      !identified in between-persons combined CFA
+      AFFILIAT BY P1; !sig modification index
+      constraint BY ENTITL; !sig modification index
+
+      !TRAIT MODERATION
+
+      condslo ON antag constraint agentic affiliat;
+      prevslo ON antag constraint agentic affiliat;
+      errslo ON antag constraint agentic affiliat;
+
+      !allow proportion correct to be predicted by traits
+      correct ON antag constraint agentic affiliat;
+
+  OUTPUT:
+
+      TECH1 TECH8 CINTERVAL STANDARDIZED;
+
+  PLOT:
+  TYPE = PLOT2;
+
+
+
+*** WARNING in VARIABLE command
+  Note that only the first 8 characters of variable names are used in the output.
+  Shorten variable names to avoid any confusion.
+*** WARNING in PLOT command
+  Note that only the first 8 characters of variable names are used in plots.
+  If variable names are not unique within the first 8 characters, problems
+  may occur.
+*** WARNING
+  One or more individual-level variables have no variation within a
+  cluster for the following clusters.
+
+     Variable   Cluster IDs with no within-cluster variation
+
+      CORRECT     90 15 11 114 13 5 52 106 66 86 20 107 91 93 95
+      PREV_ERR    90 15 11 114 13 5 52 6 106 66 86 20 107 91 93 95
+
+*** WARNING
+  Data set contains cases with missing on x-variables.
+  These cases were not included in the analysis.
+  Number of cases with missing on x-variables:  496
+   4 WARNING(S) FOUND IN THE INPUT INSTRUCTIONS
+
+
+
+
+Combined 4-factor MSEM Flanker ACC
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                       15504
+
+Number of dependent variables                                   12
+Number of independent variables                                  4
+Number of continuous latent variables                            7
+
+Observed dependent variables
+
+  Continuous
+   EXHIB       ENTITL      DETACH      MPS_SPR     MPS_SCR     MANIP
+   P1          P2          P3          P4          P5
+
+  Binary and ordered categorical (ordinal)
+   CORRECT
+
+Observed independent variables
+   COND        BLOCK       PREV_RT_    PREV_ERR
+
+Continuous latent variables
+   AGENTIC     AFFILIAT    ANTAG       CONSTRAI    CONDSLO     PREVSLO
+   ERRSLO
+
+Variables with special functions
+
+  Cluster variable      ID
+
+  Within variables
+   COND        BLOCK       PREV_RT_    PREV_ERR
+
+  Between variables
+   EXHIB       ENTITL      DETACH      MPS_SPR     MPS_SCR     MANIP
+   P1          P2          P3          P4          P5
+
+
+Estimator                                                    BAYES
+Specifications for Bayesian Estimation
+  Point estimate                                            MEDIAN
+  Number of Markov chain Monte Carlo (MCMC) chains               4
+  Random seed for the first chain                                0
+  Starting value information                           UNPERTURBED
+  Algorithm used for Markov chain Monte Carlo           GIBBS(PX1)
+  Convergence criterion                                  0.500D-01
+  Maximum number of iterations                              200000
+  K-th iteration used for thinning                               1
+Link                                                        PROBIT
+
+Input data file(s)
+  acc_m15_ACE.dat
+Input data format  FREE
+
+
+SUMMARY OF DATA
+
+     Number of clusters                        100
+
+       Size (s)    Cluster ID with Size s
+
+        137        62
+        144        92
+        146        36
+        150        73 45
+        151        35
+        152        110
+        153        42 90 65
+        154        24 109 89 46 15
+        155        113 14 102 18 21 57 58 22 105 68 27 32 33 34 99
+        156        25 26 11 28 29 3 30 31 1 111 112 103 114 37 4 40 41
+                   12 43 13 104 49 5 50 52 53 54 56 10 16 59 6 60 61 17
+                   63 64 106 66 67 19 69 70 71 72 2 74 75 76 77 78 79 8
+                   81 84 86 87 88 20 9 107 91 108 93 94 95 96 97 98 101
+
+
+
+COVARIANCE COVERAGE OF DATA
+
+Minimum covariance coverage value   0.100
+
+     Number of missing data patterns             2
+
+
+     PROPORTION OF DATA PRESENT
+
+
+           Covariance Coverage
+              CORRECT       EXHIB         ENTITL        DETACH        MPS_SPR
+              ________      ________      ________      ________      ________
+ CORRECT        0.982
+ EXHIB          0.982         1.000
+ ENTITL         0.982         1.000         1.000
+ DETACH         0.982         1.000         1.000         1.000
+ MPS_SPR        0.982         1.000         1.000         1.000         1.000
+ MPS_SCR        0.982         1.000         1.000         1.000         1.000
+ MANIP          0.982         1.000         1.000         1.000         1.000
+ P1             0.982         1.000         1.000         1.000         1.000
+ P2             0.982         1.000         1.000         1.000         1.000
+ P3             0.982         1.000         1.000         1.000         1.000
+ P4             0.982         1.000         1.000         1.000         1.000
+ P5             0.982         1.000         1.000         1.000         1.000
+ COND           0.982         1.000         1.000         1.000         1.000
+ BLOCK          0.982         1.000         1.000         1.000         1.000
+ PREV_RT_       0.982         1.000         1.000         1.000         1.000
+ PREV_ERR       0.982         1.000         1.000         1.000         1.000
+
+
+           Covariance Coverage
+              MPS_SCR       MANIP         P1            P2            P3
+              ________      ________      ________      ________      ________
+ MPS_SCR        1.000
+ MANIP          1.000         1.000
+ P1             1.000         1.000         1.000
+ P2             1.000         1.000         1.000         1.000
+ P3             1.000         1.000         1.000         1.000         1.000
+ P4             1.000         1.000         1.000         1.000         1.000
+ P5             1.000         1.000         1.000         1.000         1.000
+ COND           1.000         1.000         1.000         1.000         1.000
+ BLOCK          1.000         1.000         1.000         1.000         1.000
+ PREV_RT_       1.000         1.000         1.000         1.000         1.000
+ PREV_ERR       1.000         1.000         1.000         1.000         1.000
+
+
+           Covariance Coverage
+              P4            P5            COND          BLOCK         PREV_RT_
+              ________      ________      ________      ________      ________
+ P4             1.000
+ P5             1.000         1.000
+ COND           1.000         1.000         1.000
+ BLOCK          1.000         1.000         1.000         1.000
+ PREV_RT_       1.000         1.000         1.000         1.000         1.000
+ PREV_ERR       1.000         1.000         1.000         1.000         1.000
+
+
+           Covariance Coverage
+              PREV_ERR
+              ________
+ PREV_ERR       1.000
+
+
+UNIVARIATE PROPORTIONS AND COUNTS FOR CATEGORICAL VARIABLES
+
+    CORRECT
+      Category 1    0.031          471.000
+      Category 2    0.969        14751.000
+
+
+
+UNIVARIATE SAMPLE STATISTICS
+
+
+     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS
+
+         Variable/         Mean/     Skewness/   Minimum/ % with                Percentiles
+        Sample Size      Variance    Kurtosis    Maximum  Min/Max      20%/60%    40%/80%    Median
+
+     EXHIB                 0.016      -0.030      -1.771    5.00%      -1.023     -0.276      0.098
+             100.000       1.012      -0.989       1.968    2.00%       0.223      0.971
+     ENTITL               -0.004      -0.175      -2.089    1.00%      -1.024     -0.225      0.041
+             100.000       1.020      -0.785       2.171    1.00%       0.307      0.840
+     DETACH                0.008       1.172      -1.074   10.00%      -0.841     -0.607     -0.373
+             100.000       1.022       0.625       3.133    1.00%      -0.139      0.796
+     MPS_SPR              -0.003      -0.632      -2.222    4.00%      -0.954     -0.003      0.314
+             100.000       1.019      -0.572       1.582    3.00%       0.314      0.948
+     MPS_SCR              -0.005       1.387      -1.228    2.00%      -0.843     -0.459     -0.459
+             100.000       1.022       1.141       3.003    3.00%      -0.074      0.695
+     MANIP                 0.020       0.065      -1.701    7.00%      -0.898     -0.095      0.172
+             100.000       1.006      -0.475       2.849    1.00%       0.440      0.708
+     P1                    0.018       1.093      -1.197    5.00%      -0.819     -0.370     -0.108
+             100.000       0.886       1.171       3.011    1.00%       0.078      0.645
+     P2                   -0.005      -0.135      -2.240    1.00%      -0.857     -0.225      0.051
+             100.000       0.833      -0.639       1.749    1.00%       0.286      0.762
+     P3                    0.012      -0.902      -2.672    1.00%      -0.788     -0.027      0.231
+             100.000       0.887       0.345       1.396    1.00%       0.371      0.817
+     P4                    0.006       0.027      -1.799    1.00%      -0.946     -0.304      0.023
+             100.000       0.902      -1.019       1.783    1.00%       0.313      0.795
+     P5                    0.007       1.054      -1.149    7.00%      -0.845     -0.463     -0.199
+             100.000       0.897       0.848       3.259    1.00%       0.065      0.752
+     COND                  0.502      -0.007       0.000   49.82%       0.000      0.000      1.000
+           15504.000       0.250      -2.000       1.000   50.18%       1.000      1.000
+     BLOCK                 0.499       0.003       0.000   50.08%       0.000      0.000      0.000
+           15504.000       0.250      -2.000       1.000   49.92%       1.000      1.000
+     PREV_RT_Z            -0.020       1.617      -2.625    0.01%      -0.751     -0.367     -0.187
+           15504.000       0.979       4.909       6.508    0.01%       0.017      0.559
+     PREV_ERROR            0.035       5.048       0.000   96.48%       0.000      0.000      0.000
+           15504.000       0.034      23.484       1.000    3.52%       0.000      0.000
+
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+     USE THE FBITERATIONS OPTION TO INCREASE THE NUMBER OF ITERATIONS BY A FACTOR
+     OF AT LEAST TWO TO CHECK CONVERGENCE AND THAT THE PSR VALUE DOES NOT INCREASE.
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                              69
+
+
+
+MODEL RESULTS
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within Level
+
+ CORRECT    ON
+    BLOCK             -0.097       0.052      0.032      -0.198       0.005
+
+Between Level
+
+ AGENTIC  BY
+    MPS_SPR            0.784       0.100      0.000       0.596       0.990      *
+    EXHIB              0.945       0.096      0.000       0.760       1.137      *
+    ENTITL             0.648       0.128      0.000       0.416       0.917      *
+
+ AFFILIAT BY
+    MPS_SCR            0.919       0.087      0.000       0.761       1.102      *
+    DETACH             1.023       0.080      0.000       0.874       1.188      *
+    P1                 0.388       0.096      0.000       0.203       0.581      *
+
+ ANTAG    BY
+    P5                 0.776       0.096      0.000       0.592       0.972      *
+    P1                 0.460       0.098      0.000       0.273       0.659      *
+    MANIP              0.803       0.100      0.000       0.615       1.007      *
+
+ CONSTRAI BY
+    P2                 0.640       0.119      0.000       0.409       0.877      *
+    P3                 0.664       0.125      0.000       0.426       0.916      *
+    P4                 0.466       0.123      0.000       0.227       0.712      *
+    ENTITL             0.494       0.138      0.000       0.235       0.779      *
+
+ CONDSLO    ON
+    ANTAG              0.211       0.174      0.095      -0.110       0.583
+    CONSTRAINT         0.053       0.116      0.321      -0.168       0.289
+    AGENTIC            0.025       0.173      0.441      -0.336       0.348
+    AFFILIAT          -0.219       0.176      0.090      -0.596       0.103
+
+ PREVSLO    ON
+    ANTAG             -0.212       0.113      0.020      -0.458      -0.011      *
+    CONSTRAINT        -0.079       0.076      0.138      -0.238       0.064
+    AGENTIC            0.218       0.116      0.023       0.003       0.460      *
+    AFFILIAT           0.251       0.116      0.009       0.043       0.500      *
+
+ ERRSLO     ON
+    ANTAG             -1.523       1.083      0.003      -4.724      -0.402      *
+    CONSTRAINT        -0.246       0.487      0.252      -1.397       0.516
+    AGENTIC            1.718       1.184      0.007       0.309       5.046      *
+    AFFILIAT           1.264       0.914      0.013       0.155       3.781      *
+
+ CORRECT    ON
+    ANTAG             -0.608       0.189      0.000      -1.044      -0.297      *
+    CONSTRAINT        -0.153       0.120      0.085      -0.411       0.064
+    AGENTIC            0.264       0.181      0.052      -0.055       0.662
+    AFFILIAT           0.422       0.192      0.004       0.104       0.861      *
+
+ CONDSLO  WITH
+    PREVSLO            0.011       0.026      0.326      -0.038       0.067
+    ERRSLO             0.101       0.104      0.102      -0.053       0.357
+
+ PREVSLO  WITH
+    ERRSLO             0.036       0.062      0.224      -0.062       0.186
+
+ ANTAG    WITH
+    CONSTRAINT        -0.232       0.138      0.054      -0.487       0.051
+    AGENTIC            0.395       0.115      0.001       0.153       0.601      *
+    AFFILIAT           0.366       0.109      0.001       0.139       0.565      *
+
+ CONSTRAI WITH
+    AGENTIC           -0.321       0.133      0.011      -0.565      -0.047      *
+    AFFILIAT           0.257       0.120      0.020       0.011       0.481      *
+
+ AGENTIC  WITH
+    AFFILIAT          -0.429       0.097      0.000      -0.600      -0.222      *
+
+ Intercepts
+    EXHIB              0.017       0.106      0.435      -0.191       0.225
+    ENTITL            -0.004       0.107      0.486      -0.215       0.205
+    DETACH             0.007       0.107      0.475      -0.204       0.217
+    MPS_SPR           -0.002       0.106      0.491      -0.211       0.206
+    MPS_SCR           -0.006       0.107      0.476      -0.215       0.204
+    MANIP              0.021       0.105      0.420      -0.187       0.228
+    P1                 0.017       0.099      0.429      -0.178       0.213
+    P2                -0.005       0.096      0.479      -0.195       0.184
+    P3                 0.011       0.099      0.455      -0.185       0.206
+    P4                 0.006       0.099      0.476      -0.190       0.201
+    P5                 0.008       0.100      0.468      -0.188       0.204
+    CONDSLO           -0.522       0.091      0.000      -0.704      -0.347      *
+    PREVSLO            0.326       0.062      0.000       0.210       0.454      *
+    ERRSLO             1.783       1.038      0.000       0.794       4.815      *
+
+ Thresholds
+    CORRECT$1         -2.599       0.094      0.000      -2.796      -2.425      *
+
+ Variances
+    AGENTIC            1.000       0.000      0.000       1.000       1.000
+    AFFILIAT           1.000       0.000      0.000       1.000       1.000
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    CONSTRAINT         1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    CORRECT            0.094       0.050      0.000       0.016       0.210      *
+    EXHIB              0.225       0.092      0.000       0.059       0.422      *
+    ENTITL             0.646       0.131      0.000       0.421       0.937      *
+    DETACH             0.091       0.054      0.000       0.009       0.215      *
+    MPS_SPR            0.491       0.096      0.000       0.328       0.705      *
+    MPS_SCR            0.281       0.060      0.000       0.174       0.410      *
+    MANIP              0.448       0.094      0.000       0.293       0.660      *
+    P1                 0.470       0.081      0.000       0.339       0.656      *
+    P2                 0.494       0.120      0.000       0.277       0.750      *
+    P3                 0.522       0.132      0.000       0.272       0.796      *
+    P4                 0.742       0.128      0.000       0.533       1.034      *
+    P5                 0.376       0.087      0.000       0.228       0.570      *
+    CONDSLO            0.196       0.054      0.000       0.115       0.326      *
+    PREVSLO            0.091       0.026      0.000       0.053       0.156      *
+    ERRSLO             0.388       0.396      0.000       0.116       1.533      *
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ CONDSLO | CORRECT ON
+    COND              -0.217       0.027      0.000      -0.269      -0.160      *
+
+ PREVSLO | CORRECT ON
+    PREV_RT_Z          0.186       0.026      0.000       0.127       0.232      *
+
+ ERRSLO | CORRECT ON
+    PREV_ERROR         0.174       0.056      0.000       0.082       0.284      *
+
+ CORRECT    ON
+    BLOCK             -0.044       0.022      0.024      -0.084      -0.001      *
+
+Between Level
+
+ AGENTIC  BY
+    MPS_SPR            0.746       0.060      0.000       0.613       0.845      *
+    EXHIB              0.894       0.049      0.000       0.781       0.975      *
+    ENTITL             0.611       0.103      0.000       0.410       0.818      *
+
+ AFFILIAT BY
+    MPS_SCR            0.866       0.034      0.000       0.791       0.924      *
+    DETACH             0.960       0.026      0.000       0.897       0.996      *
+    P1                 0.395       0.089      0.000       0.211       0.559      *
+
+ ANTAG    BY
+    P5                 0.785       0.060      0.000       0.648       0.882      *
+    P1                 0.468       0.088      0.000       0.285       0.630      *
+    MANIP              0.768       0.058      0.000       0.636       0.863      *
+
+ CONSTRAI BY
+    P2                 0.673       0.099      0.000       0.455       0.841      *
+    P3                 0.675       0.101      0.000       0.458       0.854      *
+    P4                 0.475       0.109      0.000       0.239       0.665      *
+    ENTITL             0.466       0.121      0.000       0.227       0.705      *
+
+ CONDSLO    ON
+    ANTAG              0.398       0.296      0.095      -0.215       0.950
+    CONSTRAINT         0.099       0.208      0.321      -0.323       0.489
+    AGENTIC            0.046       0.311      0.441      -0.570       0.643
+    AFFILIAT          -0.414       0.297      0.090      -0.968       0.201
+
+ PREVSLO    ON
+    ANTAG             -0.574       0.266      0.020      -1.081      -0.031      *
+    CONSTRAINT        -0.216       0.196      0.138      -0.594       0.174
+    AGENTIC            0.592       0.275      0.023       0.010       1.094      *
+    AFFILIAT           0.679       0.265      0.009       0.128       1.172      *
+
+ ERRSLO     ON
+    ANTAG             -1.016       0.290      0.003      -1.580      -0.415      *
+    CONSTRAINT        -0.169       0.255      0.252      -0.684       0.316
+    AGENTIC            1.155       0.330      0.007       0.307       1.664      *
+    AFFILIAT           0.834       0.312      0.013       0.151       1.414      *
+
+ CORRECT    ON
+    ANTAG             -1.114       0.264      0.000      -1.669      -0.611      *
+    CONSTRAINT        -0.282       0.209      0.085      -0.698       0.120
+    AGENTIC            0.486       0.304      0.052      -0.106       1.100
+    AFFILIAT           0.777       0.302      0.004       0.206       1.404      *
+
+ CONDSLO  WITH
+    PREVSLO            0.085       0.181      0.326      -0.278       0.425
+    ERRSLO             0.385       0.255      0.102      -0.235       0.745
+
+ PREVSLO  WITH
+    ERRSLO             0.205       0.245      0.224      -0.323       0.615
+
+ ANTAG    WITH
+    CONSTRAINT        -0.232       0.138      0.054      -0.487       0.051
+    AGENTIC            0.395       0.115      0.001       0.153       0.601      *
+    AFFILIAT           0.366       0.109      0.001       0.139       0.565      *
+
+ CONSTRAI WITH
+    AGENTIC           -0.321       0.133      0.011      -0.565      -0.047      *
+    AFFILIAT           0.257       0.120      0.020       0.011       0.481      *
+
+ AGENTIC  WITH
+    AFFILIAT          -0.429       0.097      0.000      -0.600      -0.222      *
+
+ Intercepts
+    EXHIB              0.016       0.100      0.435      -0.179       0.211
+    ENTITL            -0.004       0.100      0.486      -0.201       0.192
+    DETACH             0.006       0.100      0.475      -0.190       0.202
+    MPS_SPR           -0.002       0.100      0.491      -0.198       0.193
+    MPS_SCR           -0.006       0.100      0.476      -0.201       0.190
+    MANIP              0.020       0.100      0.420      -0.176       0.215
+    P1                 0.018       0.100      0.429      -0.178       0.214
+    P2                -0.005       0.100      0.479      -0.203       0.190
+    P3                 0.011       0.100      0.455      -0.185       0.208
+    P4                 0.006       0.100      0.476      -0.191       0.202
+    P5                 0.008       0.100      0.468      -0.188       0.204
+    CONDSLO           -0.972       0.208      0.000      -1.415      -0.598      *
+    PREVSLO            0.878       0.173      0.000       0.555       1.235      *
+    ERRSLO             1.199       0.250      0.000       0.737       1.716      *
+
+ Variances
+    AGENTIC            1.000       0.000      0.000       1.000       1.000
+    AFFILIAT           1.000       0.000      0.000       1.000       1.000
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    CONSTRAINT         1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    CORRECT            0.323       0.167      0.000       0.047       0.687      *
+    EXHIB              0.200       0.087      0.000       0.050       0.389      *
+    ENTITL             0.580       0.110      0.000       0.363       0.792      *
+    DETACH             0.079       0.049      0.000       0.008       0.195      *
+    MPS_SPR            0.444       0.087      0.000       0.286       0.624      *
+    MPS_SCR            0.249       0.058      0.000       0.146       0.374      *
+    MANIP              0.410       0.087      0.000       0.256       0.596      *
+    P1                 0.485       0.080      0.000       0.342       0.654      *
+    P2                 0.547       0.129      0.000       0.292       0.793      *
+    P3                 0.544       0.133      0.000       0.270       0.790      *
+    P4                 0.774       0.100      0.000       0.558       0.943      *
+    P5                 0.384       0.092      0.000       0.222       0.581      *
+    CONDSLO            0.695       0.128      0.000       0.428       0.916      *
+    PREVSLO            0.684       0.144      0.000       0.387       0.931      *
+    ERRSLO             0.183       0.186      0.000       0.022       0.720      *
+
+
+STDY Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ CONDSLO | CORRECT ON
+    COND              -0.434       0.055      0.000      -0.537      -0.320      *
+
+ PREVSLO | CORRECT ON
+    PREV_RT_Z          0.272       0.040      0.000       0.185       0.343      *
+
+ ERRSLO | CORRECT ON
+    PREV_ERROR         1.462       0.516      0.000       0.649       2.510      *
+
+ CORRECT    ON
+    BLOCK             -0.087       0.043      0.024      -0.168      -0.001      *
+
+Between Level
+
+ AGENTIC  BY
+    MPS_SPR            0.746       0.060      0.000       0.613       0.845      *
+    EXHIB              0.894       0.049      0.000       0.781       0.975      *
+    ENTITL             0.611       0.103      0.000       0.410       0.818      *
+
+ AFFILIAT BY
+    MPS_SCR            0.866       0.034      0.000       0.791       0.924      *
+    DETACH             0.960       0.026      0.000       0.897       0.996      *
+    P1                 0.395       0.089      0.000       0.211       0.559      *
+
+ ANTAG    BY
+    P5                 0.785       0.060      0.000       0.648       0.882      *
+    P1                 0.468       0.088      0.000       0.285       0.630      *
+    MANIP              0.768       0.058      0.000       0.636       0.863      *
+
+ CONSTRAI BY
+    P2                 0.673       0.099      0.000       0.455       0.841      *
+    P3                 0.675       0.101      0.000       0.458       0.854      *
+    P4                 0.475       0.109      0.000       0.239       0.665      *
+    ENTITL             0.466       0.121      0.000       0.227       0.705      *
+
+ CONDSLO    ON
+    ANTAG              0.398       0.296      0.095      -0.215       0.950
+    CONSTRAINT         0.099       0.208      0.321      -0.323       0.489
+    AGENTIC            0.046       0.311      0.441      -0.570       0.643
+    AFFILIAT          -0.414       0.297      0.090      -0.968       0.201
+
+ PREVSLO    ON
+    ANTAG             -0.574       0.266      0.020      -1.081      -0.031      *
+    CONSTRAINT        -0.216       0.196      0.138      -0.594       0.174
+    AGENTIC            0.592       0.275      0.023       0.010       1.094      *
+    AFFILIAT           0.679       0.265      0.009       0.128       1.172      *
+
+ ERRSLO     ON
+    ANTAG             -1.016       0.290      0.003      -1.580      -0.415      *
+    CONSTRAINT        -0.169       0.255      0.252      -0.684       0.316
+    AGENTIC            1.155       0.330      0.007       0.307       1.664      *
+    AFFILIAT           0.834       0.312      0.013       0.151       1.414      *
+
+ CORRECT    ON
+    ANTAG             -1.114       0.264      0.000      -1.669      -0.611      *
+    CONSTRAINT        -0.282       0.209      0.085      -0.698       0.120
+    AGENTIC            0.486       0.304      0.052      -0.106       1.100
+    AFFILIAT           0.777       0.302      0.004       0.206       1.404      *
+
+ CONDSLO  WITH
+    PREVSLO            0.085       0.181      0.326      -0.278       0.425
+    ERRSLO             0.385       0.255      0.102      -0.235       0.745
+
+ PREVSLO  WITH
+    ERRSLO             0.205       0.245      0.224      -0.323       0.615
+
+ ANTAG    WITH
+    CONSTRAINT        -0.232       0.138      0.054      -0.487       0.051
+    AGENTIC            0.395       0.115      0.001       0.153       0.601      *
+    AFFILIAT           0.366       0.109      0.001       0.139       0.565      *
+
+ CONSTRAI WITH
+    AGENTIC           -0.321       0.133      0.011      -0.565      -0.047      *
+    AFFILIAT           0.257       0.120      0.020       0.011       0.481      *
+
+ AGENTIC  WITH
+    AFFILIAT          -0.429       0.097      0.000      -0.600      -0.222      *
+
+ Intercepts
+    EXHIB              0.016       0.100      0.435      -0.179       0.211
+    ENTITL            -0.004       0.100      0.486      -0.201       0.192
+    DETACH             0.006       0.100      0.475      -0.190       0.202
+    MPS_SPR           -0.002       0.100      0.491      -0.198       0.193
+    MPS_SCR           -0.006       0.100      0.476      -0.201       0.190
+    MANIP              0.020       0.100      0.420      -0.176       0.215
+    P1                 0.018       0.100      0.429      -0.178       0.214
+    P2                -0.005       0.100      0.479      -0.203       0.190
+    P3                 0.011       0.100      0.455      -0.185       0.208
+    P4                 0.006       0.100      0.476      -0.191       0.202
+    P5                 0.008       0.100      0.468      -0.188       0.204
+    CONDSLO           -0.972       0.208      0.000      -1.415      -0.598      *
+    PREVSLO            0.878       0.173      0.000       0.555       1.235      *
+    ERRSLO             1.199       0.250      0.000       0.737       1.716      *
+
+ Variances
+    AGENTIC            1.000       0.000      0.000       1.000       1.000
+    AFFILIAT           1.000       0.000      0.000       1.000       1.000
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    CONSTRAINT         1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    CORRECT            0.323       0.167      0.000       0.047       0.687      *
+    EXHIB              0.200       0.087      0.000       0.050       0.389      *
+    ENTITL             0.580       0.110      0.000       0.363       0.792      *
+    DETACH             0.079       0.049      0.000       0.008       0.195      *
+    MPS_SPR            0.444       0.087      0.000       0.286       0.624      *
+    MPS_SCR            0.249       0.058      0.000       0.146       0.374      *
+    MANIP              0.410       0.087      0.000       0.256       0.596      *
+    P1                 0.485       0.080      0.000       0.342       0.654      *
+    P2                 0.547       0.129      0.000       0.292       0.793      *
+    P3                 0.544       0.133      0.000       0.270       0.790      *
+    P4                 0.774       0.100      0.000       0.558       0.943      *
+    P5                 0.384       0.092      0.000       0.222       0.581      *
+    CONDSLO            0.695       0.128      0.000       0.428       0.916      *
+    PREVSLO            0.684       0.144      0.000       0.387       0.931      *
+    ERRSLO             0.183       0.186      0.000       0.022       0.720      *
+
+
+STD Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ CONDSLO | CORRECT ON
+    COND              -0.517       0.070      0.000      -0.667      -0.376      *
+
+ PREVSLO | CORRECT ON
+    PREV_RT_Z          0.321       0.051      0.000       0.217       0.418      *
+
+ ERRSLO | CORRECT ON
+    PREV_ERROR         1.676       0.666      0.000       0.733       3.155      *
+
+ CORRECT    ON
+    BLOCK             -0.099       0.050      0.024      -0.194      -0.001      *
+
+Between Level
+
+ AGENTIC  BY
+    MPS_SPR            0.784       0.100      0.000       0.596       0.990      *
+    EXHIB              0.945       0.096      0.000       0.760       1.137      *
+    ENTITL             0.648       0.128      0.000       0.416       0.917      *
+
+ AFFILIAT BY
+    MPS_SCR            0.919       0.087      0.000       0.761       1.102      *
+    DETACH             1.023       0.080      0.000       0.874       1.188      *
+    P1                 0.388       0.096      0.000       0.203       0.581      *
+
+ ANTAG    BY
+    P5                 0.776       0.096      0.000       0.592       0.972      *
+    P1                 0.460       0.098      0.000       0.273       0.659      *
+    MANIP              0.803       0.100      0.000       0.615       1.007      *
+
+ CONSTRAI BY
+    P2                 0.640       0.119      0.000       0.409       0.877      *
+    P3                 0.664       0.125      0.000       0.426       0.916      *
+    P4                 0.466       0.123      0.000       0.227       0.712      *
+    ENTITL             0.494       0.138      0.000       0.235       0.779      *
+
+ CONDSLO    ON
+    ANTAG              0.398       0.296      0.095      -0.215       0.950
+    CONSTRAINT         0.099       0.208      0.321      -0.323       0.489
+    AGENTIC            0.046       0.311      0.441      -0.570       0.643
+    AFFILIAT          -0.414       0.297      0.090      -0.968       0.201
+
+ PREVSLO    ON
+    ANTAG             -0.574       0.266      0.020      -1.081      -0.031      *
+    CONSTRAINT        -0.216       0.196      0.138      -0.594       0.174
+    AGENTIC            0.592       0.275      0.023       0.010       1.094      *
+    AFFILIAT           0.679       0.265      0.009       0.128       1.172      *
+
+ ERRSLO     ON
+    ANTAG             -1.016       0.290      0.003      -1.580      -0.415      *
+    CONSTRAINT        -0.169       0.255      0.252      -0.684       0.316
+    AGENTIC            1.155       0.330      0.007       0.307       1.664      *
+    AFFILIAT           0.834       0.312      0.013       0.151       1.414      *
+
+ CORRECT    ON
+    ANTAG             -0.608       0.189      0.000      -1.044      -0.297      *
+    CONSTRAINT        -0.153       0.120      0.085      -0.411       0.064
+    AGENTIC            0.264       0.181      0.052      -0.055       0.662
+    AFFILIAT           0.422       0.192      0.004       0.104       0.861      *
+
+ CONDSLO  WITH
+    PREVSLO            0.085       0.181      0.326      -0.278       0.425
+    ERRSLO             0.385       0.255      0.102      -0.235       0.745
+
+ PREVSLO  WITH
+    ERRSLO             0.205       0.245      0.224      -0.323       0.615
+
+ ANTAG    WITH
+    CONSTRAINT        -0.232       0.138      0.054      -0.487       0.051
+    AGENTIC            0.395       0.115      0.001       0.153       0.601      *
+    AFFILIAT           0.366       0.109      0.001       0.139       0.565      *
+
+ CONSTRAI WITH
+    AGENTIC           -0.321       0.133      0.011      -0.565      -0.047      *
+    AFFILIAT           0.257       0.120      0.020       0.011       0.481      *
+
+ AGENTIC  WITH
+    AFFILIAT          -0.429       0.097      0.000      -0.600      -0.222      *
+
+ Intercepts
+    EXHIB              0.017       0.106      0.435      -0.191       0.225
+    ENTITL            -0.004       0.107      0.486      -0.215       0.205
+    DETACH             0.007       0.107      0.475      -0.204       0.217
+    MPS_SPR           -0.002       0.106      0.491      -0.211       0.206
+    MPS_SCR           -0.006       0.107      0.476      -0.215       0.204
+    MANIP              0.021       0.105      0.420      -0.187       0.228
+    P1                 0.017       0.099      0.429      -0.178       0.213
+    P2                -0.005       0.096      0.479      -0.195       0.184
+    P3                 0.011       0.099      0.455      -0.185       0.206
+    P4                 0.006       0.099      0.476      -0.190       0.201
+    P5                 0.008       0.100      0.468      -0.188       0.204
+    CONDSLO           -0.972       0.208      0.000      -1.415      -0.598      *
+    PREVSLO            0.878       0.173      0.000       0.555       1.235      *
+    ERRSLO             1.199       0.250      0.000       0.737       1.716      *
+
+ Variances
+    AGENTIC            1.000       0.000      0.000       1.000       1.000
+    AFFILIAT           1.000       0.000      0.000       1.000       1.000
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    CONSTRAINT         1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    CORRECT            0.094       0.050      0.000       0.016       0.210      *
+    EXHIB              0.225       0.092      0.000       0.059       0.422      *
+    ENTITL             0.646       0.131      0.000       0.421       0.937      *
+    DETACH             0.091       0.054      0.000       0.009       0.215      *
+    MPS_SPR            0.491       0.096      0.000       0.328       0.705      *
+    MPS_SCR            0.281       0.060      0.000       0.174       0.410      *
+    MANIP              0.448       0.094      0.000       0.293       0.660      *
+    P1                 0.470       0.081      0.000       0.339       0.656      *
+    P2                 0.494       0.120      0.000       0.277       0.750      *
+    P3                 0.522       0.132      0.000       0.272       0.796      *
+    P4                 0.742       0.128      0.000       0.533       1.034      *
+    P5                 0.376       0.087      0.000       0.228       0.570      *
+    CONDSLO            0.695       0.128      0.000       0.428       0.916      *
+    PREVSLO            0.684       0.144      0.000       0.387       0.931      *
+    ERRSLO             0.183       0.186      0.000       0.022       0.720      *
+
+
+R-SQUARE
+
+Within-Level R-Square Averaged Across Clusters
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    CORRECT            0.206       0.038      0.000       0.154       0.289
+
+Between Level
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    CORRECT            0.677       0.167      0.000       0.313       0.953
+    EXHIB              0.800       0.087      0.000       0.611       0.950
+    ENTITL             0.420       0.110      0.000       0.208       0.637
+    DETACH             0.921       0.049      0.000       0.805       0.992
+    MPS_SPR            0.556       0.087      0.000       0.376       0.714
+    MPS_SCR            0.751       0.058      0.000       0.626       0.854
+    MANIP              0.590       0.087      0.000       0.404       0.744
+    P1                 0.515       0.080      0.000       0.346       0.658
+    P2                 0.453       0.129      0.000       0.207       0.708
+    P3                 0.456       0.133      0.000       0.210       0.730
+    P4                 0.226       0.100      0.000       0.057       0.442
+    P5                 0.616       0.092      0.000       0.419       0.778
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    CONDSLO            0.305       0.128      0.000       0.084       0.572
+    PREVSLO            0.316       0.144      0.000       0.069       0.613
+    ERRSLO             0.817       0.186      0.000       0.280       0.978
+
+
+CREDIBILITY INTERVALS OF MODEL RESULTS
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    BLOCK           -0.230      -0.198      -0.182      -0.097      -0.011       0.005       0.036
+
+ Thresholds
+    CORRECT$1       -2.863      -2.796      -2.763      -2.599      -2.453      -2.425      -2.370
+
+Between Level
+
+ AGENTIC  BY
+    MPS_SPR          0.538       0.596       0.626       0.784       0.954       0.990       1.060
+    EXHIB            0.701       0.760       0.790       0.945       1.105       1.137       1.202
+    ENTITL           0.344       0.416       0.452       0.648       0.869       0.917       1.018
+
+ AFFILIAT BY
+    MPS_SCR          0.715       0.761       0.785       0.919       1.070       1.102       1.167
+    DETACH           0.828       0.874       0.898       1.023       1.161       1.188       1.246
+    P1               0.143       0.203       0.233       0.388       0.549       0.581       0.648
+
+ ANTAG    BY
+    P5               0.535       0.592       0.622       0.776       0.939       0.972       1.040
+    P1               0.213       0.273       0.303       0.460       0.625       0.659       0.726
+    MANIP            0.557       0.615       0.645       0.803       0.973       1.007       1.076
+
+ CONSTRAI BY
+    P2               0.336       0.409       0.446       0.640       0.838       0.877       0.957
+    P3               0.349       0.426       0.464       0.664       0.874       0.916       0.998
+    P4               0.149       0.227       0.266       0.466       0.670       0.712       0.794
+    ENTITL           0.152       0.235       0.276       0.494       0.729       0.779       0.882
+
+ CONDSLO  ON
+    ANTAG           -0.226      -0.110      -0.056       0.211       0.514       0.583       0.727
+    CONSTRAINT      -0.241      -0.168      -0.132       0.053       0.249       0.289       0.370
+    AGENTIC         -0.473      -0.336      -0.270       0.025       0.293       0.348       0.461
+    AFFILIAT        -0.737      -0.596      -0.527      -0.219       0.049       0.103       0.214
+
+ PREVSLO  ON
+    ANTAG           -0.550      -0.458      -0.413      -0.212      -0.043      -0.011       0.054
+    CONSTRAINT      -0.296      -0.238      -0.210      -0.079       0.040       0.064       0.112
+    AGENTIC         -0.066       0.003       0.038       0.218       0.417       0.460       0.551
+    AFFILIAT        -0.022       0.043       0.076       0.251       0.456       0.500       0.593
+
+ ERRSLO   ON
+    ANTAG           -6.784      -4.724      -3.794      -1.523      -0.548      -0.402      -0.110
+    CONSTRAINT      -2.395      -1.397      -1.085      -0.246       0.373       0.516       0.854
+    AGENTIC         -0.094       0.309       0.517       1.718       4.092       5.046       7.157
+    AFFILIAT        -0.201       0.155       0.320       1.264       3.098       3.781       5.439
+
+ CORRECT  ON
+    ANTAG           -1.216      -1.044      -0.959      -0.608      -0.345      -0.297      -0.202
+    CONSTRAINT      -0.507      -0.411      -0.362      -0.153       0.030       0.064       0.132
+    AGENTIC         -0.156      -0.055      -0.004       0.264       0.590       0.662       0.818
+    AFFILIAT         0.008       0.104       0.153       0.422       0.778       0.861       1.031
+
+ CONDSLO  WITH
+    PREVSLO         -0.055      -0.038      -0.029       0.011       0.056       0.067       0.089
+    ERRSLO          -0.108      -0.053      -0.028       0.101       0.301       0.357       0.492
+
+ PREVSLO  WITH
+    ERRSLO          -0.107      -0.062      -0.044       0.036       0.153       0.186       0.263
+
+ ANTAG    WITH
+    CONSTRAINT      -0.558      -0.487      -0.449      -0.232       0.005       0.051       0.138
+    AGENTIC          0.073       0.153       0.195       0.395       0.571       0.601       0.656
+    AFFILIAT         0.062       0.139       0.177       0.366       0.536       0.565       0.619
+
+ CONSTRAI WITH
+    AGENTIC         -0.635      -0.565      -0.529      -0.321      -0.092      -0.047       0.042
+    AFFILIAT        -0.067       0.011       0.052       0.257       0.448       0.481       0.546
+
+ AGENTIC  WITH
+    AFFILIAT        -0.646      -0.600      -0.575      -0.429      -0.258      -0.222      -0.150
+
+ Intercepts
+    EXHIB           -0.260      -0.191      -0.157       0.017       0.191       0.225       0.295
+    ENTITL          -0.284      -0.215      -0.180      -0.004       0.171       0.205       0.272
+    DETACH          -0.270      -0.204      -0.171       0.007       0.182       0.217       0.285
+    MPS_SPR         -0.281      -0.211      -0.177      -0.002       0.172       0.206       0.275
+    MPS_SCR         -0.280      -0.215      -0.182      -0.006       0.169       0.204       0.272
+    MANIP           -0.256      -0.187      -0.153       0.021       0.194       0.228       0.294
+    P1              -0.240      -0.178      -0.145       0.017       0.181       0.213       0.277
+    P2              -0.256      -0.195      -0.164      -0.005       0.152       0.184       0.245
+    P3              -0.249      -0.185      -0.152       0.011       0.175       0.206       0.269
+    P4              -0.254      -0.190      -0.157       0.006       0.168       0.201       0.263
+    P5              -0.250      -0.188      -0.156       0.008       0.172       0.204       0.268
+    CONDSLO         -0.765      -0.704      -0.674      -0.522      -0.375      -0.347      -0.290
+    PREVSLO          0.175       0.210       0.228       0.326       0.432       0.454       0.498
+    ERRSLO           0.602       0.794       0.902       1.783       3.904       4.815       6.984
+
+ Thresholds
+    CORRECT$1       -2.863      -2.796      -2.763      -2.599      -2.453      -2.425      -2.370
+
+ Variances
+    AGENTIC          1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    AFFILIAT         1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    ANTAG            1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    CONSTRAINT       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    CORRECT          0.004       0.016       0.026       0.094       0.187       0.210       0.261
+    EXHIB            0.018       0.059       0.083       0.225       0.387       0.422       0.498
+    ENTITL           0.347       0.421       0.456       0.646       0.884       0.937       1.052
+    DETACH           0.001       0.009       0.016       0.091       0.193       0.215       0.261
+    MPS_SPR          0.281       0.328       0.352       0.491       0.666       0.705       0.791
+    MPS_SCR          0.141       0.174       0.191       0.281       0.386       0.410       0.459
+    MANIP            0.250       0.293       0.315       0.448       0.621       0.660       0.746
+    P1               0.306       0.339       0.358       0.470       0.622       0.656       0.732
+    P2               0.205       0.277       0.313       0.494       0.704       0.750       0.846
+    P3               0.179       0.272       0.316       0.522       0.748       0.796       0.902
+    P4               0.476       0.533       0.563       0.742       0.980       1.034       1.148
+    P5               0.185       0.228       0.250       0.376       0.534       0.570       0.646
+    CONDSLO          0.096       0.115       0.125       0.196       0.301       0.326       0.383
+    PREVSLO          0.045       0.053       0.058       0.091       0.143       0.156       0.185
+    ERRSLO           0.084       0.116       0.137       0.388       1.216       1.533       2.447
+
+
+CREDIBILITY INTERVALS OF STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    BLOCK            0.000      -0.084       0.000      -0.044       0.000      -0.001       0.000
+
+Between Level
+
+ AGENTIC  BY
+    MPS_SPR          0.562       0.613       0.636       0.746       0.831       0.845       0.871
+    EXHIB            0.736       0.781       0.802       0.894       0.964       0.975       0.992
+    ENTITL           0.342       0.410       0.444       0.611       0.780       0.818       0.903
+
+ AFFILIAT BY
+    MPS_SCR          0.763       0.791       0.805       0.866       0.916       0.924       0.940
+    DETACH           0.872       0.897       0.909       0.960       0.993       0.996       0.999
+    P1               0.149       0.211       0.241       0.395       0.534       0.559       0.605
+
+ ANTAG    BY
+    P5               0.594       0.648       0.673       0.785       0.869       0.882       0.908
+    P1               0.223       0.285       0.315       0.468       0.605       0.630       0.675
+    MANIP            0.584       0.636       0.660       0.768       0.850       0.863       0.886
+
+ CONSTRAI BY
+    P2               0.375       0.455       0.493       0.673       0.816       0.841       0.888
+    P3               0.378       0.458       0.497       0.675       0.827       0.854       0.909
+    P4               0.157       0.239       0.279       0.475       0.638       0.665       0.716
+    ENTITL           0.147       0.227       0.267       0.466       0.664       0.705       0.794
+
+ CONDSLO  ON
+    ANTAG           -0.434      -0.215      -0.109       0.398       0.861       0.950       1.128
+    CONSTRAINT      -0.452      -0.323      -0.255       0.099       0.431       0.489       0.602
+    AGENTIC         -0.766      -0.570      -0.470       0.046       0.551       0.643       0.828
+    AFFILIAT        -1.138      -0.968      -0.879      -0.414       0.098       0.201       0.408
+
+ PREVSLO  ON
+    ANTAG           -1.250      -1.081      -0.997      -0.574      -0.124      -0.031       0.158
+    CONSTRAINT      -0.710      -0.594      -0.534      -0.216       0.110       0.174       0.298
+    AGENTIC         -0.188       0.010       0.110       0.592       1.015       1.094       1.257
+    AFFILIAT        -0.065       0.128       0.223       0.679       1.091       1.172       1.338
+
+ ERRSLO   ON
+    ANTAG           -1.787      -1.580      -1.482      -1.016      -0.538      -0.415      -0.119
+    CONSTRAINT      -0.847      -0.684      -0.602      -0.169       0.237       0.316       0.460
+    AGENTIC         -0.089       0.307       0.503       1.155       1.575       1.664       1.856
+    AFFILIAT        -0.196       0.151       0.299       0.834       1.312       1.414       1.626
+
+ CORRECT  ON
+    ANTAG           -1.885      -1.669      -1.566      -1.114      -0.703      -0.611      -0.417
+    CONSTRAINT      -0.848      -0.698      -0.628      -0.282       0.055       0.120       0.246
+    AGENTIC         -0.298      -0.106      -0.007       0.486       0.994       1.100       1.314
+    AFFILIAT         0.016       0.206       0.302       0.777       1.293       1.404       1.631
+
+ CONDSLO  WITH
+    PREVSLO         -0.379      -0.278      -0.222       0.085       0.376       0.425       0.515
+    ERRSLO          -0.434      -0.235      -0.128       0.385       0.705       0.745       0.810
+
+ PREVSLO  WITH
+    ERRSLO          -0.465      -0.323      -0.243       0.205       0.565       0.615       0.698
+
+ ANTAG    WITH
+    CONSTRAINT      -0.558      -0.487      -0.449      -0.232       0.005       0.051       0.138
+    AGENTIC          0.073       0.153       0.195       0.395       0.571       0.601       0.656
+    AFFILIAT         0.062       0.139       0.177       0.366       0.536       0.565       0.619
+
+ CONSTRAI WITH
+    AGENTIC         -0.635      -0.565      -0.529      -0.321      -0.092      -0.047       0.042
+    AFFILIAT        -0.067       0.011       0.052       0.257       0.448       0.481       0.546
+
+ AGENTIC  WITH
+    AFFILIAT        -0.646      -0.600      -0.575      -0.429      -0.258      -0.222      -0.150
+
+ Intercepts
+    EXHIB           -0.242      -0.179      -0.148       0.016       0.180       0.211       0.274
+    ENTITL          -0.264      -0.201      -0.168      -0.004       0.161       0.192       0.253
+    DETACH          -0.249      -0.190      -0.159       0.006       0.170       0.202       0.263
+    MPS_SPR         -0.261      -0.198      -0.167      -0.002       0.162       0.193       0.256
+    MPS_SCR         -0.261      -0.201      -0.170      -0.006       0.159       0.190       0.253
+    MANIP           -0.238      -0.176      -0.144       0.020       0.184       0.215       0.277
+    P1              -0.239      -0.178      -0.147       0.018       0.182       0.214       0.277
+    P2              -0.263      -0.203      -0.171      -0.005       0.158       0.190       0.253
+    P3              -0.248      -0.185      -0.153       0.011       0.176       0.208       0.270
+    P4              -0.252      -0.191      -0.159       0.006       0.170       0.202       0.263
+    P5              -0.249      -0.188      -0.156       0.008       0.172       0.204       0.266
+    CONDSLO         -1.570      -1.415      -1.338      -0.972      -0.655      -0.598      -0.487
+    PREVSLO          0.459       0.555       0.604       0.878       1.174       1.235       1.358
+    ERRSLO           0.595       0.737       0.807       1.199       1.628       1.716       1.889
+
+ Variances
+    AGENTIC          1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    AFFILIAT         1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    ANTAG            1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    CONSTRAINT       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    CORRECT          0.012       0.047       0.078       0.323       0.630       0.687       0.787
+    EXHIB            0.016       0.050       0.072       0.200       0.357       0.389       0.458
+    ENTITL           0.295       0.363       0.398       0.580       0.760       0.792       0.849
+    DETACH           0.001       0.008       0.014       0.079       0.173       0.195       0.240
+    MPS_SPR          0.241       0.286       0.310       0.444       0.595       0.624       0.684
+    MPS_SCR          0.117       0.146       0.161       0.249       0.352       0.374       0.418
+    MANIP            0.214       0.256       0.278       0.410       0.565       0.596       0.658
+    P1               0.304       0.342       0.363       0.485       0.626       0.654       0.710
+    P2               0.212       0.292       0.333       0.547       0.757       0.793       0.859
+    P3               0.173       0.270       0.316       0.544       0.753       0.790       0.857
+    P4               0.488       0.558       0.593       0.774       0.922       0.943       0.975
+    P5               0.176       0.222       0.245       0.384       0.547       0.581       0.647
+    CONDSLO          0.353       0.428       0.469       0.695       0.889       0.916       0.957
+    PREVSLO          0.311       0.387       0.430       0.684       0.903       0.931       0.968
+    ERRSLO           0.010       0.022       0.032       0.183       0.628       0.720       0.857
+
+
+STDY Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    BLOCK            0.000      -0.168       0.000      -0.087       0.000      -0.001       0.000
+
+Between Level
+
+ AGENTIC  BY
+    MPS_SPR          0.562       0.613       0.636       0.746       0.831       0.845       0.871
+    EXHIB            0.736       0.781       0.802       0.894       0.964       0.975       0.992
+    ENTITL           0.342       0.410       0.444       0.611       0.780       0.818       0.903
+
+ AFFILIAT BY
+    MPS_SCR          0.763       0.791       0.805       0.866       0.916       0.924       0.940
+    DETACH           0.872       0.897       0.909       0.960       0.993       0.996       0.999
+    P1               0.149       0.211       0.241       0.395       0.534       0.559       0.605
+
+ ANTAG    BY
+    P5               0.594       0.648       0.673       0.785       0.869       0.882       0.908
+    P1               0.223       0.285       0.315       0.468       0.605       0.630       0.675
+    MANIP            0.584       0.636       0.660       0.768       0.850       0.863       0.886
+
+ CONSTRAI BY
+    P2               0.375       0.455       0.493       0.673       0.816       0.841       0.888
+    P3               0.378       0.458       0.497       0.675       0.827       0.854       0.909
+    P4               0.157       0.239       0.279       0.475       0.638       0.665       0.716
+    ENTITL           0.147       0.227       0.267       0.466       0.664       0.705       0.794
+
+ CONDSLO  ON
+    ANTAG           -0.434      -0.215      -0.109       0.398       0.861       0.950       1.128
+    CONSTRAINT      -0.452      -0.323      -0.255       0.099       0.431       0.489       0.602
+    AGENTIC         -0.766      -0.570      -0.470       0.046       0.551       0.643       0.828
+    AFFILIAT        -1.138      -0.968      -0.879      -0.414       0.098       0.201       0.408
+
+ PREVSLO  ON
+    ANTAG           -1.250      -1.081      -0.997      -0.574      -0.124      -0.031       0.158
+    CONSTRAINT      -0.710      -0.594      -0.534      -0.216       0.110       0.174       0.298
+    AGENTIC         -0.188       0.010       0.110       0.592       1.015       1.094       1.257
+    AFFILIAT        -0.065       0.128       0.223       0.679       1.091       1.172       1.338
+
+ ERRSLO   ON
+    ANTAG           -1.787      -1.580      -1.482      -1.016      -0.538      -0.415      -0.119
+    CONSTRAINT      -0.847      -0.684      -0.602      -0.169       0.237       0.316       0.460
+    AGENTIC         -0.089       0.307       0.503       1.155       1.575       1.664       1.856
+    AFFILIAT        -0.196       0.151       0.299       0.834       1.312       1.414       1.626
+
+ CORRECT  ON
+    ANTAG           -1.885      -1.669      -1.566      -1.114      -0.703      -0.611      -0.417
+    CONSTRAINT      -0.848      -0.698      -0.628      -0.282       0.055       0.120       0.246
+    AGENTIC         -0.298      -0.106      -0.007       0.486       0.994       1.100       1.314
+    AFFILIAT         0.016       0.206       0.302       0.777       1.293       1.404       1.631
+
+ CONDSLO  WITH
+    PREVSLO         -0.379      -0.278      -0.222       0.085       0.376       0.425       0.515
+    ERRSLO          -0.434      -0.235      -0.128       0.385       0.705       0.745       0.810
+
+ PREVSLO  WITH
+    ERRSLO          -0.465      -0.323      -0.243       0.205       0.565       0.615       0.698
+
+ ANTAG    WITH
+    CONSTRAINT      -0.558      -0.487      -0.449      -0.232       0.005       0.051       0.138
+    AGENTIC          0.073       0.153       0.195       0.395       0.571       0.601       0.656
+    AFFILIAT         0.062       0.139       0.177       0.366       0.536       0.565       0.619
+
+ CONSTRAI WITH
+    AGENTIC         -0.635      -0.565      -0.529      -0.321      -0.092      -0.047       0.042
+    AFFILIAT        -0.067       0.011       0.052       0.257       0.448       0.481       0.546
+
+ AGENTIC  WITH
+    AFFILIAT        -0.646      -0.600      -0.575      -0.429      -0.258      -0.222      -0.150
+
+ Intercepts
+    EXHIB           -0.242      -0.179      -0.148       0.016       0.180       0.211       0.274
+    ENTITL          -0.264      -0.201      -0.168      -0.004       0.161       0.192       0.253
+    DETACH          -0.249      -0.190      -0.159       0.006       0.170       0.202       0.263
+    MPS_SPR         -0.261      -0.198      -0.167      -0.002       0.162       0.193       0.256
+    MPS_SCR         -0.261      -0.201      -0.170      -0.006       0.159       0.190       0.253
+    MANIP           -0.238      -0.176      -0.144       0.020       0.184       0.215       0.277
+    P1              -0.239      -0.178      -0.147       0.018       0.182       0.214       0.277
+    P2              -0.263      -0.203      -0.171      -0.005       0.158       0.190       0.253
+    P3              -0.248      -0.185      -0.153       0.011       0.176       0.208       0.270
+    P4              -0.252      -0.191      -0.159       0.006       0.170       0.202       0.263
+    P5              -0.249      -0.188      -0.156       0.008       0.172       0.204       0.266
+    CONDSLO         -1.570      -1.415      -1.338      -0.972      -0.655      -0.598      -0.487
+    PREVSLO          0.459       0.555       0.604       0.878       1.174       1.235       1.358
+    ERRSLO           0.595       0.737       0.807       1.199       1.628       1.716       1.889
+
+ Variances
+    AGENTIC          1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    AFFILIAT         1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    ANTAG            1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    CONSTRAINT       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    CORRECT          0.012       0.047       0.078       0.323       0.630       0.687       0.787
+    EXHIB            0.016       0.050       0.072       0.200       0.357       0.389       0.458
+    ENTITL           0.295       0.363       0.398       0.580       0.760       0.792       0.849
+    DETACH           0.001       0.008       0.014       0.079       0.173       0.195       0.240
+    MPS_SPR          0.241       0.286       0.310       0.444       0.595       0.624       0.684
+    MPS_SCR          0.117       0.146       0.161       0.249       0.352       0.374       0.418
+    MANIP            0.214       0.256       0.278       0.410       0.565       0.596       0.658
+    P1               0.304       0.342       0.363       0.485       0.626       0.654       0.710
+    P2               0.212       0.292       0.333       0.547       0.757       0.793       0.859
+    P3               0.173       0.270       0.316       0.544       0.753       0.790       0.857
+    P4               0.488       0.558       0.593       0.774       0.922       0.943       0.975
+    P5               0.176       0.222       0.245       0.384       0.547       0.581       0.647
+    CONDSLO          0.353       0.428       0.469       0.695       0.889       0.916       0.957
+    PREVSLO          0.311       0.387       0.430       0.684       0.903       0.931       0.968
+    ERRSLO           0.010       0.022       0.032       0.183       0.628       0.720       0.857
+
+
+STD Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    BLOCK            0.000      -0.194       0.000      -0.099       0.000      -0.001       0.000
+
+Between Level
+
+ AGENTIC  BY
+    MPS_SPR          0.538       0.596       0.626       0.784       0.954       0.990       1.060
+    EXHIB            0.701       0.760       0.790       0.945       1.105       1.137       1.202
+    ENTITL           0.344       0.416       0.452       0.648       0.869       0.917       1.018
+
+ AFFILIAT BY
+    MPS_SCR          0.715       0.761       0.785       0.919       1.070       1.102       1.167
+    DETACH           0.828       0.874       0.898       1.023       1.161       1.188       1.246
+    P1               0.143       0.203       0.233       0.388       0.549       0.581       0.648
+
+ ANTAG    BY
+    P5               0.535       0.592       0.622       0.776       0.939       0.972       1.040
+    P1               0.213       0.273       0.303       0.460       0.625       0.659       0.726
+    MANIP            0.557       0.615       0.645       0.803       0.973       1.007       1.076
+
+ CONSTRAI BY
+    P2               0.336       0.409       0.446       0.640       0.838       0.877       0.957
+    P3               0.349       0.426       0.464       0.664       0.874       0.916       0.998
+    P4               0.149       0.227       0.266       0.466       0.670       0.712       0.794
+    ENTITL           0.152       0.235       0.276       0.494       0.729       0.779       0.882
+
+ CONDSLO  ON
+    ANTAG           -0.434      -0.215      -0.109       0.398       0.861       0.950       1.128
+    CONSTRAINT      -0.452      -0.323      -0.255       0.099       0.431       0.489       0.602
+    AGENTIC         -0.766      -0.570      -0.470       0.046       0.551       0.643       0.828
+    AFFILIAT        -1.138      -0.968      -0.879      -0.414       0.098       0.201       0.408
+
+ PREVSLO  ON
+    ANTAG           -1.250      -1.081      -0.997      -0.574      -0.124      -0.031       0.158
+    CONSTRAINT      -0.710      -0.594      -0.534      -0.216       0.110       0.174       0.298
+    AGENTIC         -0.188       0.010       0.110       0.592       1.015       1.094       1.257
+    AFFILIAT        -0.065       0.128       0.223       0.679       1.091       1.172       1.338
+
+ ERRSLO   ON
+    ANTAG           -1.787      -1.580      -1.482      -1.016      -0.538      -0.415      -0.119
+    CONSTRAINT      -0.847      -0.684      -0.602      -0.169       0.237       0.316       0.460
+    AGENTIC         -0.089       0.307       0.503       1.155       1.575       1.664       1.856
+    AFFILIAT        -0.196       0.151       0.299       0.834       1.312       1.414       1.626
+
+ CORRECT  ON
+    ANTAG           -1.216      -1.044      -0.959      -0.608      -0.345      -0.297      -0.202
+    CONSTRAINT      -0.507      -0.411      -0.362      -0.153       0.030       0.064       0.132
+    AGENTIC         -0.156      -0.055      -0.004       0.264       0.590       0.662       0.818
+    AFFILIAT         0.008       0.104       0.153       0.422       0.778       0.861       1.031
+
+ CONDSLO  WITH
+    PREVSLO         -0.379      -0.278      -0.222       0.085       0.376       0.425       0.515
+    ERRSLO          -0.434      -0.235      -0.128       0.385       0.705       0.745       0.810
+
+ PREVSLO  WITH
+    ERRSLO          -0.465      -0.323      -0.243       0.205       0.565       0.615       0.698
+
+ ANTAG    WITH
+    CONSTRAINT      -0.558      -0.487      -0.449      -0.232       0.005       0.051       0.138
+    AGENTIC          0.073       0.153       0.195       0.395       0.571       0.601       0.656
+    AFFILIAT         0.062       0.139       0.177       0.366       0.536       0.565       0.619
+
+ CONSTRAI WITH
+    AGENTIC         -0.635      -0.565      -0.529      -0.321      -0.092      -0.047       0.042
+    AFFILIAT        -0.067       0.011       0.052       0.257       0.448       0.481       0.546
+
+ AGENTIC  WITH
+    AFFILIAT        -0.646      -0.600      -0.575      -0.429      -0.258      -0.222      -0.150
+
+ Intercepts
+    EXHIB           -0.260      -0.191      -0.157       0.017       0.191       0.225       0.295
+    ENTITL          -0.284      -0.215      -0.180      -0.004       0.171       0.205       0.272
+    DETACH          -0.270      -0.204      -0.171       0.007       0.182       0.217       0.285
+    MPS_SPR         -0.281      -0.211      -0.177      -0.002       0.172       0.206       0.275
+    MPS_SCR         -0.280      -0.215      -0.182      -0.006       0.169       0.204       0.272
+    MANIP           -0.256      -0.187      -0.153       0.021       0.194       0.228       0.294
+    P1              -0.240      -0.178      -0.145       0.017       0.181       0.213       0.277
+    P2              -0.256      -0.195      -0.164      -0.005       0.152       0.184       0.245
+    P3              -0.249      -0.185      -0.152       0.011       0.175       0.206       0.269
+    P4              -0.254      -0.190      -0.157       0.006       0.168       0.201       0.263
+    P5              -0.250      -0.188      -0.156       0.008       0.172       0.204       0.268
+    CONDSLO         -1.570      -1.415      -1.338      -0.972      -0.655      -0.598      -0.487
+    PREVSLO          0.459       0.555       0.604       0.878       1.174       1.235       1.358
+    ERRSLO           0.595       0.737       0.807       1.199       1.628       1.716       1.889
+
+ Variances
+    AGENTIC          1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    AFFILIAT         1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    ANTAG            1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    CONSTRAINT       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    CORRECT          0.004       0.016       0.026       0.094       0.187       0.210       0.261
+    EXHIB            0.018       0.059       0.083       0.225       0.387       0.422       0.498
+    ENTITL           0.347       0.421       0.456       0.646       0.884       0.937       1.052
+    DETACH           0.001       0.009       0.016       0.091       0.193       0.215       0.261
+    MPS_SPR          0.281       0.328       0.352       0.491       0.666       0.705       0.791
+    MPS_SCR          0.141       0.174       0.191       0.281       0.386       0.410       0.459
+    MANIP            0.250       0.293       0.315       0.448       0.621       0.660       0.746
+    P1               0.306       0.339       0.358       0.470       0.622       0.656       0.732
+    P2               0.205       0.277       0.313       0.494       0.704       0.750       0.846
+    P3               0.179       0.272       0.316       0.522       0.748       0.796       0.902
+    P4               0.476       0.533       0.563       0.742       0.980       1.034       1.148
+    P5               0.185       0.228       0.250       0.376       0.534       0.570       0.646
+    CONDSLO          0.353       0.428       0.469       0.695       0.889       0.916       0.957
+    PREVSLO          0.311       0.387       0.430       0.684       0.903       0.931       0.968
+    ERRSLO           0.010       0.022       0.032       0.183       0.628       0.720       0.857
+
+
+TECHNICAL 1 OUTPUT
+
+
+     PARAMETER SPECIFICATION FOR WITHIN
+
+
+           TAU
+              CORRECT$
+              ________
+                    0
+
+
+           NU
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           LAMBDA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT            0             0             0             0             0
+ COND               0             0             0             0             0
+ BLOCK              0             0             0             0             0
+ PREV_RT_           0             0             0             0             0
+ PREV_ERR           0             0             0             0             0
+
+
+           THETA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT            0
+ COND               0             0
+ BLOCK              0             0             0
+ PREV_RT_           0             0             0             0
+ PREV_ERR           0             0             0             0             0
+
+
+           ALPHA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           BETA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT            0             0             1             0             0
+ COND               0             0             0             0             0
+ BLOCK              0             0             0             0             0
+ PREV_RT_           0             0             0             0             0
+ PREV_ERR           0             0             0             0             0
+
+
+           PSI
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT            0
+ COND               0             0
+ BLOCK              0             0             0
+ PREV_RT_           0             0             0             0
+ PREV_ERR           0             0             0             0             0
+
+
+     PARAMETER SPECIFICATION FOR BETWEEN
+
+
+           TAU
+              CORRECT$
+              ________
+                   69
+
+
+           NU
+              CORRECT       EXHIB         ENTITL        DETACH        MPS_SPR
+              ________      ________      ________      ________      ________
+                    0             2             3             4             5
+
+
+           NU
+              MPS_SCR       MANIP         P1            P2            P3
+              ________      ________      ________      ________      ________
+                    6             7             8             9            10
+
+
+           NU
+              P4            P5
+              ________      ________
+                   11            12
+
+
+           LAMBDA
+              AGENTIC       AFFILIAT      ANTAG         CONSTRAI      CONDSLO
+              ________      ________      ________      ________      ________
+ CORRECT            0             0             0             0             0
+ EXHIB             13             0             0             0             0
+ ENTITL            14             0             0            15             0
+ DETACH             0            16             0             0             0
+ MPS_SPR           17             0             0             0             0
+ MPS_SCR            0            18             0             0             0
+ MANIP              0             0            19             0             0
+ P1                 0            20            21             0             0
+ P2                 0             0             0            22             0
+ P3                 0             0             0            23             0
+ P4                 0             0             0            24             0
+ P5                 0             0            25             0             0
+
+
+           LAMBDA
+              PREVSLO       ERRSLO        CORRECT
+              ________      ________      ________
+ CORRECT            0             0             0
+ EXHIB              0             0             0
+ ENTITL             0             0             0
+ DETACH             0             0             0
+ MPS_SPR            0             0             0
+ MPS_SCR            0             0             0
+ MANIP              0             0             0
+ P1                 0             0             0
+ P2                 0             0             0
+ P3                 0             0             0
+ P4                 0             0             0
+ P5                 0             0             0
+
+
+           THETA
+              CORRECT       EXHIB         ENTITL        DETACH        MPS_SPR
+              ________      ________      ________      ________      ________
+ CORRECT            0
+ EXHIB              0            26
+ ENTITL             0             0            27
+ DETACH             0             0             0            28
+ MPS_SPR            0             0             0             0            29
+ MPS_SCR            0             0             0             0             0
+ MANIP              0             0             0             0             0
+ P1                 0             0             0             0             0
+ P2                 0             0             0             0             0
+ P3                 0             0             0             0             0
+ P4                 0             0             0             0             0
+ P5                 0             0             0             0             0
+
+
+           THETA
+              MPS_SCR       MANIP         P1            P2            P3
+              ________      ________      ________      ________      ________
+ MPS_SCR           30
+ MANIP              0            31
+ P1                 0             0            32
+ P2                 0             0             0            33
+ P3                 0             0             0             0            34
+ P4                 0             0             0             0             0
+ P5                 0             0             0             0             0
+
+
+           THETA
+              P4            P5
+              ________      ________
+ P4                35
+ P5                 0            36
+
+
+           ALPHA
+              AGENTIC       AFFILIAT      ANTAG         CONSTRAI      CONDSLO
+              ________      ________      ________      ________      ________
+                    0             0             0             0            37
+
+
+           ALPHA
+              PREVSLO       ERRSLO        CORRECT
+              ________      ________      ________
+                   38            39             0
+
+
+           BETA
+              AGENTIC       AFFILIAT      ANTAG         CONSTRAI      CONDSLO
+              ________      ________      ________      ________      ________
+ AGENTIC            0             0             0             0             0
+ AFFILIAT           0             0             0             0             0
+ ANTAG              0             0             0             0             0
+ CONSTRAI           0             0             0             0             0
+ CONDSLO           40            41            42            43             0
+ PREVSLO           44            45            46            47             0
+ ERRSLO            48            49            50            51             0
+ CORRECT           52            53            54            55             0
+
+
+           BETA
+              PREVSLO       ERRSLO        CORRECT
+              ________      ________      ________
+ AGENTIC            0             0             0
+ AFFILIAT           0             0             0
+ ANTAG              0             0             0
+ CONSTRAI           0             0             0
+ CONDSLO            0             0             0
+ PREVSLO            0             0             0
+ ERRSLO             0             0             0
+ CORRECT            0             0             0
+
+
+           PSI
+              AGENTIC       AFFILIAT      ANTAG         CONSTRAI      CONDSLO
+              ________      ________      ________      ________      ________
+ AGENTIC            0
+ AFFILIAT          56             0
+ ANTAG             57            58             0
+ CONSTRAI          59            60            61             0
+ CONDSLO            0             0             0             0            62
+ PREVSLO            0             0             0             0            63
+ ERRSLO             0             0             0             0            65
+ CORRECT            0             0             0             0             0
+
+
+           PSI
+              PREVSLO       ERRSLO        CORRECT
+              ________      ________      ________
+ PREVSLO           64
+ ERRSLO            66            67
+ CORRECT            0             0            68
+
+
+     STARTING VALUES FOR WITHIN
+
+
+           TAU
+              CORRECT$
+              ________
+                0.000
+
+
+           NU
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           LAMBDA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT        1.000         0.000         0.000         0.000         0.000
+ COND           0.000         1.000         0.000         0.000         0.000
+ BLOCK          0.000         0.000         1.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000         1.000         0.000
+ PREV_ERR       0.000         0.000         0.000         0.000         1.000
+
+
+           THETA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT        0.000
+ COND           0.000         0.000
+ BLOCK          0.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000         0.000
+ PREV_ERR       0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT        0.000         0.000         0.000         0.000         0.000
+ COND           0.000         0.000         0.000         0.000         0.000
+ BLOCK          0.000         0.000         0.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000         0.000         0.000
+ PREV_ERR       0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT        1.000
+ COND           0.000         0.125
+ BLOCK          0.000         0.000         0.125
+ PREV_RT_       0.000         0.000         0.000         0.489
+ PREV_ERR       0.000         0.000         0.000         0.000         0.017
+
+
+     STARTING VALUES FOR BETWEEN
+
+
+           TAU
+              CORRECT$
+              ________
+               -1.913
+
+
+           NU
+              CORRECT       EXHIB         ENTITL        DETACH        MPS_SPR
+              ________      ________      ________      ________      ________
+                0.000         0.015        -0.007         0.007        -0.005
+
+
+           NU
+              MPS_SCR       MANIP         P1            P2            P3
+              ________      ________      ________      ________      ________
+               -0.006         0.015         0.014        -0.004         0.014
+
+
+           NU
+              P4            P5
+              ________      ________
+                0.008         0.003
+
+
+           LAMBDA
+              AGENTIC       AFFILIAT      ANTAG         CONSTRAI      CONDSLO
+              ________      ________      ________      ________      ________
+ CORRECT        0.000         0.000         0.000         0.000         0.000
+ EXHIB          1.000         0.000         0.000         0.000         0.000
+ ENTITL         1.000         0.000         0.000         1.000         0.000
+ DETACH         0.000         1.000         0.000         0.000         0.000
+ MPS_SPR        1.000         0.000         0.000         0.000         0.000
+ MPS_SCR        0.000         1.000         0.000         0.000         0.000
+ MANIP          0.000         0.000         1.000         0.000         0.000
+ P1             0.000         1.000         1.000         0.000         0.000
+ P2             0.000         0.000         0.000         1.000         0.000
+ P3             0.000         0.000         0.000         1.000         0.000
+ P4             0.000         0.000         0.000         1.000         0.000
+ P5             0.000         0.000         1.000         0.000         0.000
+
+
+           LAMBDA
+              PREVSLO       ERRSLO        CORRECT
+              ________      ________      ________
+ CORRECT        0.000         0.000         1.000
+ EXHIB          0.000         0.000         0.000
+ ENTITL         0.000         0.000         0.000
+ DETACH         0.000         0.000         0.000
+ MPS_SPR        0.000         0.000         0.000
+ MPS_SCR        0.000         0.000         0.000
+ MANIP          0.000         0.000         0.000
+ P1             0.000         0.000         0.000
+ P2             0.000         0.000         0.000
+ P3             0.000         0.000         0.000
+ P4             0.000         0.000         0.000
+ P5             0.000         0.000         0.000
+
+
+           THETA
+              CORRECT       EXHIB         ENTITL        DETACH        MPS_SPR
+              ________      ________      ________      ________      ________
+ CORRECT        0.000
+ EXHIB          0.000         0.506
+ ENTITL         0.000         0.000         0.511
+ DETACH         0.000         0.000         0.000         0.512
+ MPS_SPR        0.000         0.000         0.000         0.000         0.511
+ MPS_SCR        0.000         0.000         0.000         0.000         0.000
+ MANIP          0.000         0.000         0.000         0.000         0.000
+ P1             0.000         0.000         0.000         0.000         0.000
+ P2             0.000         0.000         0.000         0.000         0.000
+ P3             0.000         0.000         0.000         0.000         0.000
+ P4             0.000         0.000         0.000         0.000         0.000
+ P5             0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              MPS_SCR       MANIP         P1            P2            P3
+              ________      ________      ________      ________      ________
+ MPS_SCR        0.512
+ MANIP          0.000         0.500
+ P1             0.000         0.000         0.441
+ P2             0.000         0.000         0.000         0.417
+ P3             0.000         0.000         0.000         0.000         0.442
+ P4             0.000         0.000         0.000         0.000         0.000
+ P5             0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              P4            P5
+              ________      ________
+ P4             0.452
+ P5             0.000         0.444
+
+
+           ALPHA
+              AGENTIC       AFFILIAT      ANTAG         CONSTRAI      CONDSLO
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              PREVSLO       ERRSLO        CORRECT
+              ________      ________      ________
+                0.000         0.000         0.000
+
+
+           BETA
+              AGENTIC       AFFILIAT      ANTAG         CONSTRAI      CONDSLO
+              ________      ________      ________      ________      ________
+ AGENTIC        0.000         0.000         0.000         0.000         0.000
+ AFFILIAT       0.000         0.000         0.000         0.000         0.000
+ ANTAG          0.000         0.000         0.000         0.000         0.000
+ CONSTRAI       0.000         0.000         0.000         0.000         0.000
+ CONDSLO        0.000         0.000         0.000         0.000         0.000
+ PREVSLO        0.000         0.000         0.000         0.000         0.000
+ ERRSLO         0.000         0.000         0.000         0.000         0.000
+ CORRECT        0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              PREVSLO       ERRSLO        CORRECT
+              ________      ________      ________
+ AGENTIC        0.000         0.000         0.000
+ AFFILIAT       0.000         0.000         0.000
+ ANTAG          0.000         0.000         0.000
+ CONSTRAI       0.000         0.000         0.000
+ CONDSLO        0.000         0.000         0.000
+ PREVSLO        0.000         0.000         0.000
+ ERRSLO         0.000         0.000         0.000
+ CORRECT        0.000         0.000         0.000
+
+
+           PSI
+              AGENTIC       AFFILIAT      ANTAG         CONSTRAI      CONDSLO
+              ________      ________      ________      ________      ________
+ AGENTIC        1.000
+ AFFILIAT       0.000         1.000
+ ANTAG          0.000         0.000         1.000
+ CONSTRAI       0.000         0.000         0.000         1.000
+ CONDSLO        0.000         0.000         0.000         0.000         1.000
+ PREVSLO        0.000         0.000         0.000         0.000         0.000
+ ERRSLO         0.000         0.000         0.000         0.000         0.000
+ CORRECT        0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              PREVSLO       ERRSLO        CORRECT
+              ________      ________      ________
+ PREVSLO        1.000
+ ERRSLO         0.000         1.000
+ CORRECT        0.000         0.000         1.000
+
+
+
+     PRIORS FOR ALL PARAMETERS            PRIOR MEAN      PRIOR VARIANCE     PRIOR STD. DEV.
+
+     Parameter 1~N(0.000,5.000)              0.0000              5.0000              2.2361
+     Parameter 2~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 3~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 4~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 5~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 6~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 7~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 8~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 9~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 10~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 11~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 12~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 13~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 14~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 15~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 16~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 17~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 18~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 19~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 20~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 21~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 22~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 23~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 24~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 25~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 26~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 27~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 28~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 29~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 30~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 31~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 32~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 33~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 34~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 35~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 36~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 37~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 38~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 39~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 40~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 41~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 42~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 43~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 44~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 45~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 46~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 47~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 48~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 49~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 50~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 51~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 52~N(0.000,5.000)             0.0000              5.0000              2.2361
+     Parameter 53~N(0.000,5.000)             0.0000              5.0000              2.2361
+     Parameter 54~N(0.000,5.000)             0.0000              5.0000              2.2361
+     Parameter 55~N(0.000,5.000)             0.0000              5.0000              2.2361
+     Parameter 56~IW(0.000,5)
+     Parameter 57~IW(0.000,5)
+     Parameter 58~IW(0.000,5)
+     Parameter 59~IW(0.000,5)
+     Parameter 60~IW(0.000,5)
+     Parameter 61~IW(0.000,5)
+     Parameter 62~IW(1.000,4)              infinity            infinity            infinity
+     Parameter 63~IW(0.000,4)              infinity            infinity            infinity
+     Parameter 64~IW(1.000,4)              infinity            infinity            infinity
+     Parameter 65~IW(0.000,4)              infinity            infinity            infinity
+     Parameter 66~IW(0.000,4)              infinity            infinity            infinity
+     Parameter 67~IW(1.000,4)              infinity            infinity            infinity
+     Parameter 68~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 69~N(0.000,5.000)             0.0000              5.0000              2.2361
+
+
+TECHNICAL 8 OUTPUT
+
+
+   TECHNICAL 8 OUTPUT FOR BAYES ESTIMATION
+
+     CHAIN    BSEED
+     1        0
+     2        285380
+     3        253358
+     4        93468
+
+                     POTENTIAL       PARAMETER WITH
+     ITERATION    SCALE REDUCTION      HIGHEST PSR
+     100              1.777               48
+     200              1.705               51
+     300              1.321               4
+     400              1.468               52
+     500              1.421               53
+     600              1.421               39
+     700              1.503               39
+     800              1.261               54
+     900              1.217               67
+     1000             1.204               67
+     1100             1.208               39
+     1200             1.300               39
+     1300             1.458               39
+     1400             1.556               39
+     1500             1.571               39
+     1600             1.513               39
+     1700             1.561               39
+     1800             1.680               39
+     1900             1.794               39
+     2000             1.847               39
+     2100             1.898               39
+     2200             2.012               39
+     2300             2.132               39
+     2400             2.092               39
+     2500             1.961               39
+     2600             1.800               39
+     2700             1.643               39
+     2800             1.433               39
+     2900             1.304               39
+     3000             1.246               39
+     3100             1.216               39
+     3200             1.206               39
+     3300             1.171               39
+     3400             1.138               39
+     3500             1.106               39
+     3600             1.089               39
+     3700             1.096               50
+     3800             1.124               50
+     3900             1.152               50
+     4000             1.166               50
+     4100             1.182               50
+     4200             1.192               39
+     4300             1.196               39
+     4400             1.204               39
+     4500             1.219               39
+     4600             1.243               39
+     4700             1.266               39
+     4800             1.275               39
+     4900             1.269               39
+     5000             1.249               39
+     5100             1.232               39
+     5200             1.212               39
+     5300             1.202               39
+     5400             1.179               39
+     5500             1.149               39
+     5600             1.120               39
+     5700             1.110               39
+     5800             1.108               39
+     5900             1.103               39
+     6000             1.104               39
+     6100             1.103               39
+     6200             1.095               39
+     6300             1.089               39
+     6400             1.079               39
+     6500             1.070               39
+     6600             1.060               39
+     6700             1.060               39
+     6800             1.061               39
+     6900             1.060               39
+     7000             1.064               39
+     7100             1.064               39
+     7200             1.067               39
+     7300             1.068               39
+     7400             1.068               39
+     7500             1.073               39
+     7600             1.079               39
+     7700             1.087               39
+     7800             1.093               39
+     7900             1.097               39
+     8000             1.098               39
+     8100             1.103               50
+     8200             1.107               39
+     8300             1.106               39
+     8400             1.097               39
+     8500             1.095               39
+     8600             1.089               39
+     8700             1.080               39
+     8800             1.070               39
+     8900             1.061               39
+     9000             1.053               39
+     9100             1.050               39
+     9200             1.047               39
+     9300             1.043               50
+     9400             1.041               39
+     9500             1.042               48
+     9600             1.044               48
+     9700             1.042               48
+     9800             1.040               48
+     9900             1.041               48
+     10000            1.040               48
+     10100            1.040               39
+     10200            1.042               39
+     10300            1.041               39
+     10400            1.039               39
+     10500            1.037               39
+     10600            1.038               39
+     10700            1.040               39
+     10800            1.041               39
+     10900            1.045               39
+     11000            1.050               39
+     11100            1.053               39
+     11200            1.057               39
+     11300            1.059               39
+     11400            1.063               39
+     11500            1.062               39
+     11600            1.059               39
+     11700            1.055               39
+     11800            1.052               39
+     11900            1.050               39
+     12000            1.047               39
+     12100            1.044               39
+     12200            1.041               39
+     12300            1.037               39
+     12400            1.032               39
+     12500            1.027               39
+     12600            1.024               39
+     12700            1.021               39
+     12800            1.020               39
+     12900            1.018               39
+     13000            1.017               39
+     13100            1.019               39
+     13200            1.022               39
+     13300            1.025               39
+     13400            1.028               39
+     13500            1.031               39
+     13600            1.034               39
+     13700            1.036               39
+     13800            1.038               39
+     13900            1.042               39
+     14000            1.046               39
+     14100            1.049               39
+     14200            1.052               39
+     14300            1.055               39
+     14400            1.055               39
+     14500            1.053               39
+     14600            1.053               39
+     14700            1.052               39
+     14800            1.052               39
+     14900            1.051               39
+     15000            1.049               39
+     15100            1.049               39
+     15200            1.052               39
+     15300            1.056               39
+     15400            1.058               39
+     15500            1.061               39
+     15600            1.063               39
+     15700            1.066               39
+     15800            1.069               39
+     15900            1.069               39
+     16000            1.069               39
+     16100            1.068               39
+     16200            1.065               39
+     16300            1.060               39
+     16400            1.055               39
+     16500            1.050               39
+     16600            1.046               39
+     16700            1.043               39
+     16800            1.041               39
+     16900            1.040               39
+     17000            1.039               39
+     17100            1.037               39
+     17200            1.036               39
+     17300            1.035               39
+     17400            1.033               39
+     17500            1.033               39
+     17600            1.033               39
+     17700            1.034               39
+     17800            1.034               39
+     17900            1.034               39
+     18000            1.034               39
+     18100            1.033               39
+     18200            1.033               39
+     18300            1.032               39
+     18400            1.032               39
+     18500            1.031               39
+     18600            1.029               39
+     18700            1.027               39
+     18800            1.026               39
+     18900            1.024               39
+     19000            1.024               39
+     19100            1.023               39
+     19200            1.024               39
+     19300            1.024               39
+     19400            1.024               39
+     19500            1.024               39
+     19600            1.024               39
+     19700            1.024               39
+     19800            1.024               39
+     19900            1.025               39
+     20000            1.026               39
+     20100            1.027               39
+     20200            1.028               39
+     20300            1.030               39
+     20400            1.030               39
+     20500            1.030               39
+     20600            1.030               39
+     20700            1.029               39
+     20800            1.029               39
+     20900            1.029               39
+     21000            1.028               39
+     21100            1.028               39
+     21200            1.028               39
+     21300            1.029               39
+     21400            1.029               39
+     21500            1.029               39
+     21600            1.028               39
+     21700            1.027               39
+     21800            1.026               39
+     21900            1.025               39
+     22000            1.023               39
+     22100            1.022               39
+     22200            1.021               48
+     22300            1.019               48
+     22400            1.018               48
+     22500            1.017               48
+     22600            1.017               48
+     22700            1.016               48
+     22800            1.017               48
+     22900            1.016               48
+     23000            1.016               48
+     23100            1.015               48
+     23200            1.015               48
+     23300            1.016               48
+     23400            1.016               48
+     23500            1.017               48
+     23600            1.019               48
+     23700            1.019               48
+     23800            1.019               48
+     23900            1.021               48
+     24000            1.020               48
+     24100            1.020               48
+     24200            1.019               48
+     24300            1.018               48
+     24400            1.019               39
+     24500            1.019               39
+     24600            1.019               39
+     24700            1.019               39
+     24800            1.020               39
+     24900            1.020               39
+     25000            1.021               39
+     25100            1.022               39
+     25200            1.021               39
+     25300            1.021               39
+     25400            1.022               39
+     25500            1.023               39
+     25600            1.024               39
+     25700            1.024               39
+     25800            1.025               39
+     25900            1.026               39
+     26000            1.027               39
+     26100            1.028               39
+     26200            1.029               39
+     26300            1.031               39
+     26400            1.032               39
+     26500            1.033               39
+     26600            1.034               39
+     26700            1.036               39
+     26800            1.036               39
+     26900            1.037               39
+     27000            1.039               39
+     27100            1.041               39
+     27200            1.043               39
+     27300            1.044               39
+     27400            1.044               39
+     27500            1.043               39
+     27600            1.044               39
+     27700            1.044               39
+     27800            1.044               39
+     27900            1.044               39
+     28000            1.045               39
+     28100            1.047               39
+     28200            1.049               39
+     28300            1.051               39
+     28400            1.053               39
+     28500            1.054               39
+     28600            1.056               39
+     28700            1.057               39
+     28800            1.059               39
+     28900            1.059               39
+     29000            1.058               39
+     29100            1.058               39
+     29200            1.057               39
+     29300            1.056               39
+     29400            1.055               39
+     29500            1.056               39
+     29600            1.056               39
+     29700            1.055               39
+     29800            1.054               39
+     29900            1.053               39
+     30000            1.053               39
+     30100            1.053               39
+     30200            1.055               39
+     30300            1.057               39
+     30400            1.059               39
+     30500            1.061               39
+     30600            1.062               39
+     30700            1.063               39
+     30800            1.064               39
+     30900            1.065               39
+     31000            1.066               39
+     31100            1.068               39
+     31200            1.071               39
+     31300            1.073               39
+     31400            1.076               39
+     31500            1.080               39
+     31600            1.082               39
+     31700            1.083               39
+     31800            1.084               39
+     31900            1.082               39
+     32000            1.081               39
+     32100            1.080               39
+     32200            1.077               39
+     32300            1.073               39
+     32400            1.070               39
+     32500            1.067               39
+     32600            1.066               39
+     32700            1.063               39
+     32800            1.060               39
+     32900            1.056               39
+     33000            1.053               39
+     33100            1.051               39
+     33200            1.049               39
+     33300            1.045               39
+     33400            1.043               39
+     33500            1.041               39
+     33600            1.039               39
+     33700            1.039               39
+     33800            1.038               39
+     33900            1.037               39
+     34000            1.036               39
+     34100            1.035               39
+     34200            1.034               39
+     34300            1.033               39
+     34400            1.031               39
+     34500            1.031               39
+     34600            1.030               39
+     34700            1.030               39
+     34800            1.029               39
+     34900            1.028               39
+     35000            1.027               39
+     35100            1.027               39
+     35200            1.027               39
+     35300            1.027               39
+     35400            1.027               39
+     35500            1.027               39
+     35600            1.027               39
+     35700            1.026               39
+     35800            1.025               39
+     35900            1.024               39
+     36000            1.022               39
+     36100            1.021               39
+     36200            1.020               39
+     36300            1.019               39
+     36400            1.018               39
+     36500            1.017               39
+     36600            1.016               39
+     36700            1.016               39
+     36800            1.015               39
+     36900            1.014               39
+     37000            1.013               39
+     37100            1.013               39
+     37200            1.013               39
+     37300            1.014               39
+     37400            1.014               39
+     37500            1.014               39
+     37600            1.014               39
+     37700            1.014               39
+     37800            1.015               39
+     37900            1.014               39
+     38000            1.014               39
+     38100            1.015               39
+     38200            1.015               39
+     38300            1.015               39
+     38400            1.015               39
+     38500            1.016               39
+     38600            1.017               39
+     38700            1.017               39
+     38800            1.017               39
+     38900            1.017               39
+     39000            1.017               39
+     39100            1.017               39
+     39200            1.017               39
+     39300            1.017               39
+     39400            1.016               39
+     39500            1.016               39
+     39600            1.016               39
+     39700            1.016               39
+     39800            1.017               39
+     39900            1.016               39
+     40000            1.016               39
+     40100            1.015               39
+     40200            1.015               39
+     40300            1.014               39
+     40400            1.014               39
+     40500            1.013               39
+     40600            1.013               39
+     40700            1.013               39
+     40800            1.013               39
+     40900            1.012               39
+     41000            1.012               39
+     41100            1.012               39
+     41200            1.012               39
+     41300            1.011               39
+     41400            1.010               39
+     41500            1.010               39
+     41600            1.009               39
+     41700            1.009               39
+     41800            1.009               39
+     41900            1.008               39
+     42000            1.008               39
+     42100            1.007               39
+     42200            1.007               39
+     42300            1.007               39
+     42400            1.007               39
+     42500            1.007               39
+     42600            1.007               39
+     42700            1.006               39
+     42800            1.006               39
+     42900            1.006               39
+     43000            1.006               39
+     43100            1.006               39
+     43200            1.006               39
+     43300            1.006               39
+     43400            1.005               39
+     43500            1.005               39
+     43600            1.005               39
+     43700            1.005               39
+     43800            1.005               39
+     43900            1.005               39
+     44000            1.005               39
+     44100            1.005               39
+     44200            1.005               50
+     44300            1.005               50
+     44400            1.005               50
+     44500            1.005               50
+     44600            1.005               50
+     44700            1.005               50
+     44800            1.005               50
+     44900            1.005               50
+     45000            1.005               50
+     45100            1.005               50
+     45200            1.005               50
+     45300            1.005               50
+     45400            1.005               50
+     45500            1.005               50
+     45600            1.006               50
+     45700            1.006               50
+     45800            1.006               50
+     45900            1.006               50
+     46000            1.007               50
+     46100            1.008               50
+     46200            1.008               50
+     46300            1.009               39
+     46400            1.010               39
+     46500            1.011               39
+     46600            1.012               39
+     46700            1.014               39
+     46800            1.015               39
+     46900            1.016               39
+     47000            1.018               39
+     47100            1.019               39
+     47200            1.020               39
+     47300            1.021               39
+     47400            1.023               39
+     47500            1.024               39
+     47600            1.025               39
+     47700            1.026               39
+     47800            1.026               39
+     47900            1.027               39
+     48000            1.027               39
+     48100            1.027               39
+     48200            1.028               39
+     48300            1.028               39
+     48400            1.028               39
+     48500            1.028               39
+     48600            1.028               39
+     48700            1.028               39
+     48800            1.028               39
+     48900            1.028               39
+     49000            1.028               39
+     49100            1.029               39
+     49200            1.029               39
+     49300            1.029               39
+     49400            1.029               39
+     49500            1.029               39
+     49600            1.029               39
+     49700            1.029               39
+     49800            1.029               39
+     49900            1.029               39
+     50000            1.029               39
+     50100            1.029               39
+     50200            1.030               39
+     50300            1.031               39
+     50400            1.032               39
+     50500            1.032               39
+     50600            1.033               39
+     50700            1.034               39
+     50800            1.035               39
+     50900            1.036               39
+     51000            1.037               39
+     51100            1.038               39
+     51200            1.039               39
+     51300            1.039               39
+     51400            1.040               39
+     51500            1.041               39
+     51600            1.041               39
+     51700            1.041               39
+     51800            1.042               39
+     51900            1.042               39
+     52000            1.042               39
+     52100            1.043               39
+     52200            1.043               39
+     52300            1.043               39
+     52400            1.043               39
+     52500            1.043               39
+     52600            1.043               39
+     52700            1.042               39
+     52800            1.042               39
+     52900            1.042               39
+     53000            1.042               39
+     53100            1.043               39
+     53200            1.043               39
+     53300            1.044               39
+     53400            1.045               39
+     53500            1.046               39
+     53600            1.047               39
+     53700            1.047               39
+     53800            1.048               39
+     53900            1.048               39
+     54000            1.048               39
+     54100            1.048               39
+     54200            1.048               39
+     54300            1.048               39
+     54400            1.048               39
+     54500            1.048               39
+     54600            1.047               39
+     54700            1.047               39
+     54800            1.047               39
+     54900            1.047               39
+     55000            1.047               39
+     55100            1.047               39
+     55200            1.048               39
+     55300            1.049               39
+     55400            1.050               39
+     55500            1.051               39
+     55600            1.052               39
+     55700            1.052               39
+     55800            1.052               39
+     55900            1.053               39
+     56000            1.052               39
+     56100            1.052               39
+     56200            1.052               39
+     56300            1.052               39
+     56400            1.052               39
+     56500            1.052               39
+     56600            1.052               39
+     56700            1.052               39
+     56800            1.052               39
+     56900            1.052               39
+     57000            1.052               39
+     57100            1.052               39
+     57200            1.052               39
+     57300            1.052               39
+     57400            1.052               39
+     57500            1.052               39
+     57600            1.052               39
+     57700            1.052               39
+     57800            1.052               39
+     57900            1.052               39
+     58000            1.053               39
+     58100            1.053               39
+     58200            1.053               39
+     58300            1.054               39
+     58400            1.055               39
+     58500            1.056               39
+     58600            1.057               39
+     58700            1.059               39
+     58800            1.060               39
+     58900            1.061               39
+     59000            1.063               39
+     59100            1.065               39
+     59200            1.066               39
+     59300            1.068               39
+     59400            1.069               39
+     59500            1.070               39
+     59600            1.072               39
+     59700            1.074               39
+     59800            1.075               39
+     59900            1.077               39
+     60000            1.079               39
+     60100            1.081               39
+     60200            1.082               39
+     60300            1.084               39
+     60400            1.086               39
+     60500            1.087               39
+     60600            1.088               39
+     60700            1.089               39
+     60800            1.091               39
+     60900            1.092               39
+     61000            1.093               39
+     61100            1.095               39
+     61200            1.096               39
+     61300            1.098               39
+     61400            1.099               39
+     61500            1.100               39
+     61600            1.102               39
+     61700            1.103               39
+     61800            1.105               39
+     61900            1.106               39
+     62000            1.108               39
+     62100            1.110               39
+     62200            1.112               39
+     62300            1.114               39
+     62400            1.116               39
+     62500            1.117               39
+     62600            1.119               39
+     62700            1.121               39
+     62800            1.122               39
+     62900            1.124               39
+     63000            1.126               39
+     63100            1.128               39
+     63200            1.130               39
+     63300            1.131               39
+     63400            1.133               39
+     63500            1.135               39
+     63600            1.136               39
+     63700            1.138               39
+     63800            1.139               39
+     63900            1.140               39
+     64000            1.141               39
+     64100            1.142               39
+     64200            1.144               39
+     64300            1.145               39
+     64400            1.147               39
+     64500            1.148               39
+     64600            1.149               39
+     64700            1.150               39
+     64800            1.151               39
+     64900            1.153               39
+     65000            1.154               39
+     65100            1.156               39
+     65200            1.157               39
+     65300            1.158               39
+     65400            1.159               39
+     65500            1.160               39
+     65600            1.161               39
+     65700            1.162               39
+     65800            1.162               39
+     65900            1.162               39
+     66000            1.162               39
+     66100            1.162               39
+     66200            1.161               39
+     66300            1.161               39
+     66400            1.161               39
+     66500            1.161               39
+     66600            1.161               39
+     66700            1.161               39
+     66800            1.161               39
+     66900            1.162               39
+     67000            1.162               39
+     67100            1.162               39
+     67200            1.162               39
+     67300            1.161               39
+     67400            1.161               39
+     67500            1.161               39
+     67600            1.162               39
+     67700            1.161               39
+     67800            1.160               39
+     67900            1.160               39
+     68000            1.159               39
+     68100            1.159               39
+     68200            1.159               39
+     68300            1.159               39
+     68400            1.159               39
+     68500            1.158               39
+     68600            1.158               39
+     68700            1.158               39
+     68800            1.158               39
+     68900            1.158               39
+     69000            1.159               39
+     69100            1.160               39
+     69200            1.161               39
+     69300            1.161               39
+     69400            1.162               39
+     69500            1.162               39
+     69600            1.161               39
+     69700            1.161               39
+     69800            1.160               39
+     69900            1.160               39
+     70000            1.160               39
+     70100            1.159               39
+     70200            1.158               39
+     70300            1.158               39
+     70400            1.159               39
+     70500            1.158               39
+     70600            1.158               39
+     70700            1.158               39
+     70800            1.159               39
+     70900            1.158               39
+     71000            1.159               39
+     71100            1.159               39
+     71200            1.159               39
+     71300            1.159               39
+     71400            1.159               39
+     71500            1.159               39
+     71600            1.159               39
+     71700            1.158               39
+     71800            1.157               39
+     71900            1.155               39
+     72000            1.155               39
+     72100            1.154               39
+     72200            1.154               39
+     72300            1.153               39
+     72400            1.152               39
+     72500            1.151               39
+     72600            1.150               39
+     72700            1.149               39
+     72800            1.147               39
+     72900            1.146               39
+     73000            1.146               39
+     73100            1.145               39
+     73200            1.144               39
+     73300            1.144               39
+     73400            1.144               39
+     73500            1.144               39
+     73600            1.144               39
+     73700            1.144               39
+     73800            1.143               39
+     73900            1.143               39
+     74000            1.141               39
+     74100            1.140               39
+     74200            1.139               39
+     74300            1.138               39
+     74400            1.136               39
+     74500            1.135               39
+     74600            1.134               39
+     74700            1.133               39
+     74800            1.131               39
+     74900            1.130               39
+     75000            1.128               39
+     75100            1.126               39
+     75200            1.123               39
+     75300            1.120               39
+     75400            1.119               39
+     75500            1.117               39
+     75600            1.116               39
+     75700            1.115               39
+     75800            1.115               39
+     75900            1.114               39
+     76000            1.113               39
+     76100            1.112               39
+     76200            1.112               39
+     76300            1.111               39
+     76400            1.111               39
+     76500            1.110               39
+     76600            1.109               39
+     76700            1.109               39
+     76800            1.108               39
+     76900            1.107               39
+     77000            1.105               39
+     77100            1.105               39
+     77200            1.104               39
+     77300            1.103               39
+     77400            1.102               39
+     77500            1.102               39
+     77600            1.101               39
+     77700            1.100               39
+     77800            1.100               39
+     77900            1.100               39
+     78000            1.099               39
+     78100            1.098               39
+     78200            1.098               39
+     78300            1.097               39
+     78400            1.097               39
+     78500            1.096               39
+     78600            1.096               39
+     78700            1.096               39
+     78800            1.096               39
+     78900            1.096               39
+     79000            1.095               39
+     79100            1.095               39
+     79200            1.094               39
+     79300            1.093               39
+     79400            1.091               39
+     79500            1.091               39
+     79600            1.089               39
+     79700            1.089               39
+     79800            1.088               39
+     79900            1.087               39
+     80000            1.086               39
+     80100            1.086               39
+     80200            1.085               39
+     80300            1.085               39
+     80400            1.084               39
+     80500            1.084               39
+     80600            1.083               39
+     80700            1.082               39
+     80800            1.082               39
+     80900            1.081               39
+     81000            1.081               39
+     81100            1.081               39
+     81200            1.080               39
+     81300            1.080               39
+     81400            1.079               39
+     81500            1.079               39
+     81600            1.079               39
+     81700            1.079               39
+     81800            1.080               39
+     81900            1.080               39
+     82000            1.080               39
+     82100            1.080               39
+     82200            1.080               39
+     82300            1.080               39
+     82400            1.080               39
+     82500            1.080               39
+     82600            1.080               39
+     82700            1.080               39
+     82800            1.080               39
+     82900            1.080               39
+     83000            1.080               39
+     83100            1.080               39
+     83200            1.081               39
+     83300            1.081               39
+     83400            1.080               39
+     83500            1.080               39
+     83600            1.079               39
+     83700            1.078               39
+     83800            1.077               39
+     83900            1.076               39
+     84000            1.076               39
+     84100            1.075               39
+     84200            1.075               39
+     84300            1.074               39
+     84400            1.073               39
+     84500            1.073               39
+     84600            1.073               39
+     84700            1.072               39
+     84800            1.072               39
+     84900            1.072               39
+     85000            1.072               39
+     85100            1.072               39
+     85200            1.073               39
+     85300            1.073               39
+     85400            1.073               39
+     85500            1.072               39
+     85600            1.072               39
+     85700            1.072               39
+     85800            1.073               39
+     85900            1.072               39
+     86000            1.072               39
+     86100            1.072               39
+     86200            1.072               39
+     86300            1.072               39
+     86400            1.072               39
+     86500            1.072               39
+     86600            1.072               39
+     86700            1.072               39
+     86800            1.072               39
+     86900            1.072               39
+     87000            1.072               39
+     87100            1.072               39
+     87200            1.072               39
+     87300            1.072               39
+     87400            1.072               39
+     87500            1.072               39
+     87600            1.072               39
+     87700            1.072               39
+     87800            1.071               39
+     87900            1.071               39
+     88000            1.070               39
+     88100            1.069               39
+     88200            1.069               39
+     88300            1.069               39
+     88400            1.068               39
+     88500            1.068               39
+     88600            1.068               39
+     88700            1.068               39
+     88800            1.067               39
+     88900            1.067               39
+     89000            1.067               39
+     89100            1.067               39
+     89200            1.067               39
+     89300            1.067               39
+     89400            1.066               39
+     89500            1.066               39
+     89600            1.065               39
+     89700            1.065               39
+     89800            1.065               39
+     89900            1.065               39
+     90000            1.065               39
+     90100            1.065               39
+     90200            1.065               39
+     90300            1.065               39
+     90400            1.065               39
+     90500            1.066               39
+     90600            1.066               39
+     90700            1.066               39
+     90800            1.067               39
+     90900            1.067               39
+     91000            1.067               39
+     91100            1.067               39
+     91200            1.067               39
+     91300            1.067               39
+     91400            1.067               39
+     91500            1.067               39
+     91600            1.066               39
+     91700            1.066               39
+     91800            1.066               39
+     91900            1.065               39
+     92000            1.064               39
+     92100            1.064               39
+     92200            1.063               39
+     92300            1.063               39
+     92400            1.062               39
+     92500            1.062               39
+     92600            1.062               39
+     92700            1.061               39
+     92800            1.061               39
+     92900            1.060               39
+     93000            1.059               39
+     93100            1.059               39
+     93200            1.058               39
+     93300            1.057               39
+     93400            1.057               39
+     93500            1.056               39
+     93600            1.055               39
+     93700            1.054               39
+     93800            1.054               39
+     93900            1.053               39
+     94000            1.052               39
+     94100            1.052               39
+     94200            1.052               39
+     94300            1.051               39
+     94400            1.051               39
+     94500            1.051               39
+     94600            1.051               39
+     94700            1.050               39
+     94800            1.050               39
+     94900            1.050               39
+     95000            1.051               39
+     95100            1.051               39
+     95200            1.051               39
+     95300            1.051               39
+     95400            1.051               39
+     95500            1.051               39
+     95600            1.051               39
+     95700            1.051               39
+     95800            1.051               39
+     95900            1.050               39
+     96000            1.050               39
+     96100            1.049               39
+     96200            1.049               39
+     96300            1.049               39
+     96400            1.048               39
+     96500            1.048               39
+     96600            1.048               39
+     96700            1.049               39
+     96800            1.049               39
+     96900            1.049               39
+     97000            1.049               39
+     97100            1.049               39
+     97200            1.049               39
+     97300            1.049               39
+     97400            1.049               39
+     97500            1.049               39
+     97600            1.049               39
+     97700            1.049               39
+     97800            1.049               39
+     97900            1.049               39
+     98000            1.049               39
+     98100            1.049               39
+     98200            1.048               39
+     98300            1.048               39
+     98400            1.048               39
+     98500            1.048               39
+     98600            1.047               39
+     98700            1.047               39
+     98800            1.047               39
+     98900            1.047               39
+     99000            1.047               39
+     99100            1.047               39
+     99200            1.047               39
+     99300            1.047               39
+     99400            1.046               39
+     99500            1.046               39
+     99600            1.046               39
+     99700            1.045               39
+     99800            1.045               39
+     99900            1.044               39
+     100000           1.044               39
+     100100           1.044               39
+     100200           1.044               39
+     100300           1.043               39
+     100400           1.043               39
+     100500           1.043               39
+     100600           1.042               39
+     100700           1.042               39
+     100800           1.042               39
+     100900           1.042               39
+     101000           1.041               39
+     101100           1.041               39
+     101200           1.041               39
+     101300           1.041               39
+     101400           1.041               39
+     101500           1.040               39
+     101600           1.040               39
+     101700           1.040               39
+     101800           1.039               39
+     101900           1.039               39
+     102000           1.039               39
+     102100           1.039               39
+     102200           1.038               39
+     102300           1.038               39
+     102400           1.038               39
+     102500           1.038               39
+     102600           1.037               39
+     102700           1.037               39
+     102800           1.037               39
+     102900           1.036               39
+     103000           1.036               39
+     103100           1.035               39
+     103200           1.035               39
+     103300           1.034               39
+     103400           1.034               39
+     103500           1.033               39
+     103600           1.033               39
+     103700           1.033               39
+     103800           1.033               39
+     103900           1.033               39
+     104000           1.033               39
+     104100           1.033               39
+     104200           1.033               39
+     104300           1.033               39
+     104400           1.034               39
+     104500           1.034               39
+     104600           1.034               39
+     104700           1.034               39
+     104800           1.034               39
+     104900           1.034               39
+     105000           1.033               39
+     105100           1.033               39
+     105200           1.033               39
+     105300           1.033               39
+     105400           1.032               39
+     105500           1.032               39
+     105600           1.032               39
+     105700           1.032               39
+     105800           1.032               39
+     105900           1.032               39
+     106000           1.032               39
+     106100           1.032               39
+     106200           1.032               39
+     106300           1.032               39
+     106400           1.032               39
+     106500           1.032               39
+     106600           1.031               39
+     106700           1.031               39
+     106800           1.031               39
+     106900           1.031               39
+     107000           1.031               39
+     107100           1.031               39
+     107200           1.030               39
+     107300           1.030               39
+     107400           1.030               39
+     107500           1.029               39
+     107600           1.029               39
+     107700           1.029               39
+     107800           1.029               39
+     107900           1.028               39
+     108000           1.028               39
+     108100           1.028               39
+     108200           1.028               39
+     108300           1.028               39
+     108400           1.028               39
+     108500           1.028               39
+     108600           1.028               39
+     108700           1.028               39
+     108800           1.028               39
+     108900           1.028               39
+     109000           1.028               39
+     109100           1.028               39
+     109200           1.028               39
+     109300           1.028               39
+     109400           1.027               39
+     109500           1.027               39
+     109600           1.027               39
+     109700           1.027               39
+     109800           1.027               39
+     109900           1.027               39
+     110000           1.027               39
+     110100           1.027               39
+     110200           1.027               39
+     110300           1.027               39
+     110400           1.027               39
+     110500           1.028               39
+     110600           1.028               39
+     110700           1.028               39
+     110800           1.028               39
+     110900           1.028               39
+     111000           1.028               39
+     111100           1.028               39
+     111200           1.028               39
+     111300           1.028               39
+     111400           1.028               39
+     111500           1.028               39
+     111600           1.028               39
+     111700           1.028               39
+     111800           1.028               39
+     111900           1.028               39
+     112000           1.028               39
+     112100           1.027               39
+     112200           1.027               39
+     112300           1.027               39
+     112400           1.027               39
+     112500           1.027               39
+     112600           1.026               39
+     112700           1.026               39
+     112800           1.026               39
+     112900           1.025               39
+     113000           1.025               39
+     113100           1.025               39
+     113200           1.025               39
+     113300           1.024               39
+     113400           1.024               39
+     113500           1.024               39
+     113600           1.024               39
+     113700           1.024               39
+     113800           1.023               39
+     113900           1.023               39
+     114000           1.023               39
+     114100           1.023               39
+     114200           1.023               39
+     114300           1.024               39
+     114400           1.024               39
+     114500           1.024               39
+     114600           1.024               39
+     114700           1.024               39
+     114800           1.024               39
+     114900           1.024               39
+     115000           1.024               39
+     115100           1.024               39
+     115200           1.024               39
+     115300           1.024               39
+     115400           1.024               39
+     115500           1.024               39
+     115600           1.024               39
+     115700           1.023               39
+     115800           1.023               39
+     115900           1.023               39
+     116000           1.023               39
+     116100           1.023               39
+     116200           1.023               39
+     116300           1.023               39
+     116400           1.023               39
+     116500           1.023               39
+     116600           1.023               39
+     116700           1.023               39
+     116800           1.023               39
+     116900           1.023               39
+     117000           1.023               39
+     117100           1.022               39
+     117200           1.022               39
+     117300           1.022               39
+     117400           1.022               39
+     117500           1.022               48
+     117600           1.022               48
+     117700           1.021               48
+     117800           1.021               48
+     117900           1.021               48
+     118000           1.021               48
+     118100           1.021               39
+     118200           1.020               39
+     118300           1.020               39
+     118400           1.020               39
+     118500           1.019               39
+     118600           1.019               39
+     118700           1.019               39
+     118800           1.019               39
+     118900           1.019               39
+     119000           1.019               39
+     119100           1.018               39
+     119200           1.018               39
+     119300           1.018               39
+     119400           1.018               39
+     119500           1.018               39
+     119600           1.017               39
+     119700           1.017               39
+     119800           1.017               39
+     119900           1.017               39
+     120000           1.017               39
+
+
+PLOT INFORMATION
+
+The following plots are available:
+
+  Sample proportions
+  Bayesian posterior parameter distributions
+  Bayesian posterior parameter trace plots
+  Bayesian autocorrelation plots
+  Bayesian prior parameter distributions
+
+     Beginning Time:  21:31:42
+        Ending Time:  22:21:21
+       Elapsed Time:  00:49:39
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2019 Muthen & Muthen

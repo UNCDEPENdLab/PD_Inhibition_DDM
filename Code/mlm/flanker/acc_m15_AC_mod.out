@@ -1,0 +1,1518 @@
+Mplus VERSION 8.4 (Mac)
+MUTHEN & MUTHEN
+06/11/2020   6:40 PM
+
+INPUT INSTRUCTIONS
+
+  TITLE:
+  Antagonism and Constraint BSEM CFA 3+3 Parcels, Flanker ACC Mod
+  DATA:
+  FILE = "flanker_acc_mplus.dat";
+
+  VARIABLE:
+  NAMES = id correct rt cond block prev_rt prev_error prev_rt_z MPS_agR AGG MISTRUST
+       MPS_alR MANIP PROPER MPS_clR IMPUL MPS_tdR MPS_acR HDWK;
+   MISSING=.;
+
+      WITHIN = cond block prev_rt_z prev_error;
+      USEVARIABLES = id correct cond block prev_rt_z prev_error
+            MANIP p1 p2 p3 p4 p5;
+      BETWEEN = MANIP p1 p2 p3 p4 p5;
+      CLUSTER = id;
+      CATEGORICAL = correct;
+
+  DEFINE:
+
+      p1=MEAN(MISTRUST MPS_alR);
+      p2=MEAN(PROPER MPS_tdR);
+      p3=MEAN(MPS_clR IMPUL);
+      p4=MEAN(MPS_acR HDWK);
+      p5=MEAN(MPS_agR AGG);
+      cond = cond - 1; ! 0=congruent, 1=incongruent
+      block = block - 1; ! 0=most_incon, 1=most_con
+
+  ANALYSIS:
+
+      TYPE=TWOLEVEL RANDOM;
+      ESTIMATOR=BAYES;
+      BITERATIONS=(10000);
+      CHAINS=2;
+      PROCESSORS=4;
+
+  MODEL:
+
+      %WITHIN%
+      correct ON block;
+      condslo | correct ON cond;        !random slope of cond
+      prevslo | correct ON prev_rt_z;   !random slope of rt autocorrelation
+      errslo | correct ON prev_error;   !random slope of previous error
+
+      %BETWEEN%
+      !means of random slopes
+      [condslo];
+      [prevslo];
+      [errslo];
+
+      !variances of random slopes
+      condslo;
+      prevslo;
+      errslo;
+
+      !slope correlations
+      condslo prevslo errslo WITH
+         condslo prevslo errslo;
+
+      [correct$1]; !intercept: average correct
+
+      !TRAIT MODEL
+
+      antag BY p5*1 ! MPS_agR AGG
+        p1        ! MISTRUST MPS_alR
+        MANIP;
+      antag@1;
+
+      constraint BY
+        p2*  !PROPER MPS_tdR
+        p3  !MPS_clR IMPUL
+        p4; !MPS_acR HDWK;
+      constraint@1;
+
+      antag WITH constraint;
+
+      constraint BY P1; !modification index cross-loading for fit
+
+      !TRAIT MODERATION
+
+      ! trait moderates flanker performance -- incongruency effect and stickiness of RT
+      condslo ON antag constraint;
+      prevslo ON antag constraint;
+      errslo ON antag constraint;
+
+      correct ON antag constraint;
+
+  OUTPUT:
+  TECH1 TECH8 STANDARDIZED CINTERVAL;
+  PLOT:
+  TYPE = PLOT2;
+
+
+
+*** WARNING in VARIABLE command
+  Note that only the first 8 characters of variable names are used in the output.
+  Shorten variable names to avoid any confusion.
+*** WARNING in PLOT command
+  Note that only the first 8 characters of variable names are used in plots.
+  If variable names are not unique within the first 8 characters, problems
+  may occur.
+*** WARNING
+  One or more individual-level variables have no variation within a
+  cluster for the following clusters.
+
+     Variable   Cluster IDs with no within-cluster variation
+
+      CORRECT     90 15 11 114 13 5 52 106 66 86 20 107 91 93 95
+      PREV_ERR    90 15 11 114 13 5 52 6 106 66 86 20 107 91 93 95
+
+*** WARNING
+  Data set contains cases with missing on x-variables.
+  These cases were not included in the analysis.
+  Number of cases with missing on x-variables:  496
+   4 WARNING(S) FOUND IN THE INPUT INSTRUCTIONS
+
+
+
+
+Antagonism and Constraint BSEM CFA 3+3 Parcels, Flanker ACC Mod
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                       15504
+
+Number of dependent variables                                    7
+Number of independent variables                                  4
+Number of continuous latent variables                            5
+
+Observed dependent variables
+
+  Continuous
+   MANIP       P1          P2          P3          P4          P5
+
+  Binary and ordered categorical (ordinal)
+   CORRECT
+
+Observed independent variables
+   COND        BLOCK       PREV_RT_    PREV_ERR
+
+Continuous latent variables
+   ANTAG       CONSTRAI    CONDSLO     PREVSLO     ERRSLO
+
+Variables with special functions
+
+  Cluster variable      ID
+
+  Within variables
+   COND        BLOCK       PREV_RT_    PREV_ERR
+
+  Between variables
+   MANIP       P1          P2          P3          P4          P5
+
+
+Estimator                                                    BAYES
+Specifications for Bayesian Estimation
+  Point estimate                                            MEDIAN
+  Number of Markov chain Monte Carlo (MCMC) chains               2
+  Random seed for the first chain                                0
+  Starting value information                           UNPERTURBED
+  Algorithm used for Markov chain Monte Carlo           GIBBS(PX1)
+  Convergence criterion                                  0.500D-01
+  Maximum number of iterations                               50000
+  K-th iteration used for thinning                               1
+Link                                                        PROBIT
+
+Input data file(s)
+  flanker_acc_mplus.dat
+Input data format  FREE
+
+
+SUMMARY OF DATA
+
+     Number of clusters                        100
+
+       Size (s)    Cluster ID with Size s
+
+        137        62
+        144        92
+        146        36
+        150        73 45
+        151        35
+        152        110
+        153        42 90 65
+        154        24 109 89 46 15
+        155        113 14 102 18 21 57 58 22 105 68 27 32 33 34 99
+        156        25 26 11 28 29 3 30 31 1 111 112 103 114 37 4 40 41
+                   12 43 13 104 49 5 50 52 53 54 56 10 16 59 6 60 61 17
+                   63 64 106 66 67 19 69 70 71 72 2 74 75 76 77 78 79 8
+                   81 84 86 87 88 20 9 107 91 108 93 94 95 96 97 98 101
+
+
+
+COVARIANCE COVERAGE OF DATA
+
+Minimum covariance coverage value   0.100
+
+     Number of missing data patterns             2
+
+
+     PROPORTION OF DATA PRESENT
+
+
+           Covariance Coverage
+              CORRECT       MANIP         P1            P2            P3
+              ________      ________      ________      ________      ________
+ CORRECT        0.982
+ MANIP          0.982         1.000
+ P1             0.982         1.000         1.000
+ P2             0.982         1.000         1.000         1.000
+ P3             0.982         1.000         1.000         1.000         1.000
+ P4             0.982         1.000         1.000         1.000         1.000
+ P5             0.982         1.000         1.000         1.000         1.000
+ COND           0.982         1.000         1.000         1.000         1.000
+ BLOCK          0.982         1.000         1.000         1.000         1.000
+ PREV_RT_       0.982         1.000         1.000         1.000         1.000
+ PREV_ERR       0.982         1.000         1.000         1.000         1.000
+
+
+           Covariance Coverage
+              P4            P5            COND          BLOCK         PREV_RT_
+              ________      ________      ________      ________      ________
+ P4             1.000
+ P5             1.000         1.000
+ COND           1.000         1.000         1.000
+ BLOCK          1.000         1.000         1.000         1.000
+ PREV_RT_       1.000         1.000         1.000         1.000         1.000
+ PREV_ERR       1.000         1.000         1.000         1.000         1.000
+
+
+           Covariance Coverage
+              PREV_ERR
+              ________
+ PREV_ERR       1.000
+
+
+UNIVARIATE PROPORTIONS AND COUNTS FOR CATEGORICAL VARIABLES
+
+    CORRECT
+      Category 1    0.031          471.000
+      Category 2    0.969        14751.000
+
+
+
+UNIVARIATE SAMPLE STATISTICS
+
+
+     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS
+
+         Variable/         Mean/     Skewness/   Minimum/ % with                Percentiles
+        Sample Size      Variance    Kurtosis    Maximum  Min/Max      20%/60%    40%/80%    Median
+
+     MANIP                 0.020       0.065      -1.701    7.00%      -0.898     -0.095      0.172
+             100.000       1.006      -0.475       2.849    1.00%       0.440      0.708
+     P1                    0.018       1.093      -1.197    5.00%      -0.819     -0.370     -0.108
+             100.000       0.886       1.171       3.011    1.00%       0.078      0.645
+     P2                   -0.005      -0.135      -2.240    1.00%      -0.857     -0.225      0.051
+             100.000       0.833      -0.639       1.749    1.00%       0.286      0.762
+     P3                    0.012      -0.902      -2.672    1.00%      -0.788     -0.027      0.231
+             100.000       0.887       0.345       1.396    1.00%       0.371      0.817
+     P4                    0.006       0.027      -1.799    1.00%      -0.946     -0.304      0.023
+             100.000       0.902      -1.019       1.783    1.00%       0.313      0.795
+     P5                    0.007       1.054      -1.149    7.00%      -0.845     -0.463     -0.199
+             100.000       0.897       0.848       3.259    1.00%       0.065      0.752
+     COND                  0.502      -0.007       0.000   49.82%       0.000      0.000      1.000
+           15504.000       0.250      -2.000       1.000   50.18%       1.000      1.000
+     BLOCK                 0.499       0.003       0.000   50.08%       0.000      0.000      0.000
+           15504.000       0.250      -2.000       1.000   49.92%       1.000      1.000
+     PREV_RT_Z            -0.020       1.617      -2.625    0.01%      -0.751     -0.367     -0.187
+           15504.000       0.979       4.909       6.508    0.01%       0.017      0.559
+     PREV_ERROR            0.035       5.048       0.000   96.48%       0.000      0.000      0.000
+           15504.000       0.034      23.484       1.000    3.52%       0.000      0.000
+
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+     USE THE FBITERATIONS OPTION TO INCREASE THE NUMBER OF ITERATIONS BY A FACTOR
+     OF AT LEAST TWO TO CHECK CONVERGENCE AND THAT THE PSR VALUE DOES NOT INCREASE.
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                              40
+
+
+
+MODEL RESULTS
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within Level
+
+ CORRECT    ON
+    BLOCK             -0.097       0.051      0.031      -0.196       0.005
+
+Between Level
+
+ ANTAG    BY
+    P5                 0.817       0.103      0.000       0.623       1.027      *
+    P1                 0.675       0.122      0.000       0.448       0.927      *
+    MANIP              0.784       0.109      0.000       0.580       1.002      *
+
+ CONSTRAI BY
+    P2                 0.612       0.123      0.000       0.377       0.856      *
+    P3                 0.655       0.134      0.000       0.402       0.925      *
+    P4                 0.503       0.129      0.000       0.251       0.756      *
+    P1                 0.317       0.124      0.004       0.086       0.577      *
+
+ CONDSLO    ON
+    ANTAG              0.078       0.087      0.184      -0.090       0.249
+    CONSTRAINT        -0.052       0.105      0.302      -0.255       0.157
+
+ PREVSLO    ON
+    ANTAG             -0.023       0.059      0.342      -0.139       0.094
+    CONSTRAINT        -0.040       0.067      0.273      -0.165       0.097
+
+ ERRSLO     ON
+    ANTAG             -0.312       0.255      0.074      -0.900       0.118
+    CONSTRAINT        -0.180       0.281      0.259      -0.748       0.339
+
+ CORRECT    ON
+    ANTAG             -0.273       0.081      0.001      -0.431      -0.114      *
+    CONSTRAINT        -0.023       0.093      0.400      -0.209       0.160
+
+ CONDSLO  WITH
+    PREVSLO            0.020       0.027      0.211      -0.029       0.076
+    ERRSLO             0.134       0.087      0.027      -0.002       0.340
+
+ PREVSLO  WITH
+    ERRSLO             0.092       0.066      0.033      -0.007       0.250
+
+ ANTAG    WITH
+    CONSTRAINT        -0.299       0.137      0.020      -0.554      -0.015      *
+
+ Intercepts
+    MANIP              0.020       0.103      0.418      -0.184       0.225
+    P1                 0.019       0.098      0.422      -0.174       0.209
+    P2                -0.006       0.095      0.475      -0.192       0.181
+    P3                 0.012       0.099      0.456      -0.183       0.204
+    P4                 0.007       0.099      0.475      -0.187       0.197
+    P5                 0.009       0.098      0.464      -0.188       0.196
+    CONDSLO           -0.490       0.081      0.000      -0.647      -0.328      *
+    PREVSLO            0.290       0.053      0.000       0.191       0.400      *
+    ERRSLO             1.034       0.388      0.000       0.452       1.930      *
+
+ Thresholds
+    CORRECT$1         -2.551       0.081      0.000      -2.712      -2.397      *
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    CONSTRAINT         1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    CORRECT            0.137       0.047      0.000       0.069       0.251      *
+    MANIP              0.470       0.109      0.000       0.283       0.713      *
+    P1                 0.526       0.110      0.000       0.336       0.771      *
+    P2                 0.522       0.127      0.000       0.289       0.786      *
+    P3                 0.527       0.148      0.000       0.219       0.817      *
+    P4                 0.704       0.134      0.000       0.474       1.001      *
+    P5                 0.310       0.102      0.000       0.102       0.523      *
+    CONDSLO            0.201       0.054      0.000       0.119       0.335      *
+    PREVSLO            0.099       0.029      0.000       0.058       0.168      *
+    ERRSLO             0.573       0.360      0.000       0.197       1.567      *
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ CONDSLO | CORRECT ON
+    COND              -0.216       0.027      0.000      -0.265      -0.154      *
+
+ PREVSLO | CORRECT ON
+    PREV_RT_Z          0.169       0.025      0.000       0.124       0.220      *
+
+ ERRSLO | CORRECT ON
+    PREV_ERROR         0.126       0.045      0.000       0.059       0.236      *
+
+ CORRECT    ON
+    BLOCK             -0.041       0.022      0.036      -0.082       0.003
+
+Between Level
+
+ ANTAG    BY
+    P5                 0.826       0.067      0.000       0.678       0.946      *
+    P1                 0.687       0.100      0.000       0.480       0.872      *
+    MANIP              0.753       0.069      0.000       0.600       0.868      *
+
+ CONSTRAI BY
+    P2                 0.645       0.107      0.000       0.417       0.831      *
+    P3                 0.668       0.114      0.000       0.430       0.883      *
+    P4                 0.513       0.115      0.000       0.264       0.714      *
+    P1                 0.322       0.122      0.004       0.087       0.564      *
+
+ CONDSLO    ON
+    ANTAG              0.166       0.175      0.184      -0.184       0.490
+    CONSTRAINT        -0.111       0.212      0.302      -0.511       0.318
+
+ PREVSLO    ON
+    ANTAG             -0.071       0.174      0.342      -0.402       0.278
+    CONSTRAINT        -0.124       0.198      0.273      -0.488       0.283
+
+ ERRSLO     ON
+    ANTAG             -0.369       0.230      0.074      -0.748       0.149
+    CONSTRAINT        -0.214       0.294      0.259      -0.716       0.377
+
+ CORRECT    ON
+    ANTAG             -0.590       0.145      0.001      -0.827      -0.257      *
+    CONSTRAINT        -0.050       0.193      0.400      -0.437       0.331
+
+ CONDSLO  WITH
+    PREVSLO            0.144       0.173      0.211      -0.211       0.460
+    ERRSLO             0.425       0.189      0.027      -0.007       0.719
+
+ PREVSLO  WITH
+    ERRSLO             0.408       0.191      0.033      -0.035       0.697
+
+ ANTAG    WITH
+    CONSTRAINT        -0.299       0.137      0.020      -0.554      -0.015      *
+
+ Intercepts
+    MANIP              0.019       0.098      0.418      -0.176       0.212
+    P1                 0.019       0.099      0.422      -0.176       0.210
+    P2                -0.006       0.099      0.475      -0.200       0.187
+    P3                 0.012       0.100      0.456      -0.186       0.209
+    P4                 0.007       0.100      0.475      -0.189       0.199
+    P5                 0.009       0.098      0.464      -0.187       0.195
+    CONDSLO           -1.030       0.228      0.000      -1.501      -0.609      *
+    PREVSLO            0.885       0.177      0.000       0.561       1.251      *
+    ERRSLO             1.191       0.289      0.000       0.634       1.782      *
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    CONSTRAINT         1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    CORRECT            0.637       0.137      0.000       0.364       0.894      *
+    MANIP              0.434       0.101      0.000       0.247       0.640      *
+    P1                 0.545       0.111      0.000       0.335       0.763      *
+    P2                 0.584       0.134      0.000       0.309       0.826      *
+    P3                 0.554       0.150      0.000       0.221       0.815      *
+    P4                 0.737       0.114      0.000       0.490       0.930      *
+    P5                 0.318       0.108      0.000       0.105       0.540      *
+    CONDSLO            0.908       0.090      0.000       0.665       0.996      *
+    PREVSLO            0.945       0.069      0.000       0.743       0.998      *
+    ERRSLO             0.789       0.163      0.000       0.398       0.989      *
+
+
+STDY Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ CONDSLO | CORRECT ON
+    COND              -0.432       0.054      0.000      -0.531      -0.308      *
+
+ PREVSLO | CORRECT ON
+    PREV_RT_Z          0.244       0.036      0.000       0.180       0.315      *
+
+ ERRSLO | CORRECT ON
+    PREV_ERROR         1.044       0.406      0.000       0.477       2.071      *
+
+ CORRECT    ON
+    BLOCK             -0.083       0.045      0.036      -0.164       0.007
+
+Between Level
+
+ ANTAG    BY
+    P5                 0.826       0.067      0.000       0.678       0.946      *
+    P1                 0.687       0.100      0.000       0.480       0.872      *
+    MANIP              0.753       0.069      0.000       0.600       0.868      *
+
+ CONSTRAI BY
+    P2                 0.645       0.107      0.000       0.417       0.831      *
+    P3                 0.668       0.114      0.000       0.430       0.883      *
+    P4                 0.513       0.115      0.000       0.264       0.714      *
+    P1                 0.322       0.122      0.004       0.087       0.564      *
+
+ CONDSLO    ON
+    ANTAG              0.166       0.175      0.184      -0.184       0.490
+    CONSTRAINT        -0.111       0.212      0.302      -0.511       0.318
+
+ PREVSLO    ON
+    ANTAG             -0.071       0.174      0.342      -0.402       0.278
+    CONSTRAINT        -0.124       0.198      0.273      -0.488       0.283
+
+ ERRSLO     ON
+    ANTAG             -0.369       0.230      0.074      -0.748       0.149
+    CONSTRAINT        -0.214       0.294      0.259      -0.716       0.377
+
+ CORRECT    ON
+    ANTAG             -0.590       0.145      0.001      -0.827      -0.257      *
+    CONSTRAINT        -0.050       0.193      0.400      -0.437       0.331
+
+ CONDSLO  WITH
+    PREVSLO            0.144       0.173      0.211      -0.211       0.460
+    ERRSLO             0.425       0.189      0.027      -0.007       0.719
+
+ PREVSLO  WITH
+    ERRSLO             0.408       0.191      0.033      -0.035       0.697
+
+ ANTAG    WITH
+    CONSTRAINT        -0.299       0.137      0.020      -0.554      -0.015      *
+
+ Intercepts
+    MANIP              0.019       0.098      0.418      -0.176       0.212
+    P1                 0.019       0.099      0.422      -0.176       0.210
+    P2                -0.006       0.099      0.475      -0.200       0.187
+    P3                 0.012       0.100      0.456      -0.186       0.209
+    P4                 0.007       0.100      0.475      -0.189       0.199
+    P5                 0.009       0.098      0.464      -0.187       0.195
+    CONDSLO           -1.030       0.228      0.000      -1.501      -0.609      *
+    PREVSLO            0.885       0.177      0.000       0.561       1.251      *
+    ERRSLO             1.191       0.289      0.000       0.634       1.782      *
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    CONSTRAINT         1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    CORRECT            0.637       0.137      0.000       0.364       0.894      *
+    MANIP              0.434       0.101      0.000       0.247       0.640      *
+    P1                 0.545       0.111      0.000       0.335       0.763      *
+    P2                 0.584       0.134      0.000       0.309       0.826      *
+    P3                 0.554       0.150      0.000       0.221       0.815      *
+    P4                 0.737       0.114      0.000       0.490       0.930      *
+    P5                 0.318       0.108      0.000       0.105       0.540      *
+    CONDSLO            0.908       0.090      0.000       0.665       0.996      *
+    PREVSLO            0.945       0.069      0.000       0.743       0.998      *
+    ERRSLO             0.789       0.163      0.000       0.398       0.989      *
+
+
+STD Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ CONDSLO | CORRECT ON
+    COND              -0.494       0.061      0.000      -0.615      -0.355      *
+
+ PREVSLO | CORRECT ON
+    PREV_RT_Z          0.279       0.041      0.000       0.207       0.362      *
+
+ ERRSLO | CORRECT ON
+    PREV_ERROR         1.147       0.471      0.000       0.526       2.414      *
+
+ CORRECT    ON
+    BLOCK             -0.092       0.049      0.036      -0.180       0.008
+
+Between Level
+
+ ANTAG    BY
+    P5                 0.817       0.103      0.000       0.623       1.027      *
+    P1                 0.675       0.122      0.000       0.448       0.927      *
+    MANIP              0.784       0.109      0.000       0.580       1.002      *
+
+ CONSTRAI BY
+    P2                 0.612       0.123      0.000       0.377       0.856      *
+    P3                 0.655       0.134      0.000       0.402       0.925      *
+    P4                 0.503       0.129      0.000       0.251       0.756      *
+    P1                 0.317       0.124      0.004       0.086       0.577      *
+
+ CONDSLO    ON
+    ANTAG              0.166       0.175      0.184      -0.184       0.490
+    CONSTRAINT        -0.111       0.212      0.302      -0.511       0.318
+
+ PREVSLO    ON
+    ANTAG             -0.071       0.174      0.342      -0.402       0.278
+    CONSTRAINT        -0.124       0.198      0.273      -0.488       0.283
+
+ ERRSLO     ON
+    ANTAG             -0.369       0.230      0.074      -0.748       0.149
+    CONSTRAINT        -0.214       0.294      0.259      -0.716       0.377
+
+ CORRECT    ON
+    ANTAG             -0.273       0.081      0.001      -0.431      -0.114      *
+    CONSTRAINT        -0.023       0.093      0.400      -0.209       0.160
+
+ CONDSLO  WITH
+    PREVSLO            0.144       0.173      0.211      -0.211       0.460
+    ERRSLO             0.425       0.189      0.027      -0.007       0.719
+
+ PREVSLO  WITH
+    ERRSLO             0.408       0.191      0.033      -0.035       0.697
+
+ ANTAG    WITH
+    CONSTRAINT        -0.299       0.137      0.020      -0.554      -0.015      *
+
+ Intercepts
+    MANIP              0.020       0.103      0.418      -0.184       0.225
+    P1                 0.019       0.098      0.422      -0.174       0.209
+    P2                -0.006       0.095      0.475      -0.192       0.181
+    P3                 0.012       0.099      0.456      -0.183       0.204
+    P4                 0.007       0.099      0.475      -0.187       0.197
+    P5                 0.009       0.098      0.464      -0.188       0.196
+    CONDSLO           -1.030       0.228      0.000      -1.501      -0.609      *
+    PREVSLO            0.885       0.177      0.000       0.561       1.251      *
+    ERRSLO             1.191       0.289      0.000       0.634       1.782      *
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    CONSTRAINT         1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    CORRECT            0.137       0.047      0.000       0.069       0.251      *
+    MANIP              0.470       0.109      0.000       0.283       0.713      *
+    P1                 0.526       0.110      0.000       0.336       0.771      *
+    P2                 0.522       0.127      0.000       0.289       0.786      *
+    P3                 0.527       0.148      0.000       0.219       0.817      *
+    P4                 0.704       0.134      0.000       0.474       1.001      *
+    P5                 0.310       0.102      0.000       0.102       0.523      *
+    CONDSLO            0.908       0.090      0.000       0.665       0.996      *
+    PREVSLO            0.945       0.069      0.000       0.743       0.998      *
+    ERRSLO             0.789       0.163      0.000       0.398       0.989      *
+
+
+R-SQUARE
+
+Within-Level R-Square Averaged Across Clusters
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    CORRECT            0.175       0.020      0.000       0.143       0.218
+
+Between Level
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    CORRECT            0.363       0.137      0.000       0.105       0.636
+    MANIP              0.566       0.101      0.000       0.360       0.753
+    P1                 0.455       0.111      0.000       0.237       0.665
+    P2                 0.416       0.134      0.000       0.174       0.691
+    P3                 0.446       0.150      0.000       0.185       0.779
+    P4                 0.263       0.114      0.000       0.070       0.510
+    P5                 0.682       0.108      0.000       0.459       0.895
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    CONDSLO            0.092       0.090      0.000       0.004       0.335
+    PREVSLO            0.055       0.069      0.000       0.002       0.257
+    ERRSLO             0.211       0.163      0.000       0.011       0.601
+
+
+CREDIBILITY INTERVALS OF MODEL RESULTS
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    BLOCK           -0.227      -0.196      -0.181      -0.097      -0.012       0.005       0.038
+
+ Thresholds
+    CORRECT$1       -2.765      -2.712      -2.685      -2.551      -2.422      -2.397      -2.346
+
+Between Level
+
+ ANTAG    BY
+    P5               0.556       0.623       0.655       0.817       0.991       1.027       1.103
+    P1               0.383       0.448       0.484       0.675       0.884       0.927       1.010
+    MANIP            0.523       0.580       0.609       0.784       0.965       1.002       1.084
+
+ CONSTRAI BY
+    P2               0.296       0.377       0.409       0.612       0.816       0.856       0.933
+    P3               0.317       0.402       0.441       0.655       0.881       0.925       1.003
+    P4               0.169       0.251       0.291       0.503       0.715       0.756       0.836
+    P1               0.003       0.086       0.124       0.317       0.528       0.577       0.661
+
+ CONDSLO  ON
+    ANTAG           -0.163      -0.090      -0.064       0.078       0.220       0.249       0.307
+    CONSTRAINT      -0.330      -0.255      -0.225      -0.052       0.122       0.157       0.234
+
+ PREVSLO  ON
+    ANTAG           -0.172      -0.139      -0.120      -0.023       0.075       0.094       0.134
+    CONSTRAINT      -0.210      -0.165      -0.145      -0.040       0.072       0.097       0.138
+
+ ERRSLO   ON
+    ANTAG           -1.196      -0.900      -0.774      -0.312       0.042       0.118       0.252
+    CONSTRAINT      -0.955      -0.748      -0.652      -0.180       0.253       0.339       0.511
+
+ CORRECT  ON
+    ANTAG           -0.495      -0.431      -0.406      -0.273      -0.142      -0.114      -0.054
+    CONSTRAINT      -0.274      -0.209      -0.177      -0.023       0.126       0.160       0.235
+
+ CONDSLO  WITH
+    PREVSLO         -0.047      -0.029      -0.021       0.020       0.066       0.076       0.101
+    ERRSLO          -0.049      -0.002       0.020       0.134       0.303       0.340       0.421
+
+ PREVSLO  WITH
+    ERRSLO          -0.047      -0.007       0.009       0.092       0.220       0.250       0.325
+
+ ANTAG    WITH
+    CONSTRAINT      -0.623      -0.554      -0.515      -0.299      -0.064      -0.015       0.071
+
+ Intercepts
+    MANIP           -0.248      -0.184      -0.152       0.020       0.189       0.225       0.288
+    P1              -0.235      -0.174      -0.143       0.019       0.178       0.209       0.264
+    P2              -0.263      -0.192      -0.162      -0.006       0.149       0.181       0.238
+    P3              -0.246      -0.183      -0.151       0.012       0.172       0.204       0.259
+    P4              -0.252      -0.187      -0.155       0.007       0.167       0.197       0.263
+    P5              -0.244      -0.188      -0.155       0.009       0.168       0.196       0.262
+    CONDSLO         -0.708      -0.647      -0.620      -0.490      -0.355      -0.328      -0.282
+    PREVSLO          0.162       0.191       0.207       0.290       0.383       0.400       0.438
+    ERRSLO           0.279       0.452       0.534       1.034       1.781       1.930       2.394
+
+ Thresholds
+    CORRECT$1       -2.765      -2.712      -2.685      -2.551      -2.422      -2.397      -2.346
+
+ Variances
+    ANTAG            1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    CONSTRAINT       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    CORRECT          0.052       0.069       0.078       0.137       0.229       0.251       0.297
+    MANIP            0.221       0.283       0.309       0.470       0.667       0.713       0.799
+    P1               0.278       0.336       0.366       0.526       0.724       0.771       0.867
+    P2               0.208       0.289       0.324       0.522       0.740       0.786       0.888
+    P3               0.134       0.219       0.277       0.527       0.768       0.817       0.933
+    P4               0.401       0.474       0.508       0.704       0.946       1.001       1.119
+    P5               0.057       0.102       0.141       0.310       0.482       0.523       0.600
+    CONDSLO          0.099       0.119       0.131       0.201       0.305       0.335       0.390
+    PREVSLO          0.049       0.058       0.064       0.099       0.154       0.168       0.201
+    ERRSLO           0.134       0.197       0.231       0.573       1.310       1.567       2.249
+
+
+CREDIBILITY INTERVALS OF STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    BLOCK            0.000      -0.082       0.000      -0.041       0.000       0.003       0.000
+
+Between Level
+
+ ANTAG    BY
+    P5               0.621       0.678       0.708       0.826       0.928       0.946       0.972
+    P1               0.411       0.480       0.518       0.687       0.842       0.872       0.949
+    MANIP            0.540       0.600       0.626       0.753       0.851       0.868       0.901
+
+ CONSTRAI BY
+    P2               0.335       0.417       0.452       0.645       0.803       0.831       0.882
+    P3               0.339       0.430       0.472       0.668       0.850       0.883       0.928
+    P4               0.174       0.264       0.308       0.513       0.685       0.714       0.769
+    P1               0.003       0.087       0.127       0.322       0.523       0.564       0.648
+
+ CONDSLO  ON
+    ANTAG           -0.342      -0.184      -0.133       0.166       0.442       0.490       0.579
+    CONSTRAINT      -0.624      -0.511      -0.452      -0.111       0.248       0.318       0.451
+
+ PREVSLO  ON
+    ANTAG           -0.491      -0.402      -0.350      -0.071       0.226       0.278       0.385
+    CONSTRAINT      -0.594      -0.488      -0.434      -0.124       0.213       0.283       0.384
+
+ ERRSLO   ON
+    ANTAG           -0.835      -0.748      -0.698      -0.369       0.056       0.149       0.303
+    CONSTRAINT      -0.801      -0.716      -0.664      -0.214       0.292       0.377       0.519
+
+ CORRECT  ON
+    ANTAG           -0.899      -0.827      -0.791      -0.590      -0.321      -0.257      -0.122
+    CONSTRAINT      -0.536      -0.437      -0.372      -0.050       0.266       0.331       0.454
+
+ CONDSLO  WITH
+    PREVSLO         -0.302      -0.211      -0.151       0.144       0.414       0.460       0.537
+    ERRSLO          -0.128      -0.007       0.065       0.425       0.681       0.719       0.786
+
+ PREVSLO  WITH
+    ERRSLO          -0.192      -0.035       0.047       0.408       0.664       0.697       0.751
+
+ ANTAG    WITH
+    CONSTRAINT      -0.623      -0.554      -0.515      -0.299      -0.064      -0.015       0.071
+
+ Intercepts
+    MANIP           -0.231      -0.176      -0.145       0.019       0.180       0.212       0.274
+    P1              -0.241      -0.176      -0.145       0.019       0.180       0.210       0.264
+    P2              -0.269      -0.200      -0.169      -0.006       0.155       0.187       0.249
+    P3              -0.252      -0.186      -0.151       0.012       0.174       0.209       0.259
+    P4              -0.250      -0.189      -0.156       0.007       0.168       0.199       0.264
+    P5              -0.243      -0.187      -0.154       0.009       0.170       0.195       0.260
+    CONDSLO         -1.700      -1.501      -1.420      -1.030      -0.672      -0.609      -0.498
+    PREVSLO          0.476       0.561       0.609       0.885       1.189       1.251       1.400
+    ERRSLO           0.426       0.634       0.725       1.191       1.677       1.782       1.982
+
+ Variances
+    ANTAG            1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    CONSTRAINT       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    CORRECT          0.281       0.364       0.405       0.637       0.857       0.894       0.954
+    MANIP            0.187       0.247       0.276       0.434       0.608       0.640       0.708
+    P1               0.270       0.335       0.367       0.545       0.732       0.763       0.828
+    P2               0.220       0.309       0.354       0.584       0.795       0.826       0.887
+    P3               0.139       0.221       0.278       0.554       0.777       0.815       0.885
+    P4               0.409       0.490       0.530       0.737       0.905       0.930       0.969
+    P5               0.054       0.105       0.139       0.318       0.499       0.540       0.614
+    CONDSLO          0.580       0.665       0.708       0.908       0.992       0.996       0.999
+    PREVSLO          0.645       0.743       0.788       0.945       0.996       0.998       1.000
+    ERRSLO           0.303       0.398       0.454       0.789       0.978       0.989       0.998
+
+
+STDY Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    BLOCK            0.000      -0.164       0.000      -0.083       0.000       0.007       0.000
+
+Between Level
+
+ ANTAG    BY
+    P5               0.621       0.678       0.708       0.826       0.928       0.946       0.972
+    P1               0.411       0.480       0.518       0.687       0.842       0.872       0.949
+    MANIP            0.540       0.600       0.626       0.753       0.851       0.868       0.901
+
+ CONSTRAI BY
+    P2               0.335       0.417       0.452       0.645       0.803       0.831       0.882
+    P3               0.339       0.430       0.472       0.668       0.850       0.883       0.928
+    P4               0.174       0.264       0.308       0.513       0.685       0.714       0.769
+    P1               0.003       0.087       0.127       0.322       0.523       0.564       0.648
+
+ CONDSLO  ON
+    ANTAG           -0.342      -0.184      -0.133       0.166       0.442       0.490       0.579
+    CONSTRAINT      -0.624      -0.511      -0.452      -0.111       0.248       0.318       0.451
+
+ PREVSLO  ON
+    ANTAG           -0.491      -0.402      -0.350      -0.071       0.226       0.278       0.385
+    CONSTRAINT      -0.594      -0.488      -0.434      -0.124       0.213       0.283       0.384
+
+ ERRSLO   ON
+    ANTAG           -0.835      -0.748      -0.698      -0.369       0.056       0.149       0.303
+    CONSTRAINT      -0.801      -0.716      -0.664      -0.214       0.292       0.377       0.519
+
+ CORRECT  ON
+    ANTAG           -0.899      -0.827      -0.791      -0.590      -0.321      -0.257      -0.122
+    CONSTRAINT      -0.536      -0.437      -0.372      -0.050       0.266       0.331       0.454
+
+ CONDSLO  WITH
+    PREVSLO         -0.302      -0.211      -0.151       0.144       0.414       0.460       0.537
+    ERRSLO          -0.128      -0.007       0.065       0.425       0.681       0.719       0.786
+
+ PREVSLO  WITH
+    ERRSLO          -0.192      -0.035       0.047       0.408       0.664       0.697       0.751
+
+ ANTAG    WITH
+    CONSTRAINT      -0.623      -0.554      -0.515      -0.299      -0.064      -0.015       0.071
+
+ Intercepts
+    MANIP           -0.231      -0.176      -0.145       0.019       0.180       0.212       0.274
+    P1              -0.241      -0.176      -0.145       0.019       0.180       0.210       0.264
+    P2              -0.269      -0.200      -0.169      -0.006       0.155       0.187       0.249
+    P3              -0.252      -0.186      -0.151       0.012       0.174       0.209       0.259
+    P4              -0.250      -0.189      -0.156       0.007       0.168       0.199       0.264
+    P5              -0.243      -0.187      -0.154       0.009       0.170       0.195       0.260
+    CONDSLO         -1.700      -1.501      -1.420      -1.030      -0.672      -0.609      -0.498
+    PREVSLO          0.476       0.561       0.609       0.885       1.189       1.251       1.400
+    ERRSLO           0.426       0.634       0.725       1.191       1.677       1.782       1.982
+
+ Variances
+    ANTAG            1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    CONSTRAINT       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    CORRECT          0.281       0.364       0.405       0.637       0.857       0.894       0.954
+    MANIP            0.187       0.247       0.276       0.434       0.608       0.640       0.708
+    P1               0.270       0.335       0.367       0.545       0.732       0.763       0.828
+    P2               0.220       0.309       0.354       0.584       0.795       0.826       0.887
+    P3               0.139       0.221       0.278       0.554       0.777       0.815       0.885
+    P4               0.409       0.490       0.530       0.737       0.905       0.930       0.969
+    P5               0.054       0.105       0.139       0.318       0.499       0.540       0.614
+    CONDSLO          0.580       0.665       0.708       0.908       0.992       0.996       0.999
+    PREVSLO          0.645       0.743       0.788       0.945       0.996       0.998       1.000
+    ERRSLO           0.303       0.398       0.454       0.789       0.978       0.989       0.998
+
+
+STD Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    BLOCK            0.000      -0.180       0.000      -0.092       0.000       0.008       0.000
+
+Between Level
+
+ ANTAG    BY
+    P5               0.556       0.623       0.655       0.817       0.991       1.027       1.103
+    P1               0.383       0.448       0.484       0.675       0.884       0.927       1.010
+    MANIP            0.523       0.580       0.609       0.784       0.965       1.002       1.084
+
+ CONSTRAI BY
+    P2               0.296       0.377       0.409       0.612       0.816       0.856       0.933
+    P3               0.317       0.402       0.441       0.655       0.881       0.925       1.003
+    P4               0.169       0.251       0.291       0.503       0.715       0.756       0.836
+    P1               0.003       0.086       0.124       0.317       0.528       0.577       0.661
+
+ CONDSLO  ON
+    ANTAG           -0.342      -0.184      -0.133       0.166       0.442       0.490       0.579
+    CONSTRAINT      -0.624      -0.511      -0.452      -0.111       0.248       0.318       0.451
+
+ PREVSLO  ON
+    ANTAG           -0.491      -0.402      -0.350      -0.071       0.226       0.278       0.385
+    CONSTRAINT      -0.594      -0.488      -0.434      -0.124       0.213       0.283       0.384
+
+ ERRSLO   ON
+    ANTAG           -0.835      -0.748      -0.698      -0.369       0.056       0.149       0.303
+    CONSTRAINT      -0.801      -0.716      -0.664      -0.214       0.292       0.377       0.519
+
+ CORRECT  ON
+    ANTAG           -0.495      -0.431      -0.406      -0.273      -0.142      -0.114      -0.054
+    CONSTRAINT      -0.274      -0.209      -0.177      -0.023       0.126       0.160       0.235
+
+ CONDSLO  WITH
+    PREVSLO         -0.302      -0.211      -0.151       0.144       0.414       0.460       0.537
+    ERRSLO          -0.128      -0.007       0.065       0.425       0.681       0.719       0.786
+
+ PREVSLO  WITH
+    ERRSLO          -0.192      -0.035       0.047       0.408       0.664       0.697       0.751
+
+ ANTAG    WITH
+    CONSTRAINT      -0.623      -0.554      -0.515      -0.299      -0.064      -0.015       0.071
+
+ Intercepts
+    MANIP           -0.248      -0.184      -0.152       0.020       0.189       0.225       0.288
+    P1              -0.235      -0.174      -0.143       0.019       0.178       0.209       0.264
+    P2              -0.263      -0.192      -0.162      -0.006       0.149       0.181       0.238
+    P3              -0.246      -0.183      -0.151       0.012       0.172       0.204       0.259
+    P4              -0.252      -0.187      -0.155       0.007       0.167       0.197       0.263
+    P5              -0.244      -0.188      -0.155       0.009       0.168       0.196       0.262
+    CONDSLO         -1.700      -1.501      -1.420      -1.030      -0.672      -0.609      -0.498
+    PREVSLO          0.476       0.561       0.609       0.885       1.189       1.251       1.400
+    ERRSLO           0.426       0.634       0.725       1.191       1.677       1.782       1.982
+
+ Variances
+    ANTAG            1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    CONSTRAINT       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    CORRECT          0.052       0.069       0.078       0.137       0.229       0.251       0.297
+    MANIP            0.221       0.283       0.309       0.470       0.667       0.713       0.799
+    P1               0.278       0.336       0.366       0.526       0.724       0.771       0.867
+    P2               0.208       0.289       0.324       0.522       0.740       0.786       0.888
+    P3               0.134       0.219       0.277       0.527       0.768       0.817       0.933
+    P4               0.401       0.474       0.508       0.704       0.946       1.001       1.119
+    P5               0.057       0.102       0.141       0.310       0.482       0.523       0.600
+    CONDSLO          0.580       0.665       0.708       0.908       0.992       0.996       0.999
+    PREVSLO          0.645       0.743       0.788       0.945       0.996       0.998       1.000
+    ERRSLO           0.303       0.398       0.454       0.789       0.978       0.989       0.998
+
+
+TECHNICAL 1 OUTPUT
+
+
+     PARAMETER SPECIFICATION FOR WITHIN
+
+
+           TAU
+              CORRECT$
+              ________
+                    0
+
+
+           NU
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           LAMBDA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT            0             0             0             0             0
+ COND               0             0             0             0             0
+ BLOCK              0             0             0             0             0
+ PREV_RT_           0             0             0             0             0
+ PREV_ERR           0             0             0             0             0
+
+
+           THETA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT            0
+ COND               0             0
+ BLOCK              0             0             0
+ PREV_RT_           0             0             0             0
+ PREV_ERR           0             0             0             0             0
+
+
+           ALPHA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           BETA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT            0             0             1             0             0
+ COND               0             0             0             0             0
+ BLOCK              0             0             0             0             0
+ PREV_RT_           0             0             0             0             0
+ PREV_ERR           0             0             0             0             0
+
+
+           PSI
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT            0
+ COND               0             0
+ BLOCK              0             0             0
+ PREV_RT_           0             0             0             0
+ PREV_ERR           0             0             0             0             0
+
+
+     PARAMETER SPECIFICATION FOR BETWEEN
+
+
+           TAU
+              CORRECT$
+              ________
+                   40
+
+
+           NU
+              CORRECT       MANIP         P1            P2            P3
+              ________      ________      ________      ________      ________
+                    0             2             3             4             5
+
+
+           NU
+              P4            P5
+              ________      ________
+                    6             7
+
+
+           LAMBDA
+              ANTAG         CONSTRAI      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+ CORRECT            0             0             0             0             0
+ MANIP              8             0             0             0             0
+ P1                 9            10             0             0             0
+ P2                 0            11             0             0             0
+ P3                 0            12             0             0             0
+ P4                 0            13             0             0             0
+ P5                14             0             0             0             0
+
+
+           LAMBDA
+              CORRECT
+              ________
+ CORRECT            0
+ MANIP              0
+ P1                 0
+ P2                 0
+ P3                 0
+ P4                 0
+ P5                 0
+
+
+           THETA
+              CORRECT       MANIP         P1            P2            P3
+              ________      ________      ________      ________      ________
+ CORRECT            0
+ MANIP              0            15
+ P1                 0             0            16
+ P2                 0             0             0            17
+ P3                 0             0             0             0            18
+ P4                 0             0             0             0             0
+ P5                 0             0             0             0             0
+
+
+           THETA
+              P4            P5
+              ________      ________
+ P4                19
+ P5                 0            20
+
+
+           ALPHA
+              ANTAG         CONSTRAI      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+                    0             0            21            22            23
+
+
+           ALPHA
+              CORRECT
+              ________
+                    0
+
+
+           BETA
+              ANTAG         CONSTRAI      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+ ANTAG              0             0             0             0             0
+ CONSTRAI           0             0             0             0             0
+ CONDSLO           24            25             0             0             0
+ PREVSLO           26            27             0             0             0
+ ERRSLO            28            29             0             0             0
+ CORRECT           30            31             0             0             0
+
+
+           BETA
+              CORRECT
+              ________
+ ANTAG              0
+ CONSTRAI           0
+ CONDSLO            0
+ PREVSLO            0
+ ERRSLO             0
+ CORRECT            0
+
+
+           PSI
+              ANTAG         CONSTRAI      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+ ANTAG              0
+ CONSTRAI          32             0
+ CONDSLO            0             0            33
+ PREVSLO            0             0            34            35
+ ERRSLO             0             0            36            37            38
+ CORRECT            0             0             0             0             0
+
+
+           PSI
+              CORRECT
+              ________
+ CORRECT           39
+
+
+     STARTING VALUES FOR WITHIN
+
+
+           TAU
+              CORRECT$
+              ________
+                0.000
+
+
+           NU
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           LAMBDA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT        1.000         0.000         0.000         0.000         0.000
+ COND           0.000         1.000         0.000         0.000         0.000
+ BLOCK          0.000         0.000         1.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000         1.000         0.000
+ PREV_ERR       0.000         0.000         0.000         0.000         1.000
+
+
+           THETA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT        0.000
+ COND           0.000         0.000
+ BLOCK          0.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000         0.000
+ PREV_ERR       0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT        0.000         0.000         0.000         0.000         0.000
+ COND           0.000         0.000         0.000         0.000         0.000
+ BLOCK          0.000         0.000         0.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000         0.000         0.000
+ PREV_ERR       0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT        1.000
+ COND           0.000         0.125
+ BLOCK          0.000         0.000         0.125
+ PREV_RT_       0.000         0.000         0.000         0.489
+ PREV_ERR       0.000         0.000         0.000         0.000         0.017
+
+
+     STARTING VALUES FOR BETWEEN
+
+
+           TAU
+              CORRECT$
+              ________
+               -1.913
+
+
+           NU
+              CORRECT       MANIP         P1            P2            P3
+              ________      ________      ________      ________      ________
+                0.000         0.015         0.014        -0.004         0.014
+
+
+           NU
+              P4            P5
+              ________      ________
+                0.008         0.003
+
+
+           LAMBDA
+              ANTAG         CONSTRAI      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+ CORRECT        0.000         0.000         0.000         0.000         0.000
+ MANIP          1.000         0.000         0.000         0.000         0.000
+ P1             1.000         1.000         0.000         0.000         0.000
+ P2             0.000         1.000         0.000         0.000         0.000
+ P3             0.000         1.000         0.000         0.000         0.000
+ P4             0.000         1.000         0.000         0.000         0.000
+ P5             1.000         0.000         0.000         0.000         0.000
+
+
+           LAMBDA
+              CORRECT
+              ________
+ CORRECT        1.000
+ MANIP          0.000
+ P1             0.000
+ P2             0.000
+ P3             0.000
+ P4             0.000
+ P5             0.000
+
+
+           THETA
+              CORRECT       MANIP         P1            P2            P3
+              ________      ________      ________      ________      ________
+ CORRECT        0.000
+ MANIP          0.000         0.500
+ P1             0.000         0.000         0.441
+ P2             0.000         0.000         0.000         0.417
+ P3             0.000         0.000         0.000         0.000         0.442
+ P4             0.000         0.000         0.000         0.000         0.000
+ P5             0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              P4            P5
+              ________      ________
+ P4             0.452
+ P5             0.000         0.444
+
+
+           ALPHA
+              ANTAG         CONSTRAI      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              CORRECT
+              ________
+                0.000
+
+
+           BETA
+              ANTAG         CONSTRAI      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+ ANTAG          0.000         0.000         0.000         0.000         0.000
+ CONSTRAI       0.000         0.000         0.000         0.000         0.000
+ CONDSLO        0.000         0.000         0.000         0.000         0.000
+ PREVSLO        0.000         0.000         0.000         0.000         0.000
+ ERRSLO         0.000         0.000         0.000         0.000         0.000
+ CORRECT        0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              CORRECT
+              ________
+ ANTAG          0.000
+ CONSTRAI       0.000
+ CONDSLO        0.000
+ PREVSLO        0.000
+ ERRSLO         0.000
+ CORRECT        0.000
+
+
+           PSI
+              ANTAG         CONSTRAI      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+ ANTAG          1.000
+ CONSTRAI       0.000         1.000
+ CONDSLO        0.000         0.000         1.000
+ PREVSLO        0.000         0.000         0.000         1.000
+ ERRSLO         0.000         0.000         0.000         0.000         1.000
+ CORRECT        0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              CORRECT
+              ________
+ CORRECT        1.000
+
+
+
+     PRIORS FOR ALL PARAMETERS            PRIOR MEAN      PRIOR VARIANCE     PRIOR STD. DEV.
+
+     Parameter 1~N(0.000,5.000)              0.0000              5.0000              2.2361
+     Parameter 2~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 3~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 4~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 5~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 6~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 7~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 8~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 9~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 10~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 11~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 12~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 13~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 14~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 15~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 16~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 17~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 18~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 19~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 20~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 21~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 22~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 23~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 24~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 25~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 26~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 27~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 28~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 29~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 30~N(0.000,5.000)             0.0000              5.0000              2.2361
+     Parameter 31~N(0.000,5.000)             0.0000              5.0000              2.2361
+     Parameter 32~IW(0.000,3)
+     Parameter 33~IW(1.000,4)              infinity            infinity            infinity
+     Parameter 34~IW(0.000,4)              infinity            infinity            infinity
+     Parameter 35~IW(1.000,4)              infinity            infinity            infinity
+     Parameter 36~IW(0.000,4)              infinity            infinity            infinity
+     Parameter 37~IW(0.000,4)              infinity            infinity            infinity
+     Parameter 38~IW(1.000,4)              infinity            infinity            infinity
+     Parameter 39~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 40~N(0.000,5.000)             0.0000              5.0000              2.2361
+
+
+TECHNICAL 8 OUTPUT
+
+
+   TECHNICAL 8 OUTPUT FOR BAYES ESTIMATION
+
+     CHAIN    BSEED
+     1        0
+     2        285380
+     3        253358
+     4        93468
+
+                     POTENTIAL       PARAMETER WITH
+     ITERATION    SCALE REDUCTION      HIGHEST PSR
+     100              2.125               23
+     200              1.655               29
+     300              1.680               23
+     400              1.286               39
+     500              1.242               39
+     600              1.094               26
+     700              1.455               38
+     800              1.506               38
+     900              1.394               23
+     1000             1.349               23
+     1100             1.276               23
+     1200             1.112               23
+     1300             1.030               20
+     1400             1.086               37
+     1500             1.157               38
+     1600             1.143               38
+     1700             1.179               37
+     1800             1.238               37
+     1900             1.295               23
+     2000             1.409               23
+     2100             1.473               23
+     2200             1.415               23
+     2300             1.296               23
+     2400             1.132               38
+     2500             1.119               37
+     2600             1.102               37
+     2700             1.085               38
+     2800             1.063               38
+     2900             1.050               38
+     3000             1.051               38
+     3100             1.054               38
+     3200             1.061               38
+     3300             1.052               38
+     3400             1.061               28
+     3500             1.059               28
+     3600             1.053               28
+     3700             1.045               28
+     3800             1.027               39
+     3900             1.021               22
+     4000             1.021               31
+     4100             1.019               31
+     4200             1.021               31
+     4300             1.021               24
+     4400             1.021               24
+     4500             1.034               24
+     4600             1.037               30
+     4700             1.031               28
+     4800             1.059               23
+     4900             1.087               23
+     5000             1.114               23
+     5100             1.139               23
+     5200             1.127               23
+     5300             1.121               23
+     5400             1.121               23
+     5500             1.139               23
+     5600             1.175               23
+     5700             1.213               23
+     5800             1.244               23
+     5900             1.216               23
+     6000             1.174               23
+     6100             1.151               23
+     6200             1.127               23
+     6300             1.113               23
+     6400             1.098               23
+     6500             1.076               23
+     6600             1.057               40
+     6700             1.055               40
+     6800             1.059               40
+     6900             1.058               39
+     7000             1.041               40
+     7100             1.043               35
+     7200             1.044               35
+     7300             1.046               35
+     7400             1.044               35
+     7500             1.044               22
+     7600             1.036               22
+     7700             1.035               22
+     7800             1.040               22
+     7900             1.034               22
+     8000             1.032               22
+     8100             1.027               22
+     8200             1.025               23
+     8300             1.027               23
+     8400             1.028               23
+     8500             1.032               23
+     8600             1.044               23
+     8700             1.048               23
+     8800             1.054               23
+     8900             1.055               23
+     9000             1.055               23
+     9100             1.051               23
+     9200             1.052               23
+     9300             1.052               23
+     9400             1.066               23
+     9500             1.073               23
+     9600             1.068               23
+     9700             1.059               23
+     9800             1.052               23
+     9900             1.055               23
+     10000            1.056               23
+
+
+PLOT INFORMATION
+
+The following plots are available:
+
+  Sample proportions
+  Bayesian posterior parameter distributions
+  Bayesian posterior parameter trace plots
+  Bayesian autocorrelation plots
+  Bayesian prior parameter distributions
+
+     Beginning Time:  18:40:35
+        Ending Time:  18:43:11
+       Elapsed Time:  00:02:36
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2019 Muthen & Muthen

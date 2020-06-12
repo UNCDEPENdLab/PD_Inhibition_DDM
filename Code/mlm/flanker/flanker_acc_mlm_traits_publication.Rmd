@@ -13,8 +13,8 @@ output:
     toc: yes
     toc_depth: 2
     toc_float: no
-    fig_width: 9 
-    fig_height: 6 
+    fig_width: 9
+    fig_height: 6
   pdf_document:
     code_folding: hide
     df_print: default
@@ -36,22 +36,22 @@ options(width=180)
 
 #flanker data processed in flanker_mlm.Rmd
 #has the worst subjects removed, rt_inv transformation, etc.
-load("../../Data/preprocessed/flanker_for_traits.RData")
+load("../../../Data/preprocessed/flanker_for_traits.RData")
 flanker <- flanker %>% mutate(rt_inv=if_else(correct==0, NA_real_, rt_inv),  #treat incorrect RTs as missing
                               prev_rt_z=as.vector(scale(prev_rt)))
 
 #basedir <- "C:/Users/timot/Documents/GitHub/PD_Inhibition_DDM"
-basedir <- "~/Data_Analysis/PD_Inhibition_DDM" 
+basedir <- "~/Data_Analysis/PD_Inhibition_DDM"
 
-mpq <- get(load(file.path(basedir, "Data/preprocessed/MPQ_all_scored_final.RData"))) %>% 
+mpq <- get(load(file.path(basedir, "Data/preprocessed/MPQ_all_scored_final.RData"))) %>%
   filter(exclude_MPQ == 0) %>% select(subject, MPS_wbR:MPS_abR)
-snap <- get(load(file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RData"))) %>% filter(exclude_SNAP == 0) %>% 
+snap <- get(load(file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RData"))) %>% filter(exclude_SNAP == 0) %>%
   select(subject, NEGTEMP:HDWK, DISINHP)
 
 self_reps <- inner_join(mpq, snap, by = "subject")
 
-#mpluscmd <- "/Users/mnh5174/Applications/Mplus/mplus"
-mpluscmd <- "/Applications/Mplus/mplus"
+mpluscmd <- "/Users/mnh5174/Applications/Mplus/mplus"
+#mpluscmd <- "/Applications/Mplus/mplus"
 ```
 
 
@@ -84,7 +84,7 @@ m15_mplus <- mplusObject(
   ANALYSIS = "
     TYPE=TWOLEVEL RANDOM;
     ESTIMATOR=BAYES;
-    BITERATIONS=(10000);
+    BITERATIONS=(20000) 100000;
     CHAINS=2;
     PROCESSORS=4;
   ",
@@ -94,22 +94,22 @@ m15_mplus <- mplusObject(
     condslo | correct ON cond;        !random slope of cond
     prevslo | correct ON prev_rt_z;   !random slope of rt autocorrelation
     errslo | correct ON prev_error;   !random slope of previous error
-    
+
     %BETWEEN%
     !means of random slopes
     [condslo];
     [prevslo];
     [errslo];
-    
+
     !variances of random slopes
     condslo;
     prevslo;
     errslo;
-    
+
     !slope correlations
     condslo prevslo errslo WITH
        condslo prevslo errslo;
-    
+
     [correct$1]; !intercept: average correct
   ",
   PLOT = "TYPE = PLOT2;",
@@ -117,26 +117,24 @@ m15_mplus <- mplusObject(
   rdata = flanker
 )
 
-mout <- mplusModeler(m15_mplus, dataout="flanker_acc_mplus.dat", 
-                        modelout="m15_acc_mplus.inp", run=TRUE, Mplus_command = mpluscmd)
-
-results <- mout$results
-
+mout <- mplusModeler(m15_mplus, dataout="flanker_acc_mplus.dat",
+                     modelout="acc_m15.inp", run=TRUE, hashfilename=FALSE,
+                     Mplus_command = mpluscmd)
 ```
 
 ```{r}
 summary(mout)
-kable(mout$results$parameters$unstandardized %>% 
+kable(mout$results$parameters$stdyx.standardized %>%
         filter(!paramHeader %in% c("Intercepts", "Means", "Residual Variances")))
 ```
 
 Looks good compared to the probit version of m15
 
-# ACC: Antag + Inhib MSEM
+# ACC: Antagonism + Constraint MSEM
 
 ```{r}
 tofactor <- self_reps %>% select(subject, MPS_agR, AGG, MISTRUST, MPS_alR, MANIP,
-      PROPER, MPS_clR, IMPUL, MPS_tdR, MPS_acR, HDWK) %>% 
+      PROPER, MPS_clR, IMPUL, MPS_tdR, MPS_acR, HDWK) %>%
   mutate(IMPUL =-1*IMPUL) %>% #score toward constraint to make loadings upright
   mutate_at(vars(-subject), list(~as.vector(scale(.)))) %>%
   dplyr::rename(id=subject)
@@ -147,7 +145,103 @@ anti_join(tofactor, flanker, by="id")
 
 ```{r acc_ac, cache=TRUE}
 m15_mplus <- mplusObject(
-  TITLE="Antagonism and Disinhibition BSEM CFA 3+3 Parcels, Flanker ACC",
+  TITLE="Antagonism and Constraint BSEM CFA 3+3 Parcels, Flanker ACC",
+  DEFINE="
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+    cond = cond - 1; ! 0=congruent, 1=incongruent
+    block = block - 1; ! 0=most_incon, 1=most_con
+  ",
+  VARIABLE = "
+    WITHIN = cond block prev_rt_z prev_error;
+    USEVARIABLES = id correct cond block prev_rt_z prev_error
+          MANIP p1 p2 p3 p4 p5;
+    BETWEEN = MANIP p1 p2 p3 p4 p5;
+    CLUSTER = id;
+    CATEGORICAL = correct;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(20000) 100000;
+    CHAINS=2;
+    PROCESSORS=4;
+  ",
+  MODEL = "
+    %WITHIN%
+    correct ON block;
+    condslo | correct ON cond;        !random slope of cond
+    prevslo | correct ON prev_rt_z;   !random slope of rt autocorrelation
+    errslo | correct ON prev_error;   !random slope of previous error
+
+    %BETWEEN%
+    !means of random slopes
+    [condslo];
+    [prevslo];
+    [errslo];
+
+    !variances of random slopes
+    condslo;
+    prevslo;
+    errslo;
+
+    !slope correlations
+    condslo prevslo errslo WITH
+       condslo prevslo errslo;
+
+    [correct$1]; !intercept: average correct
+
+    !TRAIT MODEL
+
+    antag BY p5*1 ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+    antag@1;
+
+    constraint BY
+      p2*  !PROPER MPS_tdR
+      p3  !MPS_clR IMPUL
+      p4; !MPS_acR HDWK;
+    constraint@1;
+
+    antag WITH constraint;
+
+    !TRAIT MODERATION
+
+    ! trait moderates flanker performance -- incongruency effect and stickiness of RT
+    condslo ON antag constraint;
+    prevslo ON antag constraint;
+    errslo ON antag constraint;
+
+    correct ON antag constraint;
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
+  rdata = for_msem
+)
+
+mout <- mplusModeler(m15_mplus, dataout="flanker_acc_mplus.dat",
+                     modelout="acc_m15_AC.inp", run=TRUE, hashfilename = FALSE,
+                     Mplus_command = mpluscmd)
+```
+
+```{r}
+summary(mout)
+kable(mout$results$parameters$stdyx.standardized %>%
+        filter(!paramHeader %in% c("Intercepts", "Means", "Residual Variances")))
+
+```
+
+# AC MSEM with cross-loading
+
+Between-persons CFA suggests that P1 cross-loads on constraint. Including this cross-loading makes the fit good enough IMO, while without it, CFI is < .9. Do our effects here hold if we allow that?
+
+```{r acc_ac_mod, cache=TRUE}
+m15_mplus <- mplusObject(
+  TITLE="Antagonism and Constraint BSEM CFA 3+3 Parcels, Flanker ACC Mod",
   DEFINE="
     p1=MEAN(MISTRUST MPS_alR);
     p2=MEAN(PROPER MPS_tdR);
@@ -178,68 +272,69 @@ m15_mplus <- mplusObject(
     condslo | correct ON cond;        !random slope of cond
     prevslo | correct ON prev_rt_z;   !random slope of rt autocorrelation
     errslo | correct ON prev_error;   !random slope of previous error
-    
+
     %BETWEEN%
     !means of random slopes
     [condslo];
     [prevslo];
     [errslo];
-    
+
     !variances of random slopes
     condslo;
     prevslo;
     errslo;
-    
+
     !slope correlations
     condslo prevslo errslo WITH
        condslo prevslo errslo;
-    
+
     [correct$1]; !intercept: average correct
-    
+
     !TRAIT MODEL
-        
+
     antag BY p5*1 ! MPS_agR AGG
       p1        ! MISTRUST MPS_alR
       MANIP;
     antag@1;
 
-    inhib BY
+    constraint BY
       p2*  !PROPER MPS_tdR
       p3  !MPS_clR IMPUL
       p4; !MPS_acR HDWK;
-    inhib@1;
+    constraint@1;
 
-    antag WITH inhib;
+    antag WITH constraint;
+
+    constraint BY P1; !modification index cross-loading for fit
 
     !TRAIT MODERATION
-    
+
     ! trait moderates flanker performance -- incongruency effect and stickiness of RT
-    condslo ON antag inhib;
-    prevslo ON antag inhib;
-    errslo ON antag inhib; !highly non-significant
-    
-    correct ON antag inhib;
+    condslo ON antag constraint;
+    prevslo ON antag constraint;
+    errslo ON antag constraint;
+
+    correct ON antag constraint;
   ",
   PLOT = "TYPE = PLOT2;",
   OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
   rdata = for_msem
 )
 
-mout <- mplusModeler(m15_mplus, dataout="flanker_acc_mplus.dat", 
-                        modelout="m15_acc_ac.inp", run=TRUE, Mplus_command = mpluscmd)
-
-results <- mout$results
-
+mout <- mplusModeler(m15_mplus, dataout="flanker_acc_mplus.dat",
+                     modelout="acc_m15_AC_mod.inp", run=TRUE, hashfilename = FALSE,
+                     Mplus_command = mpluscmd)
 ```
 
 ```{r}
 summary(mout)
-kable(mout$results$parameters$stdyx.standardized %>% 
+kable(mout$results$parameters$stdyx.standardized %>%
         filter(!paramHeader %in% c("Intercepts", "Means", "Residual Variances")))
 
 ```
 
-# ACC: Dominance Model A
+
+# ACC: Extraversion Model A
 
 Following discussions with the team, Tim examined whether we could get our agency factor to be a bit more pure and less general Extraversion heavy. By dropping POSTEMP and MPS_wbR, we get a very nice agency factor and good fit in CFA.
 
@@ -253,10 +348,8 @@ for_msem <- flanker %>% inner_join(tofactor, by="id")
 anti_join(tofactor, flanker, by="id")
 ```
 
-
-```{r dom_modela, cache=TRUE}
-
-Dom_msem <- mplusObject(
+```{r E_modela, cache=TRUE}
+E_msem <- mplusObject(
   TITLE="Agentic and Affiliative Extraversion MSEM Flanker ACC",
   DEFINE="
     cond = cond - 1; ! 0=congruent, 1=incongruent
@@ -264,7 +357,7 @@ Dom_msem <- mplusObject(
   ",
   VARIABLE = "
     WITHIN = cond block prev_rt_z prev_error;
-    USEVARIABLES = id correct cond block prev_rt_z prev_error 
+    USEVARIABLES = id correct cond block prev_rt_z prev_error
       EXHIB ENTITL DETACH MPS_spR MPS_scR;
     BETWEEN = EXHIB ENTITL DETACH MPS_spR MPS_scR;
     CLUSTER = id;
@@ -273,7 +366,7 @@ Dom_msem <- mplusObject(
   ANALYSIS = "
     TYPE=TWOLEVEL RANDOM;
     ESTIMATOR=BAYES;
-    BITERATIONS=(20000);
+    BITERATIONS=(40000) 100000;
     CHAINS=4;
     PROCESSORS=4;
   ",
@@ -283,31 +376,31 @@ Dom_msem <- mplusObject(
     condslo | correct ON cond;        !random slope of cond
     prevslo | correct ON prev_rt_z;   !random slope of rt autocorrelation
     errslo | correct ON prev_error;   !random slope of previous error
-    
+
     %BETWEEN%
     !means of random slopes
     [condslo];
     [prevslo];
     [errslo];
-    
+
     !variances of random slopes
     condslo;
     prevslo;
     errslo;
-    
+
     !slope correlations
     condslo prevslo errslo WITH
        condslo prevslo errslo;
-    
+
     [correct$1]; !intercept: average correct
-    
+
     !TRAIT MODEL
     agentic BY MPS_spR* EXHIB ENTITL;
     agentic@1;
-    
+
     affiliat BY MPS_scR*1 DETACH;
     affiliat@1;
-    
+
     agentic WITH affiliat;
 
     !TRAIT MODERATION
@@ -316,7 +409,7 @@ Dom_msem <- mplusObject(
     condslo ON agentic affiliat;
     prevslo ON agentic affiliat;
     errslo ON agentic affiliat;
-    
+
     !allow proportion correct to be predicted by traits
     correct ON agentic affiliat;
   ",
@@ -326,20 +419,21 @@ Dom_msem <- mplusObject(
   ",
   rdata=for_msem
 )
- 
-mres <- mplusModeler(Dom_msem, modelout = file.path("Dom_modela_flanker_acc_msem.inp"), 
-                     hashfilename = FALSE, run=TRUE,
-                     Mplus_command = mpluscmd)
 
+mres <- mplusModeler(E_msem, modelout = file.path("acc_m15_E.inp"),
+                     run=TRUE, hashfilename = FALSE,
+                     Mplus_command = mpluscmd)
+```
+```{r}
 summary(mres)
-kable(mres$results$parameters$unstandardized %>% 
+kable(mres$results$parameters$stdyx.standardized %>%
         filter(!paramHeader %in% c("Intercepts", "Means", "Residual Variances")))
 ```
 
-# ACC: Combined 4-factor model of accuracy
+# ACC: Add agentic Extraversion to Antagonism + Constraint model
 
 ```{r}
-tofactor <- self_reps %>% 
+tofactor <- self_reps %>%
   dplyr::select(subject, EXHIB, ENTITL, DETACH, MPS_spR, MPS_scR,
                 MPS_agR, AGG, MISTRUST, MPS_alR, MANIP,
                 PROPER, MPS_clR, IMPUL, MPS_tdR, MPS_acR, HDWK) %>%
@@ -350,6 +444,209 @@ tofactor <- self_reps %>%
 
 for_msem <- flanker %>% inner_join(tofactor, by="id")
 ```
+
+```{r antag_mod_agentic, cache=TRUE}
+AC_m15_mplus <- mplusObject(
+  TITLE="Antagonism and Constraint BSEM CFA 3+3 Parcels,
+    Agentic E, Flanker ACC Mod",
+  DEFINE="
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+    cond = cond - 1; ! 0=congruent, 1=incongruent
+    block = block - 1; ! 0=most_incon, 1=most_con
+  ",
+  VARIABLE = "
+    WITHIN = cond block prev_rt_z prev_error;
+    USEVARIABLES = id correct cond block prev_rt_z prev_error
+      MANIP MPS_spR EXHIB ENTITL 
+      p1 p2 p3 p4 p5 ;
+    BETWEEN = MANIP MPS_spR EXHIB ENTITL p1 p2 p3 p4 p5;
+    CLUSTER = id;
+    CATEGORICAL = correct;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(40000) 100000;
+    CHAINS=2;
+    PROCESSORS=4;
+  ",
+  MODEL = "
+    %WITHIN%
+    correct ON block;
+    condslo | correct ON cond;        !random slope of cond
+    prevslo | correct ON prev_rt_z;   !random slope of rt autocorrelation
+    errslo | correct ON prev_error;   !random slope of previous error
+
+    %BETWEEN%
+    !means of random slopes
+    [condslo];
+    [prevslo];
+    [errslo];
+
+    !variances of random slopes
+    condslo;
+    prevslo;
+    errslo;
+
+    !slope correlations
+    condslo prevslo errslo WITH
+       condslo prevslo errslo;
+
+    [correct$1]; !intercept: average correct
+
+    !TRAIT MODEL
+
+    antag BY p5*1 ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+    antag@1;
+
+    constraint BY
+      p2*  !PROPER MPS_tdR
+      p3  !MPS_clR IMPUL
+      p4; !MPS_acR HDWK;
+    constraint@1;
+
+    agentic BY MPS_spR* EXHIB ENTITL;
+    agentic@1;
+
+    antag WITH constraint;
+    antag WITH agentic;
+    constraint WITH agentic;
+
+    !two cross-loadings for constraint suggested by MLR
+    constraint BY ENTITL;
+    constraint BY P1;
+
+    !TRAIT MODERATION
+
+    ! trait moderates flanker performance -- incongruency effect and stickiness of RT
+    condslo ON antag constraint agentic;
+    prevslo ON antag constraint agentic;
+    errslo ON antag constraint agentic;
+
+    correct ON antag constraint agentic;
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
+  rdata = for_msem
+)
+
+mres <- mplusModeler(AC_m15_mplus, dataout="flanker_acc_mplus.dat",
+                     modelout="acc_m15_AC_Eag.inp", run=TRUE, hashfilename = FALSE,
+                     Mplus_command = mpluscmd)
+```
+```{r}
+summary(mres)
+kable(mres$results$parameters$stdyx.standardized %>%
+        filter(!paramHeader %in% c("Intercepts", "Means", "Residual Variances")))
+```
+
+# ACC: Add affiliative extraversion to antag + constraint model
+
+```{r acc_ac_mod_affiliat, cache=TRUE}
+m15_mplus_affiliat <- mplusObject(
+  TITLE="Antagonism and Constraint BSEM CFA 3+3 Parcels,
+    Affiliative E, Flanker ACC Mod",
+  DEFINE="
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+    cond = cond - 1; ! 0=congruent, 1=incongruent
+    block = block - 1; ! 0=most_incon, 1=most_con
+  ",
+  VARIABLE = "
+    WITHIN = cond block prev_rt_z prev_error;
+    USEVARIABLES = id correct cond block prev_rt_z prev_error
+      DETACH MPS_scR 
+      MANIP p1 p2 p3 p4 p5;
+    BETWEEN = DETACH MPS_scR MANIP p1 p2 p3 p4 p5;
+    CLUSTER = id;
+    CATEGORICAL = correct;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(40000) 100000;
+    CHAINS=2;
+    PROCESSORS=4;
+  ",
+  MODEL = "
+    %WITHIN%
+    correct ON block;
+    condslo | correct ON cond;        !random slope of cond
+    prevslo | correct ON prev_rt_z;   !random slope of rt autocorrelation
+    errslo | correct ON prev_error;   !random slope of previous error
+
+    %BETWEEN%
+    !means of random slopes
+    [condslo];
+    [prevslo];
+    [errslo];
+
+    !variances of random slopes
+    condslo;
+    prevslo;
+    errslo;
+
+    !slope correlations
+    condslo prevslo errslo WITH
+       condslo prevslo errslo;
+
+    [correct$1]; !intercept: average correct
+
+    !TRAIT MODEL
+
+    antag BY p5*1 ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+    antag@1;
+
+    constraint BY
+      p2*  !PROPER MPS_tdR
+      p3  !MPS_clR IMPUL
+      p4; !MPS_acR HDWK;
+    constraint@1;
+
+    affiliat BY MPS_scR*1 DETACH;
+    affiliat@1;
+
+    antag constraint affiliat WITH antag constraint affiliat;
+
+    !identified in between-persons combined CFA
+    AFFILIAT BY P1; !sig modification index
+
+    !TRAIT MODERATION
+    condslo ON antag constraint affiliat;
+    prevslo ON antag constraint affiliat;
+    errslo ON antag constraint affiliat;
+
+    correct ON antag constraint affiliat;
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
+  rdata = for_msem
+)
+
+mout <- mplusModeler(m15_mplus_affiliat, dataout="flanker_acc_mplus.dat",
+                     modelout="acc_m15_AC_Eaf.inp", run=TRUE, hashfilename = FALSE,
+                     Mplus_command = mpluscmd)
+```
+
+```{r}
+summary(mout)
+kable(mout$results$parameters$stdyx.standardized %>%
+        filter(!paramHeader %in% c("Intercepts", "Means", "Residual Variances")))
+
+```
+
+# ACC: Combined 4-factor model of accuracy
 
 We need two modification indices from the combined CFA to move the model in the right direction.
 
@@ -366,11 +663,11 @@ Combo_msem <- mplusObject(
     cond = cond - 1; ! 0=congruent, 1=incongruent
     block = block - 1; ! 0=most_incon, 1=most_con
   ",
-  
+
   VARIABLE = "
     WITHIN = cond block prev_rt_z prev_error;
-    USEVARIABLES = id correct cond block prev_rt_z 
-      prev_error EXHIB ENTITL DETACH MPS_spR MPS_scR 
+    USEVARIABLES = id correct cond block prev_rt_z
+      prev_error EXHIB ENTITL DETACH MPS_spR MPS_scR
       MANIP p1 p2 p3 p4 p5;
     BETWEEN = EXHIB ENTITL DETACH MPS_spR MPS_scR MANIP p1 p2 p3 p4 p5;
     CLUSTER = id;
@@ -379,68 +676,68 @@ Combo_msem <- mplusObject(
   ANALYSIS = "
     TYPE=TWOLEVEL RANDOM;
     ESTIMATOR=BAYES;
-    BITERATIONS=(20000);
+    BITERATIONS=(40000) 100000;
     CHAINS=4;
     PROCESSORS=4;
   ",
   MODEL = "
-  
+
 %WITHIN%
     correct ON block;
     condslo | correct ON cond;        !random slope of cond
     prevslo | correct ON prev_rt_z;   !random slope of rt autocorrelation
     errslo | correct ON prev_error;   !random slope of previous error
-    
+
     %BETWEEN%
     !means of random slopes
     [condslo];
     [prevslo];
     [errslo];
-    
+
     !variances of random slopes
     condslo;
     prevslo;
     errslo;
-    
+
     !slope correlations
     condslo prevslo errslo WITH
        condslo prevslo errslo;
-    
+
     [correct$1]; !intercept: average correct
-    
+
     !TRAIT MODEL
     agentic BY MPS_spR* EXHIB ENTITL;
     agentic@1;
-    
+
     affiliat BY MPS_scR*1 DETACH;
     affiliat@1;
-  
+
     antag BY p5* ! MPS_agR AGG
       p1        ! MISTRUST MPS_alR
       MANIP;
     antag@1;
 
-    inhib BY
+    constraint BY
       p2*  !PROPER MPS_tdR
       p3  !MPS_clR IMPUL
       p4; !MPS_acR HDWK;
-    inhib@1;
+    constraint@1;
 
-    antag inhib agentic affiliat WITH antag inhib agentic affiliat;
+    antag constraint agentic affiliat WITH 
+      antag constraint agentic affiliat;
 
     !identified in between-persons combined CFA
     AFFILIAT BY P1; !sig modification index
-    INHIB BY ENTITL; !sig modification index
+    constraint BY ENTITL; !sig modification index
 
     !TRAIT MODERATION
-    
-    ! trait moderates flanker performance -- incongruency effect and stickiness of RT
-    condslo ON antag inhib agentic affiliat;
-    prevslo ON antag inhib agentic affiliat;
-    errslo ON antag inhib agentic affiliat;
-    
+
+    condslo ON antag constraint agentic affiliat;
+    prevslo ON antag constraint agentic affiliat;
+    errslo ON antag constraint agentic affiliat;
+
     !allow proportion correct to be predicted by traits
-    correct ON antag inhib agentic affiliat;
+    correct ON antag constraint agentic affiliat;
   ",
   PLOT = "TYPE = PLOT2;",
   OUTPUT ="
@@ -448,12 +745,13 @@ Combo_msem <- mplusObject(
   ",
   rdata=for_msem
 )
- 
-mres <- mplusModeler(Combo_msem, modelout = file.path("Combined_flanker_acc_msem.inp"), 
-                     hashfilename = FALSE, run=TRUE,
-                     Mplus_command = mpluscmd)
 
+mres <- mplusModeler(Combo_msem, modelout = file.path("acc_m15_ACE.inp"),
+                     run=TRUE, hashfilename = FALSE, 
+                     Mplus_command = mpluscmd)
+```
+```{r}
 summary(mres)
-kable(mres$results$parameters$stdyx.standardized %>% 
+kable(mres$results$parameters$stdyx.standardized %>%
         filter(!paramHeader %in% c("Intercepts", "Means", "Residual Variances")))
 ```

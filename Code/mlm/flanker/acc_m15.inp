@@ -1,0 +1,56 @@
+TITLE:
+Equivalent model to glmer m15
+DATA:
+FILE = "flanker_acc_mplus.dat";
+ 
+VARIABLE:
+NAMES = id correct rt cond block prev_rt prev_error prev_rt_z; 
+ MISSING=.;
+ 
+    WITHIN = cond block prev_rt_z prev_error;
+    USEVARIABLES = id correct cond block prev_rt_z prev_error;
+    CLUSTER = id;
+    CATEGORICAL = correct;
+  
+DEFINE:
+
+    cond = cond - 1; ! 0=congruent, 1=incongruent
+    block = block - 1; ! 0=most_incon, 1=most_con
+  
+ANALYSIS:
+
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(20000) 100000;
+    CHAINS=2;
+    PROCESSORS=4;
+  
+MODEL:
+
+    %WITHIN%
+    correct ON block;
+    condslo | correct ON cond;        !random slope of cond
+    prevslo | correct ON prev_rt_z;   !random slope of rt autocorrelation
+    errslo | correct ON prev_error;   !random slope of previous error
+
+    %BETWEEN%
+    !means of random slopes
+    [condslo];
+    [prevslo];
+    [errslo];
+
+    !variances of random slopes
+    condslo;
+    prevslo;
+    errslo;
+
+    !slope correlations
+    condslo prevslo errslo WITH
+       condslo prevslo errslo;
+
+    [correct$1]; !intercept: average correct
+  
+OUTPUT:
+TECH1 TECH8 STANDARDIZED CINTERVAL;
+PLOT:
+TYPE = PLOT2;

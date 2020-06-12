@@ -1,0 +1,1012 @@
+Mplus VERSION 8.4 (Mac)
+MUTHEN & MUTHEN
+06/11/2020   7:31 PM
+
+INPUT INSTRUCTIONS
+
+  TITLE:
+  Equivalent model to glmer m15
+  DATA:
+  FILE = "flanker_acc_mplus.dat";
+
+  VARIABLE:
+  NAMES = id correct rt cond block prev_rt prev_error prev_rt_z;
+   MISSING=.;
+
+      WITHIN = cond block prev_rt_z prev_error;
+      USEVARIABLES = id correct cond block prev_rt_z prev_error;
+      CLUSTER = id;
+      CATEGORICAL = correct;
+
+  DEFINE:
+
+      cond = cond - 1; ! 0=congruent, 1=incongruent
+      block = block - 1; ! 0=most_incon, 1=most_con
+
+  ANALYSIS:
+
+      TYPE=TWOLEVEL RANDOM;
+      ESTIMATOR=BAYES;
+      BITERATIONS=(20000) 100000;
+      CHAINS=2;
+      PROCESSORS=4;
+
+  MODEL:
+
+      %WITHIN%
+      correct ON block;
+      condslo | correct ON cond;        !random slope of cond
+      prevslo | correct ON prev_rt_z;   !random slope of rt autocorrelation
+      errslo | correct ON prev_error;   !random slope of previous error
+
+      %BETWEEN%
+      !means of random slopes
+      [condslo];
+      [prevslo];
+      [errslo];
+
+      !variances of random slopes
+      condslo;
+      prevslo;
+      errslo;
+
+      !slope correlations
+      condslo prevslo errslo WITH
+         condslo prevslo errslo;
+
+      [correct$1]; !intercept: average correct
+
+  OUTPUT:
+  TECH1 TECH8 STANDARDIZED CINTERVAL;
+  PLOT:
+  TYPE = PLOT2;
+
+
+
+*** WARNING in VARIABLE command
+  Note that only the first 8 characters of variable names are used in the output.
+  Shorten variable names to avoid any confusion.
+*** WARNING in PLOT command
+  Note that only the first 8 characters of variable names are used in plots.
+  If variable names are not unique within the first 8 characters, problems
+  may occur.
+*** WARNING
+  One or more individual-level variables have no variation within a
+  cluster for the following clusters.
+
+     Variable   Cluster IDs with no within-cluster variation
+
+      CORRECT     90 15 20 106 114 66 23 107 13 86 5 11 91 52 93 95
+      PREV_ERR    90 15 6 20 106 114 66 23 107 13 86 5 11 91 52 93 95
+
+*** WARNING
+  Data set contains cases with missing on x-variables.
+  These cases were not included in the analysis.
+  Number of cases with missing on x-variables:  525
+*** WARNING
+  Data set contains cases with missing on all variables except
+  x-variables.  These cases were not included in the analysis.
+  Number of cases with missing on all variables except x-variables:  289
+   5 WARNING(S) FOUND IN THE INPUT INSTRUCTIONS
+
+
+
+
+Equivalent model to glmer m15
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                       16306
+
+Number of dependent variables                                    1
+Number of independent variables                                  4
+Number of continuous latent variables                            3
+
+Observed dependent variables
+
+  Binary and ordered categorical (ordinal)
+   CORRECT
+
+Observed independent variables
+   COND        BLOCK       PREV_RT_    PREV_ERR
+
+Continuous latent variables
+   CONDSLO     PREVSLO     ERRSLO
+
+Variables with special functions
+
+  Cluster variable      ID
+
+  Within variables
+   COND        BLOCK       PREV_RT_    PREV_ERR
+
+
+Estimator                                                    BAYES
+Specifications for Bayesian Estimation
+  Point estimate                                            MEDIAN
+  Number of Markov chain Monte Carlo (MCMC) chains               2
+  Random seed for the first chain                                0
+  Starting value information                           UNPERTURBED
+  Algorithm used for Markov chain Monte Carlo           GIBBS(PX1)
+  Convergence criterion                                  0.500D-01
+  Maximum number of iterations                               50000
+  K-th iteration used for thinning                               1
+Link                                                        PROBIT
+
+Input data file(s)
+  flanker_acc_mplus.dat
+Input data format  FREE
+
+
+SUMMARY OF DATA
+
+     Number of clusters                        107
+
+       Size (s)    Cluster ID with Size s
+
+        120        36
+        121        62
+        133        92
+        136        12
+        143        24
+        144        73 45
+        145        35
+        146        60 4 99
+        147        104 87
+        148        9
+        149        16 110 31 42
+        150        65 90 70 88
+        151        2 21 64 18 57 59
+        152        33 10 89 50 56 109 15
+        153        82 51 43 32 67 46 26 79
+        154        113 72 102 28 58 29 14 105 22 48 34 98 68
+        155        27 37 19 108 96 97 112 61
+        156        100 111 6 101 20 106 63 114 38 66 23 40 69 41 71 107
+                   25 74 75 76 77 78 13 8 81 1 84 85 86 103 49 5 11 3 91
+                   52 93 94 95 53 54 30 17
+
+
+
+COVARIANCE COVERAGE OF DATA
+
+Minimum covariance coverage value   0.100
+
+     Number of missing data patterns             1
+
+
+     PROPORTION OF DATA PRESENT
+
+
+           Covariance Coverage
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT        1.000
+ COND           1.000         1.000
+ BLOCK          1.000         1.000         1.000
+ PREV_RT_       1.000         1.000         1.000         1.000
+ PREV_ERR       1.000         1.000         1.000         1.000         1.000
+
+
+UNIVARIATE PROPORTIONS AND COUNTS FOR CATEGORICAL VARIABLES
+
+    CORRECT
+      Category 1    0.032          529.000
+      Category 2    0.968        15777.000
+
+
+
+UNIVARIATE SAMPLE STATISTICS
+
+
+     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS
+
+         Variable/         Mean/     Skewness/   Minimum/ % with                Percentiles
+        Sample Size      Variance    Kurtosis    Maximum  Min/Max      20%/60%    40%/80%    Median
+
+     COND                  0.503      -0.011       0.000   49.72%       0.000      0.000      1.000
+           16306.000       0.250      -2.000       1.000   50.28%       1.000      1.000
+     BLOCK                 0.497       0.012       0.000   50.29%       0.000      0.000      0.000
+           16306.000       0.250      -2.000       1.000   49.71%       1.000      1.000
+     PREV_RT_Z             0.009       1.574      -2.625    0.01%      -0.728     -0.345     -0.164
+           16306.000       0.972       4.558       6.508    0.01%       0.039      0.592
+     PREV_ERROR            0.035       5.034       0.000   96.47%       0.000      0.000      0.000
+           16306.000       0.034      23.346       1.000    3.53%       0.000      0.000
+
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+     USE THE FBITERATIONS OPTION TO INCREASE THE NUMBER OF ITERATIONS BY A FACTOR
+     OF AT LEAST TWO TO CHECK CONVERGENCE AND THAT THE PSR VALUE DOES NOT INCREASE.
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                              12
+
+
+
+MODEL RESULTS
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within Level
+
+ CORRECT    ON
+    BLOCK             -0.105       0.047      0.018      -0.195      -0.008      *
+
+Between Level
+
+ CONDSLO  WITH
+    PREVSLO            0.026       0.024      0.120      -0.018       0.079
+    ERRSLO             0.121       0.070      0.019       0.007       0.286      *
+
+ PREVSLO  WITH
+    ERRSLO             0.088       0.050      0.008       0.015       0.212      *
+
+ Means
+    CONDSLO           -0.475       0.076      0.000      -0.622      -0.323      *
+    PREVSLO            0.284       0.050      0.000       0.189       0.385      *
+    ERRSLO             0.585       0.219      0.000       0.239       1.119      *
+
+ Thresholds
+    CORRECT$1         -2.533       0.073      0.000      -2.682      -2.394      *
+
+ Variances
+    CORRECT            0.185       0.048      0.000       0.113       0.299      *
+    CONDSLO            0.235       0.059      0.000       0.149       0.374      *
+    PREVSLO            0.091       0.023      0.000       0.056       0.146      *
+    ERRSLO             0.418       0.235      0.000       0.182       1.092      *
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ CONDSLO | CORRECT ON
+    COND              -0.209       0.025      0.000      -0.264      -0.163      *
+
+ PREVSLO | CORRECT ON
+    PREV_RT_Z          0.179       0.023      0.000       0.134       0.222      *
+
+ ERRSLO | CORRECT ON
+    PREV_ERROR         0.071       0.025      0.000       0.030       0.126      *
+
+ CORRECT    ON
+    BLOCK             -0.050       0.022      0.024      -0.087       0.000      *
+
+Between Level
+
+ CONDSLO  WITH
+    PREVSLO            0.185       0.152      0.120      -0.120       0.470
+    ERRSLO             0.397       0.170      0.019       0.022       0.685      *
+
+ PREVSLO  WITH
+    ERRSLO             0.464       0.162      0.008       0.094       0.721      *
+
+ Means
+    CONDSLO           -0.978       0.213      0.000      -1.425      -0.597      *
+    PREVSLO            0.945       0.180      0.000       0.603       1.313      *
+    ERRSLO             0.910       0.263      0.000       0.409       1.436      *
+
+ Variances
+    CORRECT            1.000       0.000      0.000       1.000       1.000
+    CONDSLO            1.000       0.000      0.000       1.000       1.000
+    PREVSLO            1.000       0.000      0.000       1.000       1.000
+    ERRSLO             1.000       0.000      0.000       1.000       1.000
+
+
+STDY Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ CONDSLO | CORRECT ON
+    COND              -0.419       0.050      0.000      -0.528      -0.325      *
+
+ PREVSLO | CORRECT ON
+    PREV_RT_Z          0.260       0.034      0.000       0.191       0.325      *
+
+ ERRSLO | CORRECT ON
+    PREV_ERROR         0.570       0.206      0.000       0.241       1.049      *
+
+ CORRECT    ON
+    BLOCK             -0.100       0.043      0.024      -0.174       0.000      *
+
+Between Level
+
+ CONDSLO  WITH
+    PREVSLO            0.185       0.152      0.120      -0.120       0.470
+    ERRSLO             0.397       0.170      0.019       0.022       0.685      *
+
+ PREVSLO  WITH
+    ERRSLO             0.464       0.162      0.008       0.094       0.721      *
+
+ Means
+    CONDSLO           -0.978       0.213      0.000      -1.425      -0.597      *
+    PREVSLO            0.945       0.180      0.000       0.603       1.313      *
+    ERRSLO             0.910       0.263      0.000       0.409       1.436      *
+
+ Variances
+    CORRECT            1.000       0.000      0.000       1.000       1.000
+    CONDSLO            1.000       0.000      0.000       1.000       1.000
+    PREVSLO            1.000       0.000      0.000       1.000       1.000
+    ERRSLO             1.000       0.000      0.000       1.000       1.000
+
+
+STD Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ CONDSLO | CORRECT ON
+    COND              -0.475       0.057      0.000      -0.600      -0.371      *
+
+ PREVSLO | CORRECT ON
+    PREV_RT_Z          0.291       0.040      0.000       0.212       0.367      *
+
+ ERRSLO | CORRECT ON
+    PREV_ERROR         0.622       0.230      0.000       0.266       1.170      *
+
+ CORRECT    ON
+    BLOCK             -0.109       0.047      0.024      -0.190       0.000      *
+
+Between Level
+
+ CONDSLO  WITH
+    PREVSLO            0.185       0.152      0.120      -0.120       0.470
+    ERRSLO             0.397       0.170      0.019       0.022       0.685      *
+
+ PREVSLO  WITH
+    ERRSLO             0.464       0.162      0.008       0.094       0.721      *
+
+ Means
+    CONDSLO           -0.978       0.213      0.000      -1.425      -0.597      *
+    PREVSLO            0.945       0.180      0.000       0.603       1.313      *
+    ERRSLO             0.910       0.263      0.000       0.409       1.436      *
+
+ Variances
+    CORRECT            0.185       0.048      0.000       0.113       0.299      *
+    CONDSLO            1.000       0.000      0.000       1.000       1.000
+    PREVSLO            1.000       0.000      0.000       1.000       1.000
+    ERRSLO             1.000       0.000      0.000       1.000       1.000
+
+
+R-SQUARE
+
+Within-Level R-Square Averaged Across Clusters
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    CORRECT            0.157       0.015      0.000       0.128       0.184
+
+Between Level
+
+
+CREDIBILITY INTERVALS OF MODEL RESULTS
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    BLOCK           -0.223      -0.195      -0.181      -0.105      -0.025      -0.008       0.025
+
+ Thresholds
+    CORRECT$1       -2.737      -2.682      -2.656      -2.533      -2.415      -2.394      -2.352
+
+Between Level
+
+ CONDSLO  WITH
+    PREVSLO         -0.033      -0.018      -0.011       0.026       0.069       0.079       0.101
+    ERRSLO          -0.028       0.007       0.026       0.121       0.249       0.286       0.378
+
+ PREVSLO  WITH
+    ERRSLO          -0.005       0.015       0.026       0.088       0.187       0.212       0.270
+
+ Means
+    CONDSLO         -0.668      -0.622      -0.598      -0.475      -0.348      -0.323      -0.270
+    PREVSLO          0.157       0.189       0.203       0.284       0.367       0.385       0.417
+    ERRSLO           0.143       0.239       0.290       0.585       1.003       1.119       1.310
+
+ Thresholds
+    CORRECT$1       -2.737      -2.682      -2.656      -2.533      -2.415      -2.394      -2.352
+
+ Variances
+    CORRECT          0.096       0.113       0.122       0.185       0.277       0.299       0.345
+    CONDSLO          0.130       0.149       0.160       0.235       0.348       0.374       0.439
+    PREVSLO          0.048       0.056       0.060       0.091       0.135       0.146       0.171
+    ERRSLO           0.141       0.182       0.208       0.418       0.925       1.092       1.473
+
+
+CREDIBILITY INTERVALS OF STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    BLOCK            0.000      -0.087       0.000      -0.050       0.000       0.000       0.000
+
+Between Level
+
+ CONDSLO  WITH
+    PREVSLO         -0.221      -0.120      -0.074       0.185       0.428       0.470       0.546
+    ERRSLO          -0.088       0.022       0.088       0.397       0.648       0.685       0.752
+
+ PREVSLO  WITH
+    ERRSLO          -0.033       0.094       0.157       0.464       0.686       0.721       0.772
+
+ Means
+    CONDSLO         -1.580      -1.425      -1.351      -0.978      -0.657      -0.597      -0.477
+    PREVSLO          0.497       0.603       0.660       0.945       1.248       1.313       1.428
+    ERRSLO           0.246       0.409       0.491       0.910       1.347       1.436       1.617
+
+ Variances
+    CORRECT          1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    CONDSLO          1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    PREVSLO          1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    ERRSLO           1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+
+STDY Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    BLOCK            0.000      -0.174       0.000      -0.100       0.000       0.000       0.000
+
+Between Level
+
+ CONDSLO  WITH
+    PREVSLO         -0.221      -0.120      -0.074       0.185       0.428       0.470       0.546
+    ERRSLO          -0.088       0.022       0.088       0.397       0.648       0.685       0.752
+
+ PREVSLO  WITH
+    ERRSLO          -0.033       0.094       0.157       0.464       0.686       0.721       0.772
+
+ Means
+    CONDSLO         -1.580      -1.425      -1.351      -0.978      -0.657      -0.597      -0.477
+    PREVSLO          0.497       0.603       0.660       0.945       1.248       1.313       1.428
+    ERRSLO           0.246       0.409       0.491       0.910       1.347       1.436       1.617
+
+ Variances
+    CORRECT          1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    CONDSLO          1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    PREVSLO          1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    ERRSLO           1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+
+STD Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ CORRECT  ON
+    BLOCK            0.000      -0.190       0.000      -0.109       0.000       0.000       0.000
+
+Between Level
+
+ CONDSLO  WITH
+    PREVSLO         -0.221      -0.120      -0.074       0.185       0.428       0.470       0.546
+    ERRSLO          -0.088       0.022       0.088       0.397       0.648       0.685       0.752
+
+ PREVSLO  WITH
+    ERRSLO          -0.033       0.094       0.157       0.464       0.686       0.721       0.772
+
+ Means
+    CONDSLO         -1.580      -1.425      -1.351      -0.978      -0.657      -0.597      -0.477
+    PREVSLO          0.497       0.603       0.660       0.945       1.248       1.313       1.428
+    ERRSLO           0.246       0.409       0.491       0.910       1.347       1.436       1.617
+
+ Variances
+    CORRECT          0.096       0.113       0.122       0.185       0.277       0.299       0.345
+    CONDSLO          1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    PREVSLO          1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    ERRSLO           1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+
+TECHNICAL 1 OUTPUT
+
+
+     PARAMETER SPECIFICATION FOR WITHIN
+
+
+           TAU
+              CORRECT$
+              ________
+                    0
+
+
+           NU
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           LAMBDA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT            0             0             0             0             0
+ COND               0             0             0             0             0
+ BLOCK              0             0             0             0             0
+ PREV_RT_           0             0             0             0             0
+ PREV_ERR           0             0             0             0             0
+
+
+           THETA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT            0
+ COND               0             0
+ BLOCK              0             0             0
+ PREV_RT_           0             0             0             0
+ PREV_ERR           0             0             0             0             0
+
+
+           ALPHA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           BETA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT            0             0             1             0             0
+ COND               0             0             0             0             0
+ BLOCK              0             0             0             0             0
+ PREV_RT_           0             0             0             0             0
+ PREV_ERR           0             0             0             0             0
+
+
+           PSI
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT            0
+ COND               0             0
+ BLOCK              0             0             0
+ PREV_RT_           0             0             0             0
+ PREV_ERR           0             0             0             0             0
+
+
+     PARAMETER SPECIFICATION FOR BETWEEN
+
+
+           TAU
+              CORRECT$
+              ________
+                   12
+
+
+           NU
+              CORRECT
+              ________
+                    0
+
+
+           LAMBDA
+              CONDSLO       PREVSLO       ERRSLO        CORRECT
+              ________      ________      ________      ________
+ CORRECT            0             0             0             0
+
+
+           THETA
+              CORRECT
+              ________
+ CORRECT            0
+
+
+           ALPHA
+              CONDSLO       PREVSLO       ERRSLO        CORRECT
+              ________      ________      ________      ________
+                    2             3             4             0
+
+
+           BETA
+              CONDSLO       PREVSLO       ERRSLO        CORRECT
+              ________      ________      ________      ________
+ CONDSLO            0             0             0             0
+ PREVSLO            0             0             0             0
+ ERRSLO             0             0             0             0
+ CORRECT            0             0             0             0
+
+
+           PSI
+              CONDSLO       PREVSLO       ERRSLO        CORRECT
+              ________      ________      ________      ________
+ CONDSLO            5
+ PREVSLO            6             7
+ ERRSLO             8             9            10
+ CORRECT            0             0             0            11
+
+
+     STARTING VALUES FOR WITHIN
+
+
+           TAU
+              CORRECT$
+              ________
+                0.000
+
+
+           NU
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           LAMBDA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT        1.000         0.000         0.000         0.000         0.000
+ COND           0.000         1.000         0.000         0.000         0.000
+ BLOCK          0.000         0.000         1.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000         1.000         0.000
+ PREV_ERR       0.000         0.000         0.000         0.000         1.000
+
+
+           THETA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT        0.000
+ COND           0.000         0.000
+ BLOCK          0.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000         0.000
+ PREV_ERR       0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT        0.000         0.000         0.000         0.000         0.000
+ COND           0.000         0.000         0.000         0.000         0.000
+ BLOCK          0.000         0.000         0.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000         0.000         0.000
+ PREV_ERR       0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              CORRECT       COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ CORRECT        1.000
+ COND           0.000         0.125
+ BLOCK          0.000         0.000         0.125
+ PREV_RT_       0.000         0.000         0.000         0.486
+ PREV_ERR       0.000         0.000         0.000         0.000         0.017
+
+
+     STARTING VALUES FOR BETWEEN
+
+
+           TAU
+              CORRECT$
+              ________
+               -1.886
+
+
+           NU
+              CORRECT
+              ________
+                0.000
+
+
+           LAMBDA
+              CONDSLO       PREVSLO       ERRSLO        CORRECT
+              ________      ________      ________      ________
+ CORRECT        0.000         0.000         0.000         1.000
+
+
+           THETA
+              CORRECT
+              ________
+ CORRECT        0.000
+
+
+           ALPHA
+              CONDSLO       PREVSLO       ERRSLO        CORRECT
+              ________      ________      ________      ________
+                0.000         0.000         0.000         0.000
+
+
+           BETA
+              CONDSLO       PREVSLO       ERRSLO        CORRECT
+              ________      ________      ________      ________
+ CONDSLO        0.000         0.000         0.000         0.000
+ PREVSLO        0.000         0.000         0.000         0.000
+ ERRSLO         0.000         0.000         0.000         0.000
+ CORRECT        0.000         0.000         0.000         0.000
+
+
+           PSI
+              CONDSLO       PREVSLO       ERRSLO        CORRECT
+              ________      ________      ________      ________
+ CONDSLO        1.000
+ PREVSLO        0.000         1.000
+ ERRSLO         0.000         0.000         1.000
+ CORRECT        0.000         0.000         0.000         1.000
+
+
+
+     PRIORS FOR ALL PARAMETERS            PRIOR MEAN      PRIOR VARIANCE     PRIOR STD. DEV.
+
+     Parameter 1~N(0.000,5.000)              0.0000              5.0000              2.2361
+     Parameter 2~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 3~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 4~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 5~IW(1.000,4)               infinity            infinity            infinity
+     Parameter 6~IW(0.000,4)               infinity            infinity            infinity
+     Parameter 7~IW(1.000,4)               infinity            infinity            infinity
+     Parameter 8~IW(0.000,4)               infinity            infinity            infinity
+     Parameter 9~IW(0.000,4)               infinity            infinity            infinity
+     Parameter 10~IW(1.000,4)              infinity            infinity            infinity
+     Parameter 11~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 12~N(0.000,5.000)             0.0000              5.0000              2.2361
+
+
+TECHNICAL 8 OUTPUT
+
+
+   TECHNICAL 8 OUTPUT FOR BAYES ESTIMATION
+
+     CHAIN    BSEED
+     1        0
+     2        285380
+     3        253358
+     4        93468
+
+                     POTENTIAL       PARAMETER WITH
+     ITERATION    SCALE REDUCTION      HIGHEST PSR
+     100              2.384               4
+     200              2.164               10
+     300              1.380               10
+     400              1.569               4
+     500              1.464               4
+     600              1.083               4
+     700              1.135               4
+     800              1.102               5
+     900              1.070               12
+     1000             1.158               12
+     1100             1.183               12
+     1200             1.070               12
+     1300             1.093               12
+     1400             1.105               11
+     1500             1.069               11
+     1600             1.066               11
+     1700             1.041               11
+     1800             1.035               11
+     1900             1.029               11
+     2000             1.041               3
+     2100             1.041               3
+     2200             1.074               3
+     2300             1.087               3
+     2400             1.077               3
+     2500             1.068               12
+     2600             1.071               12
+     2700             1.090               12
+     2800             1.053               12
+     2900             1.045               12
+     3000             1.072               12
+     3100             1.061               12
+     3200             1.028               12
+     3300             1.026               12
+     3400             1.026               4
+     3500             1.028               11
+     3600             1.029               11
+     3700             1.035               11
+     3800             1.039               11
+     3900             1.031               11
+     4000             1.025               11
+     4100             1.022               5
+     4200             1.023               5
+     4300             1.027               5
+     4400             1.035               5
+     4500             1.034               5
+     4600             1.028               5
+     4700             1.019               10
+     4800             1.018               10
+     4900             1.022               10
+     5000             1.025               10
+     5100             1.031               10
+     5200             1.031               10
+     5300             1.044               10
+     5400             1.041               10
+     5500             1.039               10
+     5600             1.033               10
+     5700             1.032               10
+     5800             1.038               10
+     5900             1.040               10
+     6000             1.036               10
+     6100             1.035               10
+     6200             1.030               10
+     6300             1.041               10
+     6400             1.043               10
+     6500             1.043               10
+     6600             1.040               10
+     6700             1.043               10
+     6800             1.044               10
+     6900             1.040               10
+     7000             1.036               4
+     7100             1.035               10
+     7200             1.038               10
+     7300             1.044               10
+     7400             1.044               10
+     7500             1.044               10
+     7600             1.044               10
+     7700             1.037               10
+     7800             1.028               10
+     7900             1.027               4
+     8000             1.018               4
+     8100             1.019               11
+     8200             1.023               11
+     8300             1.021               11
+     8400             1.017               11
+     8500             1.015               11
+     8600             1.013               11
+     8700             1.012               4
+     8800             1.010               4
+     8900             1.011               11
+     9000             1.010               11
+     9100             1.011               11
+     9200             1.013               2
+     9300             1.014               2
+     9400             1.013               2
+     9500             1.011               11
+     9600             1.010               11
+     9700             1.010               11
+     9800             1.007               3
+     9900             1.007               2
+     10000            1.007               2
+     10100            1.008               2
+     10200            1.008               2
+     10300            1.009               2
+     10400            1.013               2
+     10500            1.014               2
+     10600            1.017               12
+     10700            1.017               12
+     10800            1.014               2
+     10900            1.014               2
+     11000            1.016               2
+     11100            1.016               2
+     11200            1.017               2
+     11300            1.016               2
+     11400            1.015               2
+     11500            1.015               2
+     11600            1.013               2
+     11700            1.011               2
+     11800            1.010               2
+     11900            1.009               2
+     12000            1.010               2
+     12100            1.010               2
+     12200            1.009               2
+     12300            1.009               10
+     12400            1.010               10
+     12500            1.008               10
+     12600            1.006               10
+     12700            1.007               10
+     12800            1.008               10
+     12900            1.010               10
+     13000            1.009               2
+     13100            1.010               2
+     13200            1.008               2
+     13300            1.009               2
+     13400            1.010               2
+     13500            1.009               2
+     13600            1.008               2
+     13700            1.007               2
+     13800            1.007               2
+     13900            1.007               2
+     14000            1.007               2
+     14100            1.007               2
+     14200            1.009               2
+     14300            1.008               2
+     14400            1.006               2
+     14500            1.005               2
+     14600            1.004               2
+     14700            1.004               2
+     14800            1.003               2
+     14900            1.003               2
+     15000            1.002               2
+     15100            1.002               2
+     15200            1.003               11
+     15300            1.003               11
+     15400            1.003               11
+     15500            1.004               11
+     15600            1.004               11
+     15700            1.007               11
+     15800            1.008               11
+     15900            1.008               11
+     16000            1.008               11
+     16100            1.009               11
+     16200            1.011               11
+     16300            1.011               11
+     16400            1.011               11
+     16500            1.012               11
+     16600            1.012               11
+     16700            1.011               11
+     16800            1.011               11
+     16900            1.011               11
+     17000            1.012               11
+     17100            1.010               11
+     17200            1.007               11
+     17300            1.006               11
+     17400            1.007               11
+     17500            1.008               11
+     17600            1.007               11
+     17700            1.007               11
+     17800            1.007               11
+     17900            1.008               11
+     18000            1.007               11
+     18100            1.007               11
+     18200            1.008               11
+     18300            1.009               11
+     18400            1.008               11
+     18500            1.008               11
+     18600            1.008               11
+     18700            1.008               11
+     18800            1.009               12
+     18900            1.008               11
+     19000            1.008               11
+     19100            1.008               11
+     19200            1.008               11
+     19300            1.008               11
+     19400            1.008               11
+     19500            1.009               11
+     19600            1.009               11
+     19700            1.008               11
+     19800            1.007               11
+     19900            1.007               11
+     20000            1.007               11
+
+
+PLOT INFORMATION
+
+The following plots are available:
+
+  Sample proportions
+  Bayesian posterior parameter distributions
+  Bayesian posterior parameter trace plots
+  Bayesian autocorrelation plots
+  Bayesian prior parameter distributions
+
+     Beginning Time:  19:31:33
+        Ending Time:  19:34:49
+       Elapsed Time:  00:03:16
+
+
+
+MUTHEN & MUTHEN
+3463 Stoner Ave.
+Los Angeles, CA  90066
+
+Tel: (310) 391-9971
+Fax: (310) 391-8971
+Web: www.StatModel.com
+Support: Support@StatModel.com
+
+Copyright (c) 1998-2019 Muthen & Muthen
