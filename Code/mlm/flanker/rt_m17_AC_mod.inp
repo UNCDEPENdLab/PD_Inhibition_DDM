@@ -1,0 +1,151 @@
+TITLE:
+Antagonism and Constraint BSEM CFA 3+3 Parcels, Flanker RT Mod
+DATA:
+FILE = "rt_m17_AC_mod.dat";
+ 
+VARIABLE:
+NAMES = id rt cond block trial block_number trial_z rt_inv run_trial run_trial_z
+     prev_rt prev_rt_inv prev_error exclude prev_rt_z MPS_agR AGG MISTRUST MPS_alR
+     MANIP PROPER MPS_clR IMPUL MPS_tdR MPS_acR HDWK K10; 
+ MISSING=.;
+ 
+    WITHIN = cond block cond_block prev_rt_z prev_error trial_z run_trial_z;
+    USEVARIABLES = id rt_inv cond block prev_rt_z 
+      prev_error trial_z run_trial_z
+      MANIP p1 p2 p3 p4 p5 cond_block;
+    BETWEEN = MANIP p1 p2 p3 p4 p5;
+    CLUSTER = id;
+  
+DEFINE:
+
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+    cond = cond - 1; ! 0=congruent, 1=incongruent
+    block = block - 1; ! 0=most_incon, 1=most_con
+    cond_block = cond*block; ! 1=most_con, incongruent
+  
+ANALYSIS:
+
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(15000);
+    CHAINS=2;
+    PROCESSORS=4;
+  
+MODEL:
+
+  
+  %WITHIN%
+    rt_inv ON block (b_block)
+      cond_block (b_cxb);
+    condslo | rt_inv ON cond;        !random slope of cond
+    prevslo | rt_inv ON prev_rt_z;   !random slope of rt autocorrelation
+    errslo | rt_inv ON prev_error;   !random slope of previous error
+    runslo | rt_inv ON run_trial_z;  !random slope of run_trial
+    trialslo | rt_inv ON trial_z;    !random slope of trial
+
+    
+  %BETWEEN%
+    !means of random slopes
+    [condslo] (c_b0);
+    [runslo];
+    [trialslo];
+    [prevslo] (p_b0);
+    [errslo] (e_b0);
+    
+    !variances of random slopes
+    condslo;
+    runslo;
+    trialslo;
+    prevslo;
+    errslo;
+    
+    !slope correlations
+    condslo runslo trialslo prevslo errslo WITH
+       condslo runslo trialslo prevslo errslo;
+    
+    [rt_inv] (b0); !mean average inverse RT
+    
+    !TRAIT MODEL
+        
+    antag BY p5* ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+    antag@1;
+
+    constraint BY
+      p2*  !PROPER MPS_tdR
+      p3  !MPS_clR IMPUL
+      p4; !MPS_acR HDWK;
+    constraint@1;
+
+    antag WITH constraint;
+    
+    constraint BY P1; !modification index cross-loading for fit
+
+    !TRAIT MODERATION
+    
+    ! trait moderates flanker performance
+    condslo ON antag (c_bA)
+      constraint (c_bC);
+    
+    prevslo ON antag (p_bA)
+      constraint (p_bC);
+    
+    errslo ON antag (e_bA) 
+      constraint (e_bC);
+    
+    !N.B. Leaving out the association of antag with rt_inv 
+    !omits a hugely important relationship.
+    !Thus, allow antag as a predictor of average (person) RT
+    rt_inv ON antag (bA) 
+      constraint (bC);
+  
+MODEL CONSTRAINT:
+
+    NEW (RT_I_loA RT_I_miA RT_I_hiA
+         RT_I_loC RT_I_miC RT_I_hiC
+         RT_C_loA RT_C_miA RT_C_hiA
+         RT_C_loC RT_C_miC RT_C_hiC
+         tLo tMi tHi
+      );
+      
+    tLo = -1;
+    tMi = 0;
+    tHi = 1;
+    
+    !since trial_z and prev_rt_z are mean centered, they
+    !drop out of the predicted values (marginalized out)
+    !these are predicted values at prev_error = 0, which is more
+    !representative anyhow (only 3% errors)
+    !Use block = 0.5 to compute the average across blocks
+    
+    !pred RT for incongruent trials (cond=1), low Antag
+    RT_I_loA = b0 + c_b0 + bA*tLo + c_bA*tLo + 0.5*b_block + 0.5*b_cxb;
+    RT_I_miA = b0 + c_b0 + bA*tMi + c_bA*tMi + 0.5*b_block + 0.5*b_cxb;
+    RT_I_hiA = b0 + c_b0 + bA*tHi + c_bA*tHi + 0.5*b_block + 0.5*b_cxb;
+    
+    !pred RT for congruent trials (cond=0), low Antag
+    RT_C_loA = b0 + bA*tLo + 0.5*b_block;
+    RT_C_miA = b0 + bA*tMi + 0.5*b_block;
+    RT_C_hiA = b0 + bA*tHi + 0.5*b_block;
+    
+    !pred RT for incongruent trials (cond=1), low Constraint
+    RT_I_loC = b0 + c_b0 + bC*tLo + c_bC*tLo + 0.5*b_block + 0.5*b_cxb;
+    RT_I_miC = b0 + c_b0 + bC*tMi + c_bC*tMi + 0.5*b_block + 0.5*b_cxb;
+    RT_I_hiC = b0 + c_b0 + bC*tHi + c_bC*tHi + 0.5*b_block + 0.5*b_cxb;
+    
+    !pred RT for congruent trials (cond=0), low Antag
+    RT_C_loC = b0 + bC*tLo + 0.5*b_block;
+    RT_C_miC = b0 + bC*tMi + 0.5*b_block;
+    RT_C_hiC = b0 + bC*tHi + 0.5*b_block;
+  
+OUTPUT:
+
+    TECH1 TECH8 STANDARDIZED CINTERVAL;
+  
+PLOT:
+TYPE = PLOT2;
