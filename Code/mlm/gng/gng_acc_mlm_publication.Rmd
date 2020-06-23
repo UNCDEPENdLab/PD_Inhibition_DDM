@@ -1,0 +1,312 @@
+---
+title: "Final GNG Accuracy Analyses"
+subtitle:  "PD Inhibition Project"
+author: "Alison Schreiber, Nate Hall"
+date: "5/5/2020"
+output:
+  html_document:
+    code_folding: show
+    df_print: default
+    mathjax: default
+    number_sections: no
+    theme: spacelab
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+    fig_width: 9 
+    fig_height: 6 
+  pdf_document:
+    code_folding: hide
+    df_print: default
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+editor_options: 
+  chunk_output_type: console
+---
+```{r setup, include=FALSE}
+if (!require(pacman)) { install.packages("pacman"); library(pacman) }
+p_load(car, brms, nlme, lme4, loo, readr, tidyverse, emmeans, cowplot, glmmTMB, bbmle, broom)
+knitr::opts_chunk$set(echo = TRUE) #print code by default
+#knitr::opts_chunk$set(cache.path = "../../Outputs/flanker_mlms/")
+options(digits=3)
+options(width = 140)
+```
+
+# Load data
+Data has already been cleaned and initial analyses completed by NH. 
+For RT analyses, use variable rt_log_trim_grp
+For outcome analyses, use response -> this indicates whether they correctly Go vs No Go'd (can figure out whether they pressed space or not based on the stim)
+Cond refers to number of prior go trials 
+Stim refers whether go or no go trial
+Use trial_z rather than trial (for scaling purposes)
+Will likely add in prev_rt in more complex analyses
+
+```{r}
+#raw flanker data, all subjects
+gng <- read.csv("~/github_repos/PD_Inhibition_DDM/Data/preprocessed/go_nogo_full_accCode.csv") %>% mutate(bad_subj = if_else(subj_idx == 15, 1, 0)) #flagged 15 as bad as this was the one person who needed to be according to NH's preprocessing; will test how inclusion of 15 alters results
+gng <- mutate(gng, cond= factor(cond, levels = c("OneGo","ThreeGo", "FiveGo", "SevenGo")))
+gng_rt <- dplyr::filter(gng, stim == "Go", response == 1)
+gng_rt$cond_id <- with(gng_rt, interaction(cond,subj_idx))
+gng_rt <- mutate(gng_rt, block_trial_z = scale(block_trial))
+
+test(emtrends(m19, ~trial_z, var = "block_trial_z", at = list(trial_z = c(-1, 1))))
+quantile(gng_rt$prev_rt, .16, na.rm = TRUE) # to get what is equivalent to -1, 1 in z scores
+quantile(gng_rt$prev_rt, .84, na.rm = TRUE)
+
+
+```
+
+
+# Resp analyses
+Here, were are predicted whether individuals Go versus No-Go'd.
+Relevant aspects of the model: stimuli (whether Go vs. No Go), condition, block trial and trial
+Will initially test a model of trial, stim and cond as fixed effects and will then add block trial. Finally, I will add in random slopes to the random effects structure and will then ensure that the preferred model is as simple as it can be. 
+
+```{r}
+gng <- mutate(gng, go = if_else((response == 1 & stim == "Go" )|(response == 0 & stim == "NoGo"), 1, 0))
+
+```
+
+## m25 tests interaction between stim and cond
+starting point in ML: random intercept of subject, compound symmetry residual correlation structure wrt trial
+
+```{r m25, cache=TRUE}
+m25 <- glmer(response ~ trial_z + cond*stim + (1 | subj_idx), na.action = na.exclude, 
+          data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+
+summary(m25)
+emmeans(m25, ~cond)
+```
+
+## m26 tests whether additive effects of trial, cond and stim
+Much preferred to have cond and stim not interact
+
+```{r m26, cache=TRUE}
+m26 <- glmer(response ~ trial_z + cond + stim + (1 | subj_idx), na.action = na.exclude, 
+          data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+
+summary(m26)
+emmeans(m26, ~cond)
+AICtab(m25, m26,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) 
+
+
+```
+
+## m27 tests whether two way interaction for trial and cond
+Does trial interact with cond? Nope
+```{r m27, cache=TRUE}
+m27 <- glmer(response ~ trial_z*cond + stim + (1 | subj_idx), na.action = na.exclude, 
+          data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+
+summary(m27)
+emmeans(m27, ~cond)
+AICtab(m27, m26,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) 
+
+
+```
+
+## m28 sees whetehr two-way interaction for trial and stim
+Does trial interact with stim? Support for an interaction and m28 preferred (83%).
+```{r m28, cache=TRUE}
+m28 <- glmer(response ~ trial_z*stim + cond + (1 | subj_idx), na.action = na.exclude, 
+          data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+
+summary(m28)
+emmeans(m28, ~cond)
+AICtab(m28, m26,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) 
+
+
+```
+
+## m29 tests whether there is a three way interaction between trial stim and cond
+Double check that not a three way interaction? Nope. 
+```{r m29, cache=TRUE}
+m29 <- glmer(response ~ trial_z*stim*cond + (1 | subj_idx), na.action = na.exclude, 
+          data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+
+summary(m29)
+emmeans(m29, ~cond)
+AICtab(m28, m29,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) 
+
+
+```
+
+## m30 tests what the addititve value of including both block trial and cond is 
+Building on m28, add in block trial. No evidence for block trial and the simpler m28 preferred. 
+```{r m30, cache=TRUE}
+m30 <- glmer(response ~ trial_z*stim + cond + block_trial + (1 | subj_idx), na.action = na.exclude, 
+          data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+
+summary(m30)
+emmeans(m30, ~cond)
+AICtab(m28, m30,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) 
+
+
+```
+
+## m31 tests whether block trial can replace cond (as that would be simpler)
+Building on m30, add in block trial. See whether block trial is redundant with cond by excluding cond.
+While block trial becomes non-significiant, AIC strongly favors m28 over m31. Based off of this, will instead focus on cond rather than block trial. 
+```{r m31, cache=TRUE}
+m31 <- glmer(response ~ trial_z*stim + block_trial + (1 | subj_idx), na.action = na.exclude, 
+          data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+
+summary(m31)
+AICtab(m28, m31,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) 
+
+
+```
+
+## m32 tests whether random slope of each cond with each subject helps
+Check whether a different intercept structure makes sense. Not strong evidence for including cond as part of the nesting structure. 
+```{r m32, cache=TRUE}
+m32 <- glmer(response ~ trial_z*stim + cond + (1 | subj_idx/cond), na.action = na.exclude, 
+          data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+
+summary(m32)
+emmeans(m32, ~cond)
+AICtab(m28, m32,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) 
+
+
+```
+
+## m33 tests whether random intercepts estimated per stimuli per subject helps
+Check whether a different intercept structure makes sense. Super strong evidence in favor of having stim be part of the nesting structure for random intercepts. 
+```{r m33, cache=TRUE}
+m33 <- glmer(response ~ trial_z*stim + cond + (1 | subj_idx/stim), na.action = na.exclude, 
+          data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+
+summary(m33)
+emmeans(m33, ~cond)
+AICtab(m28, m33,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) 
+
+
+```
+
+
+## m34 tests whether random slope of cond helps
+See whether cond belong as a random slope.That's a no. 
+```{r m34, cache=TRUE}
+m34 <- glmer(response ~ trial_z*stim + cond + (1 + cond | subj_idx/stim), na.action = na.exclude, 
+          data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+
+summary(m34)
+emmeans(m34, ~cond)
+AICtab(m34, m33,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) 
+
+
+```
+
+## m35 tests whether random slope of stim for each stim within each subject helps  
+See whether can have stim as a random slope
+```{r m35, cache=TRUE}
+m35 <- glmer(response ~ trial_z*stim + cond + (1 + stim| subj_idx/stim), na.action = na.exclude, 
+          data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+
+summary(m35)
+emmeans(m35, ~cond)
+AICtab(m35, m33,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) 
+
+
+```
+
+
+## FAVORITE! m36 tests ranodm slope esimated for stimuli for each subject
+See whether can have stim as a random slope. 36 is slightly preferred and is simpler. 
+```{r m36, cache=TRUE}
+m36 <- glmer(response ~ trial_z*stim + cond + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
+          data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+
+summary(m36)
+emmeans(m36, ~cond)
+AICtab(m35, m36,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) 
+
+
+```
+
+## m37 sees whether random slopes for trial estimated per subject helps
+See whether can have stim as a random slope. 36 is slightly preferred and is simpler. 
+```{r m37, cache=TRUE}
+m37 <- glmer(response ~ trial_z*stim + cond + (1 | subj_idx:stim) + (1 + stim + trial_z | subj_idx), na.action = na.exclude, 
+          data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+
+summary(m37)
+emmeans(m37, ~cond)
+AICtab(m37, m36,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) 
+
+
+```
+
+
+
+## m38 tests whether if random slopes for trial estimated per stimuli per subject helps 
+36 still strongly preferred
+```{r m38, cache=TRUE}
+m38 <- glmer(response ~ trial_z*stim + cond + (1 + trial_z | subj_idx:stim) + (1 + stim + trial_z | subj_idx), na.action = na.exclude, 
+          data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+
+summary(m38)
+emmeans(m38, ~cond)
+AICtab(m36, m38,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) 
+
+
+```
+
+## m39 tests whether can simplify by only including stim as random slope
+Testing if I can make 36 simpler by only including stim in random slopes. Does not help. 36 highly preferred. 
+```{r m39, cache=TRUE}
+m39 <- glmer(response ~ trial_z + cond + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
+          data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+
+summary(m39)
+emmeans(m39, ~cond)
+AICtab(m39, m36,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) 
+
+
+```
+
+Thus, m36 is the winner. 
+
+
+# Run m19 in lmer to get correct degrees of freedom 
+
+```{r}
+m19_lmer <-  lmer(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z +  
+          (1+trial_z+block_trial_z| subj_idx) +  (1 + block_trial_z|subj_idx: cond),
+          na.action = na.exclude,
+          data = gng_rt,control=lmerControl(optCtrl=list(maxfun=2e4)))
+
+m19_reml <-  lmer(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z +  
+          (1+trial_z+block_trial_z| subj_idx) +  (1 + block_trial_z|subj_idx: cond),
+          na.action = na.exclude,
+          data = gng_rt,control=lmerControl(optCtrl=list(maxfun=2e4)), REML=TRUE)
+car::vif(m19_lmer) # not particularly concerning; moderately correlated
+car::vif(m19_reml) # not particularly concerning; moderately correlated
+emm_options(lmerTest.limit = 50000)
+test(emtrends(m19_reml, ~trial_z, var = "block_trial_z", at = list(trial_z = c(-1, 1)), lmer.df = "satterthwaite"))
+quantile(gng_rt$prev_rt, .16, na.rm = TRUE) # to get what is equivalent to -1, 1 in z scores
+quantile(gng_rt$prev_rt, .84, na.rm = TRUE)
+test(emtrends(m19_reml, ~prev_rt, var = "block_trial_z", at = list(prev_rt = c(.26, .42)), lmer.df = "satterthwaite"))
+
+
+
+```
+Verify m36 for publication
+
+```{r m36, cache=TRUE}
+m36_opt <- glmer(response ~ trial_z*stim + cond + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
+          data = gng, family = "binomial", control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=50000)), contrasts = list(stim = "contr.poly", cond = "contr.poly"))
+
+summary(m36_opt)
+car::vif(m36_opt) # not particularly concerning; moderately correlated
+cond_em <- emmeans(m36_opt, ~cond)
+contrast(cond_em, "poly")
+car::Anova(m36_opt, type=3) 
+stim_em <- emmeans(m36_opt, ~stim)
+emmeans(m36_opt, ~ trial_z, at = list(trial_z = c(1, -1)))
+emtrends(m36_opt, var =  "trial_z")
+test(emtrends(m36_opt, ~ stim, var =  "trial_z"))
+
+
+```

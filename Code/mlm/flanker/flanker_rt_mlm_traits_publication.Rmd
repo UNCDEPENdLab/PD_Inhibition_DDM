@@ -12,7 +12,7 @@ output:
     theme: spacelab
     toc: yes
     toc_depth: 2
-    toc_float: no
+    toc_float: yes
     fig_width: 9 
     fig_height: 6 
   pdf_document:
@@ -28,7 +28,7 @@ body{ max-width: 2000px; margin: auto; padding: 1em; }
 
 ```{r setup, include=FALSE}
 if (!require(pacman)) { install.packages("pacman"); library(pacman) }
-p_load(car, nlme, lme4, readr, tidyverse, emmeans, cowplot, MplusAutomation, knitr, sas7bdat, ggcorrplot, psych, lavaan)
+p_load(car, nlme, lme4, readr, tidyverse, emmeans, cowplot, MplusAutomation, knitr, sas7bdat, ggcorrplot, psych, flextable)
 knitr::opts_chunk$set(echo = TRUE) #print code by default
 #knitr::opts_chunk$set(cache.path = "../../Outputs/flanker_mlms/")
 options(digits=3)
@@ -36,7 +36,7 @@ options(width=180)
 
 #flanker data processed in flanker_mlm.Rmd
 #has the worst subjects removed, rt_inv transformation, etc.
-load("../../Data/preprocessed/flanker_for_traits.RData")
+load("../../../Data/preprocessed/flanker_for_traits.RData")
 flanker <- flanker %>% mutate(rt_inv=if_else(correct==0, NA_real_, rt_inv),  #treat incorrect RTs as missing
                               prev_rt_z=as.vector(scale(prev_rt)))
 
@@ -47,10 +47,16 @@ mpq <- get(load(file.path(basedir, "Data/preprocessed/MPQ_all_scored_final.RData
   filter(exclude_MPQ == 0) %>% select(subject, MPS_wbR:MPS_abR)
 snap <- get(load(file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RData"))) %>% filter(exclude_SNAP == 0) %>% 
   select(subject, NEGTEMP:HDWK, DISINHP)
+k10 <- sas7bdat::read.sas7bdat(file.path(basedir, "Data/SAS Originals/k10.sas7bdat")) %>%
+  dplyr::select(subject, k10Total) %>% dplyr::rename(K10=k10Total)
+stai <- sas7bdat::read.sas7bdat(file.path(basedir, "Data/SAS Originals/stai.sas7bdat")) %>%
+  dplyr::select(subject, staitotal) %>% dplyr::rename(STAI=staitotal)
 
 self_reps <- inner_join(mpq, snap, by = "subject")
-#mpluscmd <- "/Users/mnh5174/Applications/Mplus/mplus"
-mpluscmd <- "/Applications/Mplus/mplus"
+self_reps <- left_join(self_reps, k10, by = "subject")
+self_reps <- left_join(self_reps, stai, by = "subject")
+mpluscmd <- "/Users/mnh5174/Applications/Mplus/mplus"
+#mpluscmd <- "/Applications/Mplus/mplus"
 ```
 
 
@@ -125,10 +131,9 @@ m17_mplus <- mplusObject(
 )
 
 mout <- mplusModeler(m17_mplus, dataout="flanker_mplus.dat", 
-                        modelout="m17_mplus.inp", run=TRUE, Mplus_command = mpluscmd)
-
-results <- mout$results
-
+                     modelout="rt_m17.inp", run=TRUE, hashfilename = FALSE,
+                     Mplus_command = mpluscmd)
+summary(mout)
 ```
 
 # Consider dropping run_trial since it has little variation and zero mean
@@ -189,10 +194,10 @@ m17_mplus_noruntrial <- mplusObject(
 )
 
 mout <- mplusModeler(m17_mplus_noruntrial, dataout="flanker_mplus.dat", 
-                        modelout="m17_mplus_noruntrial.inp", run=TRUE, Mplus_command = mpluscmd)
+                     modelout="rt_m17_noruntrial.inp", run=TRUE, hashfilename = FALSE,
+                     Mplus_command = mpluscmd)
 
-results <- mout$results
-
+summary(mout)
 ```
 
 # Middle ground, keep run_trial as fixed effect at L1
@@ -253,12 +258,12 @@ m17_mplus_fixedruntrial <- mplusObject(
 )
 
 mout <- mplusModeler(m17_mplus_fixedruntrial, dataout="flanker_mplus.dat", 
-                        modelout="m17_mplus_fixedruntrial.inp", run=TRUE, Mplus_command = mpluscmd)
+                     modelout="rt_m17_fixedruntrial.inp", run=TRUE, hashfilename = FALSE,
+                     Mplus_command = mpluscmd)
 
 results <- mout$results
 
 ```
-
 
 # Prune a few tiny runslo covariances in the between model
 
@@ -287,7 +292,7 @@ Here are the couplets:
 
 ```{r}
 tofactor <- self_reps %>% select(subject, MPS_agR, AGG, MISTRUST, MPS_alR, MANIP,
-      PROPER, MPS_clR, IMPUL, MPS_tdR, MPS_acR, HDWK) %>% 
+      PROPER, MPS_clR, IMPUL, MPS_tdR, MPS_acR, HDWK, K10, STAI) %>% 
   mutate(IMPUL =-1*IMPUL) %>% #score toward constraint to make loadings upright
   mutate_at(vars(-subject), list(~as.vector(scale(.)))) %>%
   dplyr::rename(id=subject)
@@ -306,7 +311,7 @@ length(unique(for_msem$id))
 
 ```{r antag, cache=TRUE}
 AC_msem <- mplusObject(
-  TITLE="Antagonism and Disinhibition BSEM CFA 3+3 Parcels, Flanker RT",
+  TITLE="Antagonism and Constraint BSEM CFA 3+3 Parcels, Flanker RT",
   DEFINE="
     p1=MEAN(MISTRUST MPS_alR);
     p2=MEAN(PROPER MPS_tdR);
@@ -371,26 +376,25 @@ AC_msem <- mplusObject(
       MANIP;
     antag@1;
 
-    inhib BY
+    constraint BY
       p2*  !PROPER MPS_tdR
       p3  !MPS_clR IMPUL
       p4; !MPS_acR HDWK;
-    inhib@1;
+    constraint@1;
 
-    antag WITH inhib;
+    antag WITH constraint;
 
     !TRAIT MODERATION
     
-    ! trait moderates flanker performance -- incongruency effect and stickiness of RT
-    condslo ON antag inhib;
-    prevslo ON antag inhib;
-    
-    !errslo ON antag inhib; !highly non-significant
+    ! trait moderates flanker performance
+    condslo ON antag constraint;
+    prevslo ON antag constraint;
+    errslo ON antag constraint;
     
     !N.B. Leaving out the association of antag with rt_inv 
     !omits a hugely important relationship.
     !Thus, allow antag as a predictor of average (person) RT
-    rt_inv ON antag inhib;
+    rt_inv ON antag constraint;
   ",
   PLOT = "TYPE = PLOT2;",
   OUTPUT ="
@@ -399,8 +403,8 @@ AC_msem <- mplusObject(
   rdata=for_msem
 )
  
-mres <- mplusModeler(AC_msem, modelout = file.path("AC_flanker_msem_parcel.inp"), 
-                     hashfilename = FALSE, run=TRUE,
+mres <- mplusModeler(AC_msem, modelout = file.path("rt_m17_AC.inp"), 
+                     run=TRUE, hashfilename = FALSE,
                      Mplus_command = mpluscmd)
 ```
 ```{r}
@@ -411,13 +415,13 @@ kable(mres$results$parameters$stdyx.standardized %>%
 
 # AC MSEM with cross-loading
 
-Between-persons CFA suggests that P1 cross-loads on inhib. Including this cross-loading makes the fit good enough IMO, while without it, CFI is < .9. Do our effects here hold if we allow that?
+Between-persons CFA suggests that P1 cross-loads on constraint. Including this cross-loading makes the fit good enough IMO, while without it, CFI is < .9. Do our effects here hold if we allow that?
 
-Indeed, the ANTAG effects are consistent, even slightly stronger. So, no problems with whether P1 is a secondary indicator of inhib. But, the stickiness of RT `PREVSLO ON INHIB` becomes non-significant, p = .10.
+Indeed, the ANTAG effects are consistent, even slightly stronger. So, no problems with whether P1 is a secondary indicator of constraint. But, the stickiness of RT `PREVSLO ON constraint` becomes non-significant, p = .10.
 
 ```{r antag_mod, cache=TRUE}
 AC_msem_mod <- mplusObject(
-  TITLE="Antagonism and Disinhibition BSEM CFA 3+3 Parcels, Flanker RT Mod",
+  TITLE="Antagonism and Constraint BSEM CFA 3+3 Parcels, Flanker RT Mod",
   DEFINE="
     p1=MEAN(MISTRUST MPS_alR);
     p2=MEAN(PROPER MPS_tdR);
@@ -447,13 +451,211 @@ AC_msem_mod <- mplusObject(
   MODEL = "
   
   %WITHIN%
-    rt_inv ON block cond_block;
+    rt_inv ON block (b_block)
+      cond_block (b_cxb);
     condslo | rt_inv ON cond;        !random slope of cond
     prevslo | rt_inv ON prev_rt_z;   !random slope of rt autocorrelation
     errslo | rt_inv ON prev_error;   !random slope of previous error
     runslo | rt_inv ON run_trial_z;  !random slope of run_trial
     trialslo | rt_inv ON trial_z;    !random slope of trial
 
+    
+  %BETWEEN%
+    !means of random slopes
+    [condslo] (c_b0);
+    [runslo];
+    [trialslo];
+    [prevslo] (p_b0);
+    [errslo] (e_b0);
+    
+    !variances of random slopes
+    condslo;
+    runslo;
+    trialslo;
+    prevslo;
+    errslo;
+    
+    !slope correlations
+    condslo runslo trialslo prevslo errslo WITH
+       condslo runslo trialslo prevslo errslo;
+    
+    [rt_inv] (b0); !mean average inverse RT
+    
+    !TRAIT MODEL
+        
+    antag BY p5* ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+    antag@1;
+
+    constraint BY
+      p2*  !PROPER MPS_tdR
+      p3  !MPS_clR IMPUL
+      p4; !MPS_acR HDWK;
+    constraint@1;
+
+    antag WITH constraint;
+    
+    constraint BY P1; !modification index cross-loading for fit
+
+    !TRAIT MODERATION
+    
+    ! trait moderates flanker performance
+    condslo ON antag (c_bA)
+      constraint (c_bC);
+    
+    prevslo ON antag (p_bA)
+      constraint (p_bC);
+    
+    errslo ON antag (e_bA) 
+      constraint (e_bC);
+    
+    !N.B. Leaving out the association of antag with rt_inv 
+    !omits a hugely important relationship.
+    !Thus, allow antag as a predictor of average (person) RT
+    rt_inv ON antag (bA) 
+      constraint (bC);
+  ",
+  MODELCONSTRAINT = "
+    NEW (RT_I_loA RT_I_miA RT_I_hiA
+         RT_I_loC RT_I_miC RT_I_hiC
+         RT_C_loA RT_C_miA RT_C_hiA
+         RT_C_loC RT_C_miC RT_C_hiC
+         tLo tMi tHi
+      );
+      
+    tLo = -1;
+    tMi = 0;
+    tHi = 1;
+    
+    !since trial_z and prev_rt_z are mean centered, they
+    !drop out of the predicted values (marginalized out)
+    !these are predicted values at prev_error = 0, which is more
+    !representative anyhow (only 3% errors)
+    !Use block = 0.5 to compute the average across blocks
+    
+    !pred RT for incongruent trials (cond=1), low Antag
+    RT_I_loA = b0 + c_b0 + bA*tLo + c_bA*tLo + 0.5*b_block + 0.5*b_cxb;
+    RT_I_miA = b0 + c_b0 + bA*tMi + c_bA*tMi + 0.5*b_block + 0.5*b_cxb;
+    RT_I_hiA = b0 + c_b0 + bA*tHi + c_bA*tHi + 0.5*b_block + 0.5*b_cxb;
+    
+    !pred RT for congruent trials (cond=0), low Antag
+    RT_C_loA = b0 + bA*tLo + 0.5*b_block;
+    RT_C_miA = b0 + bA*tMi + 0.5*b_block;
+    RT_C_hiA = b0 + bA*tHi + 0.5*b_block;
+    
+    !pred RT for incongruent trials (cond=1), low Constraint
+    RT_I_loC = b0 + c_b0 + bC*tLo + c_bC*tLo + 0.5*b_block + 0.5*b_cxb;
+    RT_I_miC = b0 + c_b0 + bC*tMi + c_bC*tMi + 0.5*b_block + 0.5*b_cxb;
+    RT_I_hiC = b0 + c_b0 + bC*tHi + c_bC*tHi + 0.5*b_block + 0.5*b_cxb;
+    
+    !pred RT for congruent trials (cond=0), low Antag
+    RT_C_loC = b0 + bC*tLo + 0.5*b_block;
+    RT_C_miC = b0 + bC*tMi + 0.5*b_block;
+    RT_C_hiC = b0 + bC*tHi + 0.5*b_block;
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT ="
+    TECH1 TECH8 STANDARDIZED CINTERVAL;
+  ",
+  rdata=for_msem
+)
+ 
+mres <- mplusModeler(AC_msem_mod, modelout = file.path("rt_m17_AC_mod.inp"), 
+                     run=TRUE, hashfilename = FALSE,
+                     Mplus_command = mpluscmd)
+```
+
+```{r}
+summary(mres)
+kable(mres$results$parameters$stdyx.standardized %>% 
+        filter(!paramHeader %in% c("Intercepts", "Means", "Residual Variances")))
+```
+
+
+```{r}
+flextable(mres$results$parameters$stdyx.standardized %>% 
+            filter(!paramHeader %in% c("Variances")) %>%
+            select(-sig, -posterior_sd) %>%
+            mutate(pval=2*pval, #convert to 2-tailed
+                   pval=if_else(pval < .05, as.character(paste0(pval, "*")), as.character(pval))) 
+          ) %>% autofit()
+```
+
+
+### look at predicted RTs
+```{r, fig=TRUE}
+pars <- mres$results$parameters$unstandardized %>% 
+  filter(paramHeader=="New.Additional.Parameters" & grepl("^RT", param)) %>%
+  mutate_at(vars(est, lower_2.5ci, upper_2.5ci), list(~-1000/.)) %>% #re-invert to milliseconds
+  mutate(congruency=if_else(grepl("RT_I", param), "incongruent", "congruent"),
+         trait=if_else(grepl("A$", param), "antagonism", "constraint"),
+         level=ordered(case_when(
+           grepl("LO", param) ~ "Low\n(-1 SD)",
+           grepl("MI", param) ~ "Average",
+           grepl("HI", param) ~ "High\n(+1 SD)"), levels=c("Low\n(-1 SD)", "Average", "High\n(+1 SD)"))
+  )
+
+#as one would expect (based on coefs), constraint show little traction
+# ggplot(pars, aes(x=level, y=est, ymin=lower_2.5ci, ymax=upper_2.5ci, color=congruency)) +
+#   geom_pointrange(position=position_dodge(width=0.3)) + facet_wrap(~trait)
+
+gg <- ggplot(pars %>% filter(trait=="antagonism"), 
+             aes(x=level, y=est, ymin=lower_2.5ci, ymax=upper_2.5ci, color=congruency)) +
+  geom_pointrange(position=position_dodge(width=0.3), size=1.3) + 
+  geom_line(aes(x=as.numeric(level)), position=position_dodge(width=0.3), size=1.2) + theme_bw(base_size=18) +
+  xlab("Level of Antagonism") + ylab("Flanker RT (ms)") + scale_color_brewer("Trial type", palette="Set1") +
+  theme(axis.title.x=element_text(margin=margin(t=10)),
+        axis.title.y=element_text(margin=margin(r=10)))
+
+plot(gg)
+ggsave("Flanker Antagonism Predicted RTs.pdf", width=6, height=4.5, useDingbats=FALSE)
+
+#difference in incon - con RT
+pars %>% dplyr::select(trait, level, est, congruency) %>% 
+  pivot_wider(names_from=congruency, values_from=est) %>% mutate(diff=incongruent-congruent) %>% kable()
+```
+
+# Add K10 to test for specificity
+
+```{r antag_k10, cache=TRUE}
+AC_msem <- mplusObject(
+  TITLE="Antagonism and Constraint BSEM CFA 3+3 Parcels, K10, Flanker RT",
+  DEFINE="
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+    cond = cond - 1; ! 0=congruent, 1=incongruent
+    block = block - 1; ! 0=most_incon, 1=most_con
+    cond_block = cond*block; ! 1=most_con, incongruent
+  ",
+  
+  VARIABLE = "
+    WITHIN = cond block cond_block prev_rt_z prev_error trial_z run_trial_z;
+    USEVARIABLES = id rt_inv cond block prev_rt_z 
+      prev_error trial_z run_trial_z
+      MANIP K10 p1 p2 p3 p4 p5 cond_block;
+    BETWEEN = MANIP K10 p1 p2 p3 p4 p5;
+    CLUSTER = id;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(15000);
+    CHAINS=4;
+    PROCESSORS=4;
+  ",
+  MODEL = "
+  
+  %WITHIN%
+    rt_inv ON block cond_block;
+    condslo | rt_inv ON cond;        !random slope of cond
+    prevslo | rt_inv ON prev_rt_z;   !random slope of rt autocorrelation
+    errslo | rt_inv ON prev_error;   !random slope of previous error
+    runslo | rt_inv ON run_trial_z;  !random slope of run_trial
+    trialslo | rt_inv ON trial_z;    !random slope of trial
     
   %BETWEEN%
     !means of random slopes
@@ -483,28 +685,25 @@ AC_msem_mod <- mplusObject(
       MANIP;
     antag@1;
 
-    inhib BY
+    constraint BY
       p2*  !PROPER MPS_tdR
       p3  !MPS_clR IMPUL
       p4; !MPS_acR HDWK;
-    inhib@1;
+    constraint@1;
 
-    antag WITH inhib;
-    
-    INHIB BY P1; !modification index cross-loading for fit
+    antag WITH constraint;
 
     !TRAIT MODERATION
     
-    ! trait moderates flanker performance -- incongruency effect and stickiness of RT
-    condslo ON antag inhib;
-    prevslo ON antag inhib;
-    
-    !errslo ON antag inhib; !highly non-significant
+    ! trait moderates flanker performance
+    condslo ON antag constraint K10;
+    prevslo ON antag constraint K10;
+    errslo ON antag constraint K10;
     
     !N.B. Leaving out the association of antag with rt_inv 
     !omits a hugely important relationship.
     !Thus, allow antag as a predictor of average (person) RT
-    rt_inv ON antag inhib;
+    rt_inv ON antag constraint K10;
   ",
   PLOT = "TYPE = PLOT2;",
   OUTPUT ="
@@ -513,11 +712,10 @@ AC_msem_mod <- mplusObject(
   rdata=for_msem
 )
  
-mres <- mplusModeler(AC_msem_mod, modelout = file.path("AC_flanker_msem_parcel_mod.inp"), 
-                     hashfilename = FALSE, run=TRUE,
+mres <- mplusModeler(AC_msem, modelout = file.path("rt_m17_AC_k10.inp"), 
+                     run=TRUE, hashfilename = FALSE,
                      Mplus_command = mpluscmd)
 ```
-
 ```{r}
 summary(mres)
 kable(mres$results$parameters$stdyx.standardized %>% 
@@ -525,7 +723,114 @@ kable(mres$results$parameters$stdyx.standardized %>%
 ```
 
 
-# Dominance MSEM
+# Add STAI to test for specificity
+
+```{r antag_stai, cache=TRUE}
+AC_msem <- mplusObject(
+  TITLE="Antagonism and Constraint BSEM CFA 3+3 Parcels, STAI, Flanker RT",
+  DEFINE="
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+    cond = cond - 1; ! 0=congruent, 1=incongruent
+    block = block - 1; ! 0=most_incon, 1=most_con
+    cond_block = cond*block; ! 1=most_con, incongruent
+  ",
+  
+  VARIABLE = "
+    WITHIN = cond block cond_block prev_rt_z prev_error trial_z run_trial_z;
+    USEVARIABLES = id rt_inv cond block prev_rt_z 
+      prev_error trial_z run_trial_z
+      MANIP STAI p1 p2 p3 p4 p5 cond_block;
+    BETWEEN = MANIP STAI p1 p2 p3 p4 p5;
+    CLUSTER = id;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(15000);
+    CHAINS=4;
+    PROCESSORS=4;
+  ",
+  MODEL = "
+  
+  %WITHIN%
+    rt_inv ON block cond_block;
+    condslo | rt_inv ON cond;        !random slope of cond
+    prevslo | rt_inv ON prev_rt_z;   !random slope of rt autocorrelation
+    errslo | rt_inv ON prev_error;   !random slope of previous error
+    runslo | rt_inv ON run_trial_z;  !random slope of run_trial
+    trialslo | rt_inv ON trial_z;    !random slope of trial
+    
+  %BETWEEN%
+    !means of random slopes
+    [condslo];
+    [runslo];
+    [trialslo];
+    [prevslo];
+    [errslo];
+    
+    !variances of random slopes
+    condslo;
+    runslo;
+    trialslo;
+    prevslo;
+    errslo;
+    
+    !slope correlations
+    condslo runslo trialslo prevslo errslo WITH
+       condslo runslo trialslo prevslo errslo;
+    
+    [rt_inv]; !mean average inverse RT
+    
+    !TRAIT MODEL
+        
+    antag BY p5* ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+    antag@1;
+
+    constraint BY
+      p2*  !PROPER MPS_tdR
+      p3  !MPS_clR IMPUL
+      p4; !MPS_acR HDWK;
+    constraint@1;
+
+    antag WITH constraint;
+
+    !TRAIT MODERATION
+    
+    ! trait moderates flanker performance
+    condslo ON antag constraint STAI;
+    prevslo ON antag constraint STAI;
+    errslo ON antag constraint STAI;
+    
+    !N.B. Leaving out the association of antag with rt_inv 
+    !omits a hugely important relationship.
+    !Thus, allow antag as a predictor of average (person) RT
+    rt_inv ON antag constraint STAI;
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT ="
+    TECH1 TECH8 STANDARDIZED CINTERVAL;
+  ",
+  rdata=for_msem
+)
+ 
+mres <- mplusModeler(AC_msem, modelout = file.path("rt_m17_AC_stai.inp"), 
+                     run=TRUE, hashfilename = FALSE, 
+                     Mplus_command = mpluscmd)
+```
+```{r}
+summary(mres)
+kable(mres$results$parameters$stdyx.standardized %>% 
+        filter(!paramHeader %in% c("Intercepts", "Means", "Residual Variances")))
+```
+
+
+# Extraversion MSEM
 
 Here is the full model from the between-person analysis in Trait_Structure. It gets very finicky, though, basically sending the model off the rails. On further examination, both in the parceled model and the full indicator model, the problem emerges primarily from having a fixed factor loading for identification (unit loading identification). When we switch to unit variance identification (standardizing the factor), the model converges very nicely (even with very high iterations). Thus, switch to this identification approach for estimability.
 
@@ -552,8 +857,8 @@ anti_join(tofactor, flanker, by="id")
 
 ```{r dom, cache=TRUE}
 
-Dom_msem <- mplusObject(
-  TITLE="Dominance and Detachment MSEM Flanker RT",
+E_msem <- mplusObject(
+  TITLE="Extraversion and Detachment MSEM Flanker RT",
   DEFINE="
     cond = cond - 1; ! 0=congruent, 1=incongruent
     block = block - 1; ! 0=most_incon, 1=most_con
@@ -638,8 +943,8 @@ Dom_msem <- mplusObject(
   rdata=for_msem
 )
  
-mres <- mplusModeler(Dom_msem, modelout = file.path("Dom_flanker_rt_msem.inp"), 
-                     hashfilename = FALSE, run=TRUE,
+mres <- mplusModeler(E_msem, modelout = file.path("rt_m17_E.inp"), 
+                     run=TRUE, hashfilename = FALSE, 
                      Mplus_command = mpluscmd)
 ```
 ```{r}
@@ -652,10 +957,10 @@ kable(mres$results$parameters$unstandardized %>%
 
 The parcel model goes off the rails if we fix the first loading to one, particularly for the (dis)affiliative factor. But if we standardize the factors manually, it will converge without issue (even running the chains out twice as long).
 
-```{r dom_parcel, cache=TRUE}
+```{r E_parcel, cache=TRUE}
 
-Dom_msem_parcel <- mplusObject(
-  TITLE="Dominance and Detachment MSEM Flanker RT Parcel",
+E_msem_parcel <- mplusObject(
+  TITLE="Extraversion and Detachment MSEM Flanker RT Parcel",
   DEFINE="
     p1 = MEAN(MPS_spR EXHIB);
     p2 = MEAN(POSTEMP MPS_wbR);
@@ -742,8 +1047,8 @@ Dom_msem_parcel <- mplusObject(
   rdata=for_msem
 )
  
-mres <- mplusModeler(Dom_msem_parcel, modelout = file.path("Dom_flanker_rt_msem_parcel.inp"), 
-                     hashfilename = FALSE, run=TRUE,
+mres <- mplusModeler(E_msem_parcel, modelout = file.path("rt_m17_E_parcel.inp"), 
+                     run=TRUE, hashfilename = FALSE, 
                      Mplus_command = mpluscmd)
 ```
 ```{r}
@@ -752,13 +1057,13 @@ kable(mres$results$parameters$stdyx.standardized %>%
         filter(!paramHeader %in% c("Intercepts", "Means", "Residual Variances")))
 ```
 
-## Updated Dominance Model A
+## Updated Extraversion Model A
 
 Following discussions with the team, Tim examined whether we could get our agency factor to be a bit more pure and less general Extraversion heavy. By dropping POSTEMP and MPS_wbR, we get a very nice agency factor and good fit in CFA.
 
-```{r dom_modela, cache=TRUE}
+```{r E_modela, cache=TRUE}
 
-Dom_msem <- mplusObject(
+E_msem <- mplusObject(
   TITLE="Agentic and Affiliative Extraversion MSEM Flanker RT",
   DEFINE="
     cond = cond - 1; ! 0=congruent, 1=incongruent
@@ -838,8 +1143,8 @@ Dom_msem <- mplusObject(
   rdata=for_msem
 )
  
-mres <- mplusModeler(Dom_msem, modelout = file.path("Dom_modela_flanker_rt_msem.inp"), 
-                     hashfilename = FALSE, run=TRUE,
+mres <- mplusModeler(E_msem, modelout = file.path("rt_m17_E_modela.inp"), 
+                     run=TRUE, hashfilename = FALSE, 
                      Mplus_command = mpluscmd)
 ```
 ```{r}
@@ -848,7 +1153,7 @@ kable(mres$results$parameters$stdyx.standardized %>%
         filter(!paramHeader %in% c("Intercepts", "Means", "Residual Variances")))
 ```
 
-# Add agentic extraversion to Antag + Inhib model
+# Add agentic extraversion to Antag + constraint model
 
 ```{r}
 tofactor <- self_reps %>% 
@@ -865,7 +1170,7 @@ for_msem <- flanker %>% inner_join(tofactor, by="id")
 
 ```{r antag_mod_agentic, cache=TRUE}
 AC_msem_mod <- mplusObject(
-  TITLE="Antagonism and Disinhibition BSEM CFA 3+3 Parcels,
+  TITLE="Antagonism and Constraint BSEM CFA 3+3 Parcels,
     Agentic Extraversion, Flanker RT Mod",
   DEFINE="
     p1=MEAN(MISTRUST MPS_alR);
@@ -932,32 +1237,32 @@ AC_msem_mod <- mplusObject(
       MANIP;
     antag@1;
 
-    inhib BY
+    constraint BY
       p2*  !PROPER MPS_tdR
       p3  !MPS_clR IMPUL
       p4; !MPS_acR HDWK;
-    inhib@1;
+    constraint@1;
 
     agentic BY MPS_spR* EXHIB ENTITL;
     agentic@1;
 
-    antag WITH inhib;
+    antag WITH constraint;
     antag WITH agentic;
-    inhib WITH agentic;
+    constraint WITH agentic;
     
-    !two cross-loadings for Inhib suggested by MLR
-    INHIB BY ENTITL;
-    INHIB BY P1;
+    !two cross-loadings for constraint suggested by MLR
+    constraint BY ENTITL;
+    constraint BY P1;
 
     !TRAIT MODERATION
     
     ! trait moderates flanker performance -- incongruency effect and stickiness of RT
-    condslo ON antag inhib agentic;
-    prevslo ON antag inhib agentic;
-    errslo ON antag inhib agentic; 
+    condslo ON antag constraint agentic;
+    prevslo ON antag constraint agentic;
+    errslo ON antag constraint agentic; 
 
     !average RT predicted by traits    
-    rt_inv ON antag inhib agentic;
+    rt_inv ON antag constraint agentic;
   ",
   PLOT = "TYPE = PLOT2;",
   OUTPUT ="
@@ -966,8 +1271,8 @@ AC_msem_mod <- mplusObject(
   rdata=for_msem
 )
  
-mres <- mplusModeler(AC_msem_mod, modelout = file.path("AC_flanker_msem_agent.inp"), 
-                     hashfilename = FALSE, run=TRUE,
+mres <- mplusModeler(AC_msem_mod, modelout = file.path("rt_m17_AC_Eag.inp"), 
+                     run=TRUE, hashfilename = FALSE, 
                      Mplus_command = mpluscmd)
 ```
 ```{r}
@@ -976,7 +1281,7 @@ kable(mres$results$parameters$stdyx.standardized %>%
         filter(!paramHeader %in% c("Intercepts", "Means", "Residual Variances")))
 ```
 
-# Add affiliative extraversion to antag + inhib model
+# Add affiliative extraversion to antag + constraint model
 
 ```{r}
 tofactor <- self_reps %>% 
@@ -992,9 +1297,8 @@ for_msem <- flanker %>% inner_join(tofactor, by="id")
 ```
 
 ```{r antag_mod_affiliat, cache=TRUE}
-
-Dom_msem <- mplusObject(
-  TITLE="Antag, Inhib, Affiliat MSEM Flanker RT",
+E_msem <- mplusObject(
+  TITLE="Antag, constraint, Affiliat MSEM Flanker RT",
   DEFINE="
     p1=MEAN(MISTRUST MPS_alR);
     p2=MEAN(PROPER MPS_tdR);
@@ -1062,13 +1366,13 @@ Dom_msem <- mplusObject(
       MANIP;
     antag@1;
 
-    inhib BY
+    constraint BY
       p2*  !PROPER MPS_tdR
       p3  !MPS_clR IMPUL
       p4; !MPS_acR HDWK;
-    inhib@1;
+    constraint@1;
 
-    antag inhib affiliat WITH antag inhib affiliat;
+    antag constraint affiliat WITH antag constraint affiliat;
 
     !identified in between-persons combined CFA
     AFFILIAT BY P1; !sig modification index
@@ -1076,11 +1380,11 @@ Dom_msem <- mplusObject(
     !TRAIT MODERATION
     
     ! trait moderates flanker performance -- incongruency effect and stickiness of RT
-    condslo ON antag inhib affiliat;
-    prevslo ON antag inhib affiliat;
-    errslo ON antag inhib affiliat;
+    condslo ON antag constraint affiliat;
+    prevslo ON antag constraint affiliat;
+    errslo ON antag constraint affiliat;
     
-    rt_inv ON antag inhib affiliat;
+    rt_inv ON antag constraint affiliat;
   ",
   PLOT = "TYPE = PLOT2;",
   OUTPUT ="
@@ -1089,8 +1393,8 @@ Dom_msem <- mplusObject(
   rdata=for_msem
 )
  
-mres <- mplusModeler(Dom_msem, modelout = file.path("AC_flanker_msem_affil.inp"), 
-                     hashfilename = FALSE, run=TRUE,
+mres <- mplusModeler(E_msem, modelout = file.path("rt_m17_AC_Eaf.inp"), 
+                     run=TRUE, hashfilename = FALSE, 
                      Mplus_command = mpluscmd)
 ```
 ```{r}
@@ -1191,26 +1495,26 @@ Combo_msem <- mplusObject(
       MANIP;
     antag@1;
 
-    inhib BY
+    constraint BY
       p2*  !PROPER MPS_tdR
       p3  !MPS_clR IMPUL
       p4; !MPS_acR HDWK;
-    inhib@1;
+    constraint@1;
 
-    antag inhib agentic affiliat WITH antag inhib agentic affiliat;
+    antag constraint agentic affiliat WITH 
+      antag constraint agentic affiliat;
 
     !identified in between-persons combined CFA
     AFFILIAT BY P1; !sig modification index
-    INHIB BY ENTITL; !sig modification index
+    constraint BY ENTITL; !sig modification index
 
     !TRAIT MODERATION
     
-    ! trait moderates flanker performance -- incongruency effect and stickiness of RT
-    condslo ON antag inhib agentic affiliat;
-    prevslo ON antag inhib agentic affiliat;
-    errslo ON antag inhib agentic affiliat; !highly non-significant
+    condslo ON antag constraint agentic affiliat;
+    prevslo ON antag constraint agentic affiliat;
+    errslo ON antag constraint agentic affiliat;
     
-    rt_inv ON antag inhib agentic affiliat;
+    rt_inv ON antag constraint agentic affiliat;
   ",
   PLOT = "TYPE = PLOT2;",
   OUTPUT ="
@@ -1219,8 +1523,8 @@ Combo_msem <- mplusObject(
   rdata=for_msem
 )
  
-mres <- mplusModeler(Combo_msem, modelout = file.path("Combined_flanker_rt_msem.inp"), 
-                     hashfilename = FALSE, run=TRUE,
+mres <- mplusModeler(Combo_msem, modelout = file.path("rt_m17_ACE.inp"), 
+                     run=TRUE, hashfilename = FALSE, 
                      Mplus_command = mpluscmd)
 ```
 ```{r}
