@@ -9,7 +9,7 @@ library(brms)
 # Load in data ------------------------------------------------------------
 
 
-setwd("~/github_dirs/PD_Inhibition_DDM/Outputs/practice_hddm/flanker/diagnostics/")
+setwd("~/github_dirs/PD_Inhibition_DDM/code/brms/")
 #load in and scale personality variables; makes it easier to provide weakly informative priors
 pdata <- read.csv("~/github_dirs/PD_Inhibition_DDM/Data/summarydat.csv") %>% dplyr::select(-X, -contains("Acc"), -contains("RT")) %>% rename(subj = Subject) %>% mutate_at(vars(contains("MPQ", "T")), list(scale))
 
