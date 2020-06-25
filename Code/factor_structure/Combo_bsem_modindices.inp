@@ -40,21 +40,21 @@ MODEL:
       MANIP;
     antag@1;
 
-    inhib BY
+    disinhib BY
       p2*  !PROPER MPS_tdR
       p3   !MPS_clR IMPUL
       p4;  !MPS_acR HDWK;
-    inhib@1;
+    disinhib@1;
 
-    antag inhib agentic affiliat WITH
-      antag inhib agentic affiliat;
+    antag disinhib agentic affiliat WITH
+      antag disinhib agentic affiliat;
       
     !these were identified in the 4-factor model using MLR
     AFFILIAT BY P1; !sig modification index
-    INHIB BY ENTITL; !sig modification index
+    disinhib BY ENTITL; !sig modification index
     
     !this one comes from the two-factor model, but seems unimportant for 4-factor.
-    !INHIB BY P1; !mod index
+    !disinhib BY P1; !mod index
   
 OUTPUT:
 

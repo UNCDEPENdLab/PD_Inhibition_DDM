@@ -30,8 +30,8 @@ snap <- get(load(file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RDa
   select(subject, NEGTEMP:HDWK, DISINHP)
 
 self_reps <- inner_join(mpq, snap, by = "subject")
-mpluscmd <- "/Applications/Mplus/mplus"
-#mpluscmd <- "~/Applications/Mplus/mplus"
+#mpluscmd <- "/Applications/Mplus/mplus"
+mpluscmd <- "~/Applications/Mplus/mplus"
 ```
 
 ## General Rationale
@@ -106,7 +106,9 @@ fac_scores <- left_join(AC_fscores, E_fscores, by = "subject")
 write.csv(fac_scores, "~/Data_Analysis/PD_Inhibition_DDM/Outputs/factor_structure/PDDDM_factor_scores_5-18-20.csv", row.names = F)
 ```
 
-## Bayesian SEM factor score estimation
+## Antag + Constraint CFA
+
+### Bayesian SEM factor score estimation
 
 Let's hand this off to CFA so that we can get both plausible factor scores and variability in the estimates. The goal of moving to CFA is to allow us to estimate uncertainty in factor scores for brms and to have a structural model for MSEM analyses of RT and accuracy. Factor score uncertainty is possible if we draw plausible values from the BSEM posterior for factor scores. A few notes on the challenges. 
 
@@ -214,9 +216,14 @@ This works well, but doesn't generate factor scores...
 Notice the couplets of MPQ and SNAP scales that cover the same content domain
 
 ```{r, cache=TRUE, fig=TRUE}
+#Jun2020: recode the indicators to be in the direction of disinhibition
+
 tofactor <- self_reps %>% select(subject, MPS_agR, AGG, MISTRUST, MPS_alR, MANIP,
       PROPER, MPS_clR, IMPUL, MPS_tdR, MPS_acR, HDWK) %>% 
-  mutate(IMPUL =-1*IMPUL) %>% #score toward constraint to make loadings upright
+  mutate(PROPER=-1*PROPER, MPS_tdR=-1*MPS_tdR,
+         MPS_clR=-1*MPS_clR,
+         MPS_acR=-1*MPS_acR, HDWK=-1*HDWK) %>%
+  #mutate(IMPUL =-1*IMPUL) %>% #score toward constraint to make loadings upright
   mutate_at(vars(-subject), list(~as.vector(scale(.))))
 
 #shows the couplets of related scales
@@ -291,13 +298,13 @@ AC_m <- mplusObject(
       MANIP;
     antag@1;
 
-    inhib BY
+    disinhib BY
       p2*  !PROPER MPS_tdR
       p3  !MPS_clR IMPUL
       p4; !MPS_acR HDWK;
-    inhib@1;
+    disinhib@1;
 
-    antag WITH inhib;",
+    antag WITH disinhib;",
   SAVEDATA = "
     FILE = AC_bsem_cfa_parcel_fscores.dat;
     SAVE = FSCORES(5000);
@@ -314,11 +321,13 @@ mres <- mplusModeler(AC_m, modelout = file.path(basedir, "Code", "factor_structu
  
 summary(mres)
 kable(mres$results$parameters$stdyx.standardized)
+```
 
+```{r}
 write.csv(mres$results$savedata, file="AC_bsem_cfa_parcel_savedata.csv", row.names=FALSE)
 ```
 
-In MLR, there is a meaningful cross-loading of P1 onto Inhib. Test this in BSEM, too.
+In MLR, there is a meaningful cross-loading of P1 onto disinhib. Test this in BSEM, too.
 
 ```{r ac_parcel_mod, message=FALSE, cache=TRUE}
 
@@ -347,15 +356,15 @@ AC_m_mod <- mplusObject(
       MANIP;
     antag@1;
 
-    inhib BY
+    disinhib BY
       p2*  !PROPER MPS_tdR
       p3  !MPS_clR IMPUL
       p4; !MPS_acR HDWK;
-    inhib@1;
+    disinhib@1;
     
-    antag WITH inhib;
+    antag WITH disinhib;
     
-    INHIB BY P1; !sig mod index
+    disinhib BY P1; !sig mod index
   ",
   SAVEDATA = "
     FILE = AC_bsem_cfa_parcel_mod_fscores.dat;
@@ -373,7 +382,9 @@ mres <- mplusModeler(AC_m_mod, modelout = file.path(basedir, "Code", "factor_str
  
 summary(mres)
 kable(mres$results$parameters$stdyx.standardized)
+```
 
+```{r}
 write.csv(mres$results$savedata, file="AC_bsem_cfa_parcel_mod_savedata.csv", row.names=FALSE)
 ```
 
@@ -543,7 +554,7 @@ write.csv(mres$results$savedata, file="Dom_bsem_cfa_modela_savedata.csv", row.na
 
 ```
 
-## Add affiliative extraversion to Antag + Inhib model
+## Add affiliative extraversion to Antag + Disinhib model
 
 ```{r ac_add_aff, cache=TRUE}
 tofactor <- self_reps %>% 
@@ -555,7 +566,7 @@ tofactor <- self_reps %>%
   mutate_at(vars(-subject), list(~as.vector(scale(.))))
 
 Combo_m <- mplusObject(
-  TITLE="Aff Extraversion, Antag, Inhib combination",
+  TITLE="Aff Extraversion, Antag, disinhib combination",
   DEFINE="
     p1=MEAN(MISTRUST MPS_alR);
     p2=MEAN(PROPER MPS_tdR);
@@ -583,20 +594,20 @@ Combo_m <- mplusObject(
       MANIP;
     antag@1;
 
-    inhib BY
+    disinhib BY
       p2*  !PROPER MPS_tdR
       p3   !MPS_clR IMPUL
       p4;  !MPS_acR HDWK;
-    inhib@1;
+    disinhib@1;
 
-    antag inhib affiliat WITH
-      antag inhib affiliat;
+    antag disinhib affiliat WITH
+      antag disinhib affiliat;
       
     !these were identified in the 4-factor model using MLR
     AFFILIAT BY P1; !sig modification index
 
     !this one comes from the two-factor model, but seems unimportant for 4-factor.
-    !INHIB BY P1; !mod index
+    !disinhib BY P1; !mod index
   ",
   OUTPUT ="
     TECH1 TECH8 STANDARDIZED MODINDICES (10);
@@ -615,7 +626,7 @@ kable(mres$results$parameters$stdyx.standardized)
 
 ```
 
-## Add agentic extraversion to Antag + Inhib model
+## Add agentic extraversion to Antag + disinhib model
 
 ```{r ac_add_agen, cache=TRUE}
 tofactor <- self_reps %>% 
@@ -627,7 +638,7 @@ tofactor <- self_reps %>%
   mutate_at(vars(-subject), list(~as.vector(scale(.))))
 
 Combo_m <- mplusObject(
-  TITLE="Agentic Extraversion, Antag, Inhib combination",
+  TITLE="Agentic Extraversion, Antag, disinhib combination",
   DEFINE="
     p1=MEAN(MISTRUST MPS_alR);
     p2=MEAN(PROPER MPS_tdR);
@@ -655,18 +666,18 @@ Combo_m <- mplusObject(
       MANIP;
     antag@1;
 
-    inhib BY
+    disinhib BY
       p2*  !PROPER MPS_tdR
       p3   !MPS_clR IMPUL
       p4;  !MPS_acR HDWK;
-    inhib@1;
+    disinhib@1;
 
-    antag inhib agentic WITH
-      antag inhib agentic;
+    antag disinhib agentic WITH
+      antag disinhib agentic;
       
-    !two cross-loadings for Inhib suggested by MLR
-    INHIB BY ENTITL;
-    INHIB BY P1;
+    !two cross-loadings for disinhib suggested by MLR
+    disinhib BY ENTITL;
+    disinhib BY P1;
   ",
   OUTPUT ="
     TECH1 TECH8 STANDARDIZED MODINDICES (10);
@@ -728,14 +739,14 @@ Combo_m <- mplusObject(
       MANIP;
     antag@1;
 
-    inhib BY
+    disinhib BY
       p2*  !PROPER MPS_tdR
       p3   !MPS_clR IMPUL
       p4;  !MPS_acR HDWK;
-    inhib@1;
+    disinhib@1;
 
-    antag inhib agentic affiliat WITH
-      antag inhib agentic affiliat;
+    antag disinhib agentic affiliat WITH
+      antag disinhib agentic affiliat;
   ",
   SAVEDATA = "
     FILE = Combined_cfa_modela_fscores.dat;
@@ -795,21 +806,21 @@ Combo_m <- mplusObject(
       MANIP;
     antag@1;
 
-    inhib BY
+    disinhib BY
       p2*  !PROPER MPS_tdR
       p3   !MPS_clR IMPUL
       p4;  !MPS_acR HDWK;
-    inhib@1;
+    disinhib@1;
 
-    antag inhib agentic affiliat WITH
-      antag inhib agentic affiliat;
+    antag disinhib agentic affiliat WITH
+      antag disinhib agentic affiliat;
       
     !these were identified in the 4-factor model using MLR
     AFFILIAT BY P1; !sig modification index
-    INHIB BY ENTITL; !sig modification index
+    disinhib BY ENTITL; !sig modification index
     
     !this one comes from the two-factor model, but seems unimportant for 4-factor.
-    !INHIB BY P1; !mod index
+    !disinhib BY P1; !mod index
   ",
   SAVEDATA = "
     FILE = Combined_cfa_modela_modindices_fscores.dat;

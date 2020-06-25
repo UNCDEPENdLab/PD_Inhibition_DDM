@@ -33,13 +33,13 @@ MODEL:
       MANIP;
     antag@1;
 
-    inhib BY
+    disinhib BY
       p2*  !PROPER MPS_tdR
       p3  !MPS_clR IMPUL
       p4; !MPS_acR HDWK;
-    inhib@1;
+    disinhib@1;
 
-    antag WITH inhib;
+    antag WITH disinhib;
 OUTPUT:
 
     TECH1 TECH8 STANDARDIZED MODINDICES (10);

@@ -40,14 +40,14 @@ MODEL:
       MANIP;
     antag@1;
 
-    inhib BY
+    disinhib BY
       p2*  !PROPER MPS_tdR
       p3   !MPS_clR IMPUL
       p4;  !MPS_acR HDWK;
-    inhib@1;
+    disinhib@1;
 
-    antag inhib agentic affiliat WITH
-      antag inhib agentic affiliat;
+    antag disinhib agentic affiliat WITH
+      antag disinhib agentic affiliat;
   
 OUTPUT:
 

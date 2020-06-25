@@ -1,5 +1,5 @@
 TITLE:
-Aff Extraversion, Antag, Inhib combination
+Aff Extraversion, Antag, disinhib combination
 DATA:
 FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/Antag_addAff.dat";
  
@@ -37,20 +37,20 @@ MODEL:
       MANIP;
     antag@1;
 
-    inhib BY
+    disinhib BY
       p2*  !PROPER MPS_tdR
       p3   !MPS_clR IMPUL
       p4;  !MPS_acR HDWK;
-    inhib@1;
+    disinhib@1;
 
-    antag inhib affiliat WITH
-      antag inhib affiliat;
+    antag disinhib affiliat WITH
+      antag disinhib affiliat;
       
     !these were identified in the 4-factor model using MLR
     AFFILIAT BY P1; !sig modification index
 
     !this one comes from the two-factor model, but seems unimportant for 4-factor.
-    !INHIB BY P1; !mod index
+    !disinhib BY P1; !mod index
   
 OUTPUT:
 

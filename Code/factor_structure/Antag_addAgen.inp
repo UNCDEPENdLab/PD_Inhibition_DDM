@@ -1,5 +1,5 @@
 TITLE:
-Agentic Extraversion, Antag, Inhib combination
+Agentic Extraversion, Antag, disinhib combination
 DATA:
 FILE = "~/Data_Analysis/PD_Inhibition_DDM/Code/factor_structure/Antag_addAgen.dat";
  
@@ -37,18 +37,18 @@ MODEL:
       MANIP;
     antag@1;
 
-    inhib BY
+    disinhib BY
       p2*  !PROPER MPS_tdR
       p3   !MPS_clR IMPUL
       p4;  !MPS_acR HDWK;
-    inhib@1;
+    disinhib@1;
 
-    antag inhib agentic WITH
-      antag inhib agentic;
+    antag disinhib agentic WITH
+      antag disinhib agentic;
       
-    !two cross-loadings for Inhib suggested by MLR
-    INHIB BY ENTITL;
-    INHIB BY P1;
+    !two cross-loadings for disinhib suggested by MLR
+    disinhib BY ENTITL;
+    disinhib BY P1;
   
 OUTPUT:
 
