@@ -1,7 +1,7 @@
 ---
 title: "GNG MLMs"
 subtitle:  "PD Inhibition Project"
-author: "Alison Schreiber"
+author: "Alison Schreiber, Nate Hall"
 date: "5/5/2020"
 output:
   html_document:
@@ -44,272 +44,360 @@ Will likely add in prev_rt in more complex analyses
 
 ```{r}
 #raw flanker data, all subjects
-gng <- read.csv("../../Data/preprocessed/go_nogo_full_accCode.csv") %>% mutate(bad_subj = if_else(subj_idx == 15, 1, 0)) #flagged 15 as bad as this was the one person who needed to be according to NH's preprocessing; will test how inclusion of 15 alters results
+# gng <- read.csv("../../Data/preprocessed/go_nogo_full_accCode.csv") %>% mutate(bad_subj = if_else(subj_idx == 15, 1, 0)) #flagged 15 as bad as this was the one person who needed to be according to NH's preprocessing; will test how inclusion of 15 alters results
+# gng <- mutate(gng, cond= factor(cond, levels = c("OneGo","ThreeGo", "FiveGo", "SevenGo")))
+# fscores <- read.csv("../../Outputs/factor_structure/PDDDM_factor_scores_5-18-20.csv") %>% rename(subj_idx = subject) 
+# gng <- left_join(gng, fscores)
+# gng_rt <- dplyr::filter(gng, stim == "Go", response == 1)
+# gng_rt <- mutate(gng_rt, block_trial_z = scale(block_trial))
+# gng_rt$cond_id <- with(gng_rt, interaction(cond,subj_idx))
+
+#NH add from GNG RT analyses
+gng <- read.csv("~/github_repos/PD_Inhibition_DDM/Data/preprocessed/go_nogo_full_accCode.csv") %>% mutate(bad_subj = if_else(subj_idx == 15, 1, 0)) #flagged 15 as bad as this was the one person who needed to be according to NH's preprocessing; will test how inclusion of 15 alters results
 gng <- mutate(gng, cond= factor(cond, levels = c("OneGo","ThreeGo", "FiveGo", "SevenGo")))
-fscores <- read.csv("../../Outputs/factor_structure/PDDDM_factor_scores_5-18-20.csv") %>% rename(subj_idx = subject) 
-gng <- left_join(gng, fscores)
-gng_rt <- dplyr::filter(gng, stim == "Go", response == 1)
-gng_rt <- mutate(gng_rt, block_trial_z = scale(block_trial))
-gng_rt$cond_id <- with(gng_rt, interaction(cond,subj_idx))
+
+gng <- gng %>% group_by(subj_idx) %>% mutate(
+  
+  prev_rt = ifelse(lag(rt_log_trim_grp) == 0, NA, lag(rt_log_trim_grp)),
+  
+  prev_rt_z = scale(prev_rt),
+  prev_error = ifelse(lag(response) == 1, 0, 1),
+  id = as.character(subj_idx))
+
+
+
+
+gng <- mutate(gng, block_trial_z = scale(block_trial)) %>% filter(response == 1, stim == "Go") 
+
+#pull self reps
+basedir <- "~/github_repos/PD_Inhibition_DDM"
+# fscores <- read.csv(paste0(basedir,"/Outputs/factor_structure/PDDDM_factor_scores_5-18-20.csv")) %>% rename(subj_idx = subject) 
+# 
+fscores_update <- read.csv("/Users/natehall/github_repos/PD_Inhibition_DDM/Code/factor_structure/AC_bsem_cfa_parcel_mod_savedata.csv") %>% select(SUBJECT, INHIB.Median, ANTAG.Median) %>% rename(subj_idx = SUBJECT, DISINH = INHIB.Median, ANTAG = ANTAG.Median) %>% mutate(DISINH = -1*DISINH) #reverse code Constraint to set in maladaptive direction. 
+cor(fscores_update) #make sure scores positively correlate
+
+gng <- gng %>% left_join(fscores_update, by = "subj_idx")
+
+mpq <- get(load(file.path(basedir, "Data/preprocessed/MPQ_all_scored_final.RData"))) %>% 
+  filter(exclude_MPQ == 0) %>% select(subject, MPS_wbR:MPS_abR)
+snap <- get(load(file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RData"))) %>% filter(exclude_SNAP == 0) %>% 
+  select(subject, NEGTEMP:HDWK, DISINHP)
+k10 <- sas7bdat::read.sas7bdat(file.path(basedir, "Data/SAS Originals/k10.sas7bdat")) %>%
+  dplyr::select(subject, k10Total) %>% dplyr::rename(K10=k10Total)
+stai <- sas7bdat::read.sas7bdat(file.path(basedir, "Data/SAS Originals/stai.sas7bdat")) %>%
+  dplyr::select(subject, staitotal) %>% dplyr::rename(STAI=staitotal)
+
+self_reps <- inner_join(mpq, snap, by = "subject")
+self_reps <- left_join(self_reps, k10, by = "subject")
+self_reps <- left_join(self_reps, stai, by = "subject")
+mpluscmd <- "/Users/mnh5174/Applications/Mplus/mplus"
+
+
 
 ```
 
 
 # RT analyses
 block trial*trial and prev_rtXblock_trial effects on RT. homogonous covariance structure estimated per subject and variance estimated per cond. Random intercept and slope of trial and block_trial estmimated for each subject. Random slope of block trial estimated per condition within subject.
+
+
+Winning from NH updates:
+
 ```{r}
-gng <- mutate(gng, go = if_else((response == 1 & stim == "Go" )|(response == 0 & stim == "NoGo"), 1, 0))
-
+# minfo[["m12"]] <- c(fixed="Trials from no-go, Trial number, Trials from no-go x Trial number", l2="Condition within subject: Trials from no-go\nSubject: Intercept, Trials from no-go, Trial")
+# 
+# m12 <- lmer(rt_log_trim_grp ~  block_trial_z*trial_z + (1 + block_trial_z + trial_z| id) + (1 + block_trial_z | id:cond),
+#             na.action = na.exclude, 
+#             data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4)), REML = FALSE) #bump up iterations)
+# summary(m12)
 ```
 
 
-```{r rt_mod, cache=TRUE}
-#doesn't like to converge with nlminb... maybe a sign of overparameterization
-rt_mod <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z, 
-          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
-
-summary(rt_mod)
-```
-
-Look at each factor score separately 
+Following AMS's original script, look at each factor score separately in lmer framework and add personality trait as an l1 predictor.
 
 ```{r rt_mod_antagonism, cache=TRUE}
-#doesn't like to converge with nlminb... maybe a sign of overparameterization
-rt_mod_antagonism <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*ANTAGONISM_F + prev_rt*block_trial_z*ANTAGONISM_F, 
-          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+m12_antD <- lmer(rt_log_trim_grp ~  block_trial_z*trial_z*ANTAG + block_trial_z*trial_z*DISINH + (1 + block_trial_z + trial_z| id) + (1 + block_trial_z | id:cond),
+                na.action = na.exclude, 
+                data = gng, control=lmerControl(optCtrl=list(maxfun=2e4)), REML = FALSE) #bump up iterations)
+summary(m12_antD)
 
-summary(rt_mod_antagonism)
+test(emtrends(m12_antD, ~block_trial_z*trial_z, var = "ANTAG", at = list(block_trial_z = c(-2,-1,1, 2), trial_z = c(-2,-1,1,2))))
+
+library(interactions)
+
+
+mb <- mean(gng$block_trial_z)
+sb <- sd(gng$block_trial_z)
+btris <- c((mb-2*sb), (mb-sb), mb, (mb+sb), (mb+2*sb))
+mt <- mean(gng$trial_z)
+st <- sd(gng$trial_z)
+tris <- c((mt-2*st), (mt-st), mt, (mt+st), (mt+2*st))
+labs <- c("-2SD", "-1SD", "Mean", "+1SD", "+2SD")
+labs_t <- c("Trial -2SD", "Trial -1SD", "Trial Mean", "Trial +1SD", "Trial +2SD")
+
+ant_plot <- interact_plot(m12_ant, pred = "ANTAG", 
+                          modx = "block_trial_z", #modx.values = btris, modx.labels = labs,
+                          mod2 = "trial_z")#,#mod2.values = tris, mod2.labels = labs_t,
+                          # interval = TRUE)
+ant_plot <- ant_plot  +  scale_y_continuous(breaks = c(2.50, 2.52, 2.54, 2.56, 2.58), limits = c(2.50, 2.59))
+plot(ant_plot)
 ```
-Evidence for block_trial*tria*ANTAGONISM
-No evidence for block_trial*prev_rt*antagonism
-evidence for antagonism*prev_RT
+Looks like preliminarily, high antagonism folks early in the task, on trials that are far from the last encountered no-go are much faster than folks who are low in antagonism. So, early in the task it looks like subjects have a tendency to speed up at they get further away from a no-go, which gets learned over the course of the task but could lead to more errors early in the task. Looks like a sort of "initial recklessness bias".  
 
-```{r rt_mod_antagonism_a, cache=TRUE}
-#doesn't like to converge with nlminb... maybe a sign of overparameterization
-rt_mod_antagonism_a <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*ANTAGONISM_F + prev_rt*block_trial_z + prev_rt*ANTAGONISM_F, 
-          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
 
-summary(rt_mod_antagonism_a)
-AICtab(rt_mod_antagonism_a, rt_mod_antagonism, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+```{r rt_mod_disinh, cache=TRUE}
+m12_dis <- lmer(rt_log_trim_grp ~  block_trial_z*trial_z*DISINH + (1 + block_trial_z + trial_z| id) + (1 + block_trial_z | id:cond),
+                na.action = na.exclude, 
+                data = gng, control=lmerControl(optCtrl=list(maxfun=2e4)), REML = FALSE) #bump up iterations)
+summary(m12_dis)
 
-AICtab(rt_mod_antagonism_a, rt_mod_antagonism, rt_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+#interesting, some moderate evidence of a 3-way ixn in disinh
 
+test(emtrends(m12_dis, ~block_trial_z*trial_z, var = "DISINH", at = list(block_trial_z = c(-2,-1,1,2), trial_z = c(-2,-1,1,2))))
+# test(emtrends(m12_dis, ~block_trial_z*trial_z, var = "DISINHIBITION_F", at = list(block_trial_z = c(-2,-1,1,2), trial_z = c(-2,-1,1,2))))
+library(interactions)
+
+dis_plot <- interact_plot(m12_dis, pred = "DISINH", 
+                          # outcome.scale = "10^",
+                          modx = "block_trial_z", #modx.values = btris, modx.labels = labs,
+                          mod2 = "trial_z")#, #mod2.values = tris, mod2.labels = labs_t,
+#                           interval = TRUE
+# )
+
+dis_plot <- dis_plot +  scale_y_continuous(breaks = c(2.50, 2.52, 2.54, 2.56, 2.58), limits = c(2.50, 2.59))
+
+plot(dis_plot)
+cowplot::plot_grid(ant_plot, dis_plot, ncol = 2)
 ```
-Prefers the simpler model and all higher order interactions are significant. Adding antagonism is strongly favored over not having it included at all. 
+
 
 ```{r}
 
-rt_mod_antagonism_b <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*ANTAGONISM_F + prev_rt*block_trial_z + prev_rt*ANTAGONISM_F, 
-          random=list(~1+trial_z*ANTAGONISM_F+block_trial_z*ANTAGONISM_F| subj_idx, ~1 + block_trial_z*ANTAGONISM_F|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
-summary(rt_mod_antagonism_b)
 ```
 
 
-```{r}
+<!-- # ```{r rt_mod_antagonism_a, cache=TRUE} -->
+<!-- # #doesn't like to converge with nlminb... maybe a sign of overparameterization -->
+<!-- # rt_mod_antagonism_a <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*ANTAGONISM_F + prev_rt*block_trial_z + prev_rt*ANTAGONISM_F,  -->
+<!-- #           random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id), -->
+<!-- #           weights=varIdent(form=~1|cond), -->
+<!-- #           na.action = na.exclude, -->
+<!-- #           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
+<!-- #  -->
+<!-- # summary(rt_mod_antagonism_a) -->
+<!-- # AICtab(rt_mod_antagonism_a, rt_mod_antagonism, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
+<!-- #  -->
+<!-- # AICtab(rt_mod_antagonism_a, rt_mod_antagonism, rt_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
+<!-- #  -->
+<!-- # ``` -->
+<!-- # Prefers the simpler model and all higher order interactions are significant. Adding antagonism is strongly favored over not having it included at all.  -->
 
-rt_mod_antagonism_c <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*ANTAGONISM_F + prev_rt*block_trial_z + prev_rt*ANTAGONISM_F, 
-          random=list(~1+trial_z*ANTAGONISM_F+block_trial_z*ANTAGONISM_F| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
-summary(rt_mod_antagonism_c)
-```
+<!-- ```{r} -->
 
-
-```{r}
-
-rt_mod_antagonism_d <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*ANTAGONISM_F + prev_rt*block_trial_z + prev_rt*ANTAGONISM_F, 
-          random=list(~1+trial_z*ANTAGONISM_F+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
-summary(rt_mod_antagonism_d)
-```
-
-```{r}
-
-rt_mod_antagonism_e <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*ANTAGONISM_F + prev_rt*block_trial_z + prev_rt*ANTAGONISM_F, 
-          random=list(~1+trial_z+block_trial_z*ANTAGONISM_F| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
-summary(rt_mod_antagonism_e)
-AICtab(rt_mod_antagonism_a,rt_mod_antagonism_b,rt_mod_antagonism_c,rt_mod_antagonism_d,rt_mod_antagonism_e,    rt_mod_antagonism, rt_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+<!-- rt_mod_antagonism_b <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*ANTAGONISM_F + prev_rt*block_trial_z + prev_rt*ANTAGONISM_F,  -->
+<!--           random=list(~1+trial_z*ANTAGONISM_F+block_trial_z*ANTAGONISM_F| subj_idx, ~1 + block_trial_z*ANTAGONISM_F|cond_id), -->
+<!--           weights=varIdent(form=~1|cond), -->
+<!--           na.action = na.exclude, -->
+<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
+<!-- summary(rt_mod_antagonism_b) -->
+<!-- ``` -->
 
 
+<!-- ```{r} -->
 
-```
-A still preferred
-
-
-```{r rt_mod_disinhibition, cache=TRUE}
-#doesn't like to converge with nlminb... maybe a sign of overparameterization
-rt_mod_disinhibition <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*DISINHIBITION_F + prev_rt*block_trial_z*DISINHIBITION_F, 
-          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
-
-summary(rt_mod_disinhibition)
-```
-block_tria*trial*DISINHIB are pretty much significant
-
-```{r rt_mod_disinhibition_a, cache=TRUE}
-#doesn't like to converge with nlminb... maybe a sign of overparameterization
-rt_mod_disinhibition_a <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*DISINHIBITION_F + prev_rt*block_trial_z, 
-          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
-
-summary(rt_mod_disinhibition_a)
-AICtab(rt_mod_disinhibition_a, rt_mod_disinhibition, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
-AICtab(rt_mod_disinhibition_a, rt_mod_disinhibition, rt_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
-
-```
-Evidence that disinhibition is not that great of a predictor
+<!-- rt_mod_antagonism_c <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*ANTAGONISM_F + prev_rt*block_trial_z + prev_rt*ANTAGONISM_F,  -->
+<!--           random=list(~1+trial_z*ANTAGONISM_F+block_trial_z*ANTAGONISM_F| subj_idx, ~1 + block_trial_z|cond_id), -->
+<!--           weights=varIdent(form=~1|cond), -->
+<!--           na.action = na.exclude, -->
+<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
+<!-- summary(rt_mod_antagonism_c) -->
+<!-- ``` -->
 
 
-```{r rt_mod_agentic, cache=TRUE}
-#doesn't like to converge with nlminb... maybe a sign of overparameterization
-rt_mod_agentic <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AGENTIC_F + prev_rt*block_trial_z*AGENTIC_F, 
-          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+<!-- ```{r} -->
 
-summary(rt_mod_agentic)
-```
-Evidence for block_trial*trial*AGENTIC and AGENTIC*prev_rt
+<!-- rt_mod_antagonism_d <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*ANTAGONISM_F + prev_rt*block_trial_z + prev_rt*ANTAGONISM_F,  -->
+<!--           random=list(~1+trial_z*ANTAGONISM_F+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id), -->
+<!--           weights=varIdent(form=~1|cond), -->
+<!--           na.action = na.exclude, -->
+<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
+<!-- summary(rt_mod_antagonism_d) -->
+<!-- ``` -->
 
-```{r rt_mod_agentic_a, cache=TRUE}
-#doesn't like to converge with nlminb... maybe a sign of overparameterization
-rt_mod_agentic_a <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AGENTIC_F + prev_rt*block_trial_z + AGENTIC_F*prev_rt, 
-          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+<!-- ```{r} -->
 
-summary(rt_mod_agentic_a)
-AICtab(rt_mod_agentic_a, rt_mod_agentic, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
-AICtab(rt_mod_agentic_a, rt_mod_agentic, rt_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
-AICtab(rt_mod_agentic_a, rt_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+<!-- rt_mod_antagonism_e <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*ANTAGONISM_F + prev_rt*block_trial_z + prev_rt*ANTAGONISM_F,  -->
+<!--           random=list(~1+trial_z+block_trial_z*ANTAGONISM_F| subj_idx, ~1 + block_trial_z|cond_id), -->
+<!--           weights=varIdent(form=~1|cond), -->
+<!--           na.action = na.exclude, -->
+<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
+<!-- summary(rt_mod_antagonism_e) -->
+<!-- AICtab(rt_mod_antagonism_a,rt_mod_antagonism_b,rt_mod_antagonism_c,rt_mod_antagonism_d,rt_mod_antagonism_e,    rt_mod_antagonism, rt_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
 
 
 
-```
-
-Pretty split over whether agentic extraversion is significant predictor. Of models of agentic extraversion, prefers the simpler one. 
-
-```{r, cache=TRUE}
-#doesn't like to converge with nlminb... maybe a sign of overparameterization
-rt_mod_agentic_b <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AGENTIC_F + prev_rt*block_trial_z + AGENTIC_F*prev_rt, 
-          random=list(~1+trial_z*AGENTIC_F+block_trial_z*AGENTIC_F| subj_idx, ~1 + block_trial_z*AGENTIC_F|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
-# won't fit
-
-rt_mod_agentic_c <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AGENTIC_F + prev_rt*block_trial_z + AGENTIC_F*prev_rt, 
-          random=list(~1+trial_z*AGENTIC_F+block_trial_z*AGENTIC_F| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) 
-
-rt_mod_agentic_d <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AGENTIC_F + prev_rt*block_trial_z + AGENTIC_F*prev_rt, 
-          random=list(~1+trial_z+block_trial_z*AGENTIC_F| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) 
-
-rt_mod_agentic_e <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AGENTIC_F + prev_rt*block_trial_z + AGENTIC_F*prev_rt, 
-          random=list(~1+trial_z*AGENTIC_F+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) 
-AICtab(rt_mod_agentic_a,rt_mod_agentic_c, rt_mod_agentic_d, rt_mod_agentic_e,  rt_mod_agentic, rt_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+<!-- ``` -->
+<!-- A still preferred -->
 
 
-```
+<!-- ```{r rt_mod_disinhibition, cache=TRUE} -->
+<!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization -->
+<!-- rt_mod_disinhibition <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*DISINHIBITION_F + prev_rt*block_trial_z*DISINHIBITION_F,  -->
+<!--           random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id), -->
+<!--           weights=varIdent(form=~1|cond), -->
+<!--           na.action = na.exclude, -->
+<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
 
-RT_mod preferred with agentic_a following closely behind
+<!-- summary(rt_mod_disinhibition) -->
+<!-- ``` -->
+<!-- block_tria*trial*DISINHIB are pretty much significant -->
 
+<!-- ```{r rt_mod_disinhibition_a, cache=TRUE} -->
+<!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization -->
+<!-- rt_mod_disinhibition_a <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*DISINHIBITION_F + prev_rt*block_trial_z,  -->
+<!--           random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id), -->
+<!--           weights=varIdent(form=~1|cond), -->
+<!--           na.action = na.exclude, -->
+<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
 
-```{r rt_mod_affiliative, cache=TRUE}
-#doesn't like to converge with nlminb... maybe a sign of overparameterization
-rt_mod_affiliative <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AFFILIATIVE_F + prev_rt*block_trial_z*AFFILIATIVE_F, 
-          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+<!-- summary(rt_mod_disinhibition_a) -->
+<!-- AICtab(rt_mod_disinhibition_a, rt_mod_disinhibition, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
+<!-- AICtab(rt_mod_disinhibition_a, rt_mod_disinhibition, rt_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
 
-summary(rt_mod_affiliative)
-```
-Evidence for block*trial*AFFILIATIVE
-```{r rt_mod_affiliative_a, cache=TRUE}
-#doesn't like to converge with nlminb... maybe a sign of overparameterization
-rt_mod_affiliative_a <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AFFILIATIVE_F + prev_rt*block_trial_z, 
-          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
-
-summary(rt_mod_affiliative_a)
-AICtab(rt_mod_affiliative_a, rt_mod_affiliative, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
-AICtab(rt_mod_affiliative_a, rt_mod_affiliative, rt_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
-
-```
-
-```{r}
-#doesn't like to converge with nlminb... maybe a sign of overparameterization
-rt_mod_affiliative_b <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AFFILIATIVE_F + prev_rt*block_trial_z, 
-          random=list(~1+trial_z*AFFILIATIVE_F+block_trial_z*AFFILIATIVE_F| subj_idx, ~1 + block_trial_z*AFFILIATIVE_F|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
-# won't fit
-
-rt_mod_affiliative_c <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AFFILIATIVE_F + prev_rt*block_trial_z, 
-          random=list(~1+trial_z*AFFILIATIVE_F+block_trial_z*AFFILIATIVE_F| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) 
-
-rt_mod_affiliative_d <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AFFILIATIVE_F + prev_rt*block_trial_z, 
-          random=list(~1+trial_z+block_trial_z*AFFILIATIVE_F| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) 
-
-rt_mod_affiliative_e <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AFFILIATIVE_F + prev_rt*block_trial_z, 
-          random=list(~1+trial_z*AFFILIATIVE_F+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) 
-AICtab(rt_mod_affiliative_a,rt_mod_affiliative_b, rt_mod_affiliative_c, rt_mod_affiliative_d, rt_mod_affiliative_e, rt_mod_affiliative, rt_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
+<!-- ``` -->
+<!-- Evidence that disinhibition is not that great of a predictor -->
 
 
-```
-Favors of affiliative and says better than not including it 
-Favor a works better than affiliative extraversion being included in the random effects structure. 
-# Resp analyses
-Got rid of max iterations so run more quickly - verify convergence in final analysis
+<!-- ```{r rt_mod_agentic, cache=TRUE} -->
+<!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization -->
+<!-- rt_mod_agentic <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AGENTIC_F + prev_rt*block_trial_z*AGENTIC_F,  -->
+<!--           random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id), -->
+<!--           weights=varIdent(form=~1|cond), -->
+<!--           na.action = na.exclude, -->
+<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
+
+<!-- summary(rt_mod_agentic) -->
+<!-- ``` -->
+<!-- Evidence for block_trial*trial*AGENTIC and AGENTIC*prev_rt -->
+
+<!-- ```{r rt_mod_agentic_a, cache=TRUE} -->
+<!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization -->
+<!-- rt_mod_agentic_a <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AGENTIC_F + prev_rt*block_trial_z + AGENTIC_F*prev_rt,  -->
+<!--           random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id), -->
+<!--           weights=varIdent(form=~1|cond), -->
+<!--           na.action = na.exclude, -->
+<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
+
+<!-- summary(rt_mod_agentic_a) -->
+<!-- AICtab(rt_mod_agentic_a, rt_mod_agentic, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
+<!-- AICtab(rt_mod_agentic_a, rt_mod_agentic, rt_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
+<!-- AICtab(rt_mod_agentic_a, rt_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
+
+
+
+<!-- ``` -->
+
+<!-- Pretty split over whether agentic extraversion is significant predictor. Of models of agentic extraversion, prefers the simpler one.  -->
+
+<!-- ```{r, cache=TRUE} -->
+<!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization -->
+<!-- rt_mod_agentic_b <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AGENTIC_F + prev_rt*block_trial_z + AGENTIC_F*prev_rt,  -->
+<!--           random=list(~1+trial_z*AGENTIC_F+block_trial_z*AGENTIC_F| subj_idx, ~1 + block_trial_z*AGENTIC_F|cond_id), -->
+<!--           weights=varIdent(form=~1|cond), -->
+<!--           na.action = na.exclude, -->
+<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
+<!-- # won't fit -->
+
+<!-- rt_mod_agentic_c <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AGENTIC_F + prev_rt*block_trial_z + AGENTIC_F*prev_rt,  -->
+<!--           random=list(~1+trial_z*AGENTIC_F+block_trial_z*AGENTIC_F| subj_idx, ~1 + block_trial_z|cond_id), -->
+<!--           weights=varIdent(form=~1|cond), -->
+<!--           na.action = na.exclude, -->
+<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim"))  -->
+
+<!-- rt_mod_agentic_d <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AGENTIC_F + prev_rt*block_trial_z + AGENTIC_F*prev_rt,  -->
+<!--           random=list(~1+trial_z+block_trial_z*AGENTIC_F| subj_idx, ~1 + block_trial_z|cond_id), -->
+<!--           weights=varIdent(form=~1|cond), -->
+<!--           na.action = na.exclude, -->
+<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim"))  -->
+
+<!-- rt_mod_agentic_e <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AGENTIC_F + prev_rt*block_trial_z + AGENTIC_F*prev_rt,  -->
+<!--           random=list(~1+trial_z*AGENTIC_F+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id), -->
+<!--           weights=varIdent(form=~1|cond), -->
+<!--           na.action = na.exclude, -->
+<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim"))  -->
+<!-- AICtab(rt_mod_agentic_a,rt_mod_agentic_c, rt_mod_agentic_d, rt_mod_agentic_e,  rt_mod_agentic, rt_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
+
+
+<!-- ``` -->
+
+<!-- RT_mod preferred with agentic_a following closely behind -->
+
+
+<!-- ```{r rt_mod_affiliative, cache=TRUE} -->
+<!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization -->
+<!-- rt_mod_affiliative <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AFFILIATIVE_F + prev_rt*block_trial_z*AFFILIATIVE_F,  -->
+<!--           random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id), -->
+<!--           weights=varIdent(form=~1|cond), -->
+<!--           na.action = na.exclude, -->
+<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
+
+<!-- summary(rt_mod_affiliative) -->
+<!-- ``` -->
+<!-- Evidence for block*trial*AFFILIATIVE -->
+<!-- ```{r rt_mod_affiliative_a, cache=TRUE} -->
+<!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization -->
+<!-- rt_mod_affiliative_a <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AFFILIATIVE_F + prev_rt*block_trial_z,  -->
+<!--           random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id), -->
+<!--           weights=varIdent(form=~1|cond), -->
+<!--           na.action = na.exclude, -->
+<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
+
+<!-- summary(rt_mod_affiliative_a) -->
+<!-- AICtab(rt_mod_affiliative_a, rt_mod_affiliative, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
+<!-- AICtab(rt_mod_affiliative_a, rt_mod_affiliative, rt_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization -->
+<!-- rt_mod_affiliative_b <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AFFILIATIVE_F + prev_rt*block_trial_z,  -->
+<!--           random=list(~1+trial_z*AFFILIATIVE_F+block_trial_z*AFFILIATIVE_F| subj_idx, ~1 + block_trial_z*AFFILIATIVE_F|cond_id), -->
+<!--           weights=varIdent(form=~1|cond), -->
+<!--           na.action = na.exclude, -->
+<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
+<!-- # won't fit -->
+
+<!-- rt_mod_affiliative_c <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AFFILIATIVE_F + prev_rt*block_trial_z,  -->
+<!--           random=list(~1+trial_z*AFFILIATIVE_F+block_trial_z*AFFILIATIVE_F| subj_idx, ~1 + block_trial_z|cond_id), -->
+<!--           weights=varIdent(form=~1|cond), -->
+<!--           na.action = na.exclude, -->
+<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim"))  -->
+
+<!-- rt_mod_affiliative_d <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AFFILIATIVE_F + prev_rt*block_trial_z,  -->
+<!--           random=list(~1+trial_z+block_trial_z*AFFILIATIVE_F| subj_idx, ~1 + block_trial_z|cond_id), -->
+<!--           weights=varIdent(form=~1|cond), -->
+<!--           na.action = na.exclude, -->
+<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim"))  -->
+
+<!-- rt_mod_affiliative_e <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AFFILIATIVE_F + prev_rt*block_trial_z,  -->
+<!--           random=list(~1+trial_z*AFFILIATIVE_F+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id), -->
+<!--           weights=varIdent(form=~1|cond), -->
+<!--           na.action = na.exclude, -->
+<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim"))  -->
+<!-- AICtab(rt_mod_affiliative_a,rt_mod_affiliative_b, rt_mod_affiliative_c, rt_mod_affiliative_d, rt_mod_affiliative_e, rt_mod_affiliative, rt_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
+
+
+<!-- ``` -->
+<!-- Favors of affiliative and says better than not including it  -->
+<!-- Favor a works better than affiliative extraversion being included in the random effects structure.  -->
+<!-- # Resp analyses -->
+<!-- Got rid of max iterations so run more quickly - verify convergence in final analysis -->
+
+
 
 ```{r acc_mod, cache=TRUE}
 acc_mod <- glmer(response ~ trial_z*stim + cond + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                 data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 summary(acc_mod)
 
@@ -318,7 +406,7 @@ summary(acc_mod)
 
 ```{r acc_mod_antagonism, cache=TRUE}
 acc_mod_antagonism_a <- glmer(response ~ trial_z*stim*ANTAGONISM_F + cond*ANTAGONISM_F + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                              data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 summary(acc_mod_antagonism)
 
@@ -327,7 +415,7 @@ summary(acc_mod_antagonism)
 
 ```{r acc_mod_antagonism_a, cache=TRUE}
 acc_mod_antagonism_a <- glmer(response ~ ANTAGONISM_F + trial_z*stim + cond + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                              data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 summary(acc_mod_antagonism_a)
 AICtab(acc_mod_antagonism, acc_mod_antagonism_a, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
@@ -335,12 +423,12 @@ AICtab(acc_mod_antagonism_a, acc_mod_antagonism, acc_mod, sort=TRUE, delta=TRUE,
 
 
 acc_mod_antagonism_b <- glmer(response ~ ANTAGONISM_F + trial_z*stim + cond + (1 | ANTAGONISM_F:subj_idx:stim) + (1 + ANTAGONISM_F*stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                              data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 acc_mod_antagonism_c <- glmer(response ~ ANTAGONISM_F + trial_z*stim + cond + (1 | ANTAGONISM_F:subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                              data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 acc_mod_antagonism_d <- glmer(response ~ ANTAGONISM_F + trial_z*stim + cond + (1 | subj_idx:stim) + (1 + ANTAGONISM_F*stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                              data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 
 AICtab(acc_mod_antagonism_b,acc_mod_antagonism_c, acc_mod_antagonism_d, acc_mod_antagonism_a, acc_mod_antagonism, acc_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
@@ -351,7 +439,7 @@ Antagonism a strongly preferred
 
 ```{r acc_mod_disinhibition, cache=TRUE}
 acc_mod_disinhibition <- glmer(response ~ trial_z*stim*DISINHIBITION_F + cond*DISINHIBITION_F + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                               data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 summary(acc_mod_disinhibition)
 
@@ -362,19 +450,19 @@ summary(acc_mod_disinhibition)
 
 ```{r acc_mod_disinhibition_a, cache=TRUE}
 acc_mod_disinhibition_a <- glmer(response ~ trial_z*stim + stim*DISINHIBITION_F + cond*DISINHIBITION_F + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                                 data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 summary(acc_mod_disinhibition_a)
 AICtab(acc_mod_disinhibition_a, acc_mod_disinhibition, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
 AICtab(acc_mod_disinhibition_a, acc_mod_disinhibition, acc_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
 
 acc_mod_disinhibition_b <- glmer(response ~ trial_z*stim*DISINHIBITION_F + cond*DISINHIBITION_F +(1 + DISINHIBITION_F| subj_idx:stim) + (1 + DISINHIBITION_F*stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                                 data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 acc_mod_disinhibition_c <- glmer(response ~ trial_z*stim*DISINHIBITION_F + cond*DISINHIBITION_F +(1 + DISINHIBITION_F| subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                                 data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 acc_mod_disinhibition_d <- glmer(response ~ trial_z*stim*DISINHIBITION_F + cond*DISINHIBITION_F + (1 | subj_idx:stim) + (1 + DISINHIBITION_F*stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                                 data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 AICtab(acc_mod_disinhibition_a, acc_mod_disinhibition_b, acc_mod_disinhibition_d, acc_mod_disinhibition_c, acc_mod_disinhibition, acc_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
 
@@ -384,7 +472,7 @@ Original disinhibition is strongly preferred -- still true!
 
 ```{r acc_mod_agentic, cache=TRUE}
 acc_mod_agentic <- glmer(response ~ trial_z*stim*AGENTIC_F + cond*AGENTIC_F + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                         data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 summary(acc_mod_agentic)
 
@@ -393,7 +481,7 @@ summary(acc_mod_agentic)
 
 ```{r acc_mod_agentic_a, cache=TRUE}
 acc_mod_agentic_a <- glmer(response ~ trial_z*stim + stim*AGENTIC_F + cond*AGENTIC_F + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                           data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 summary(acc_mod_agentic_a)
 
@@ -403,7 +491,7 @@ AICtab(acc_mod_agentic_a, acc_mod_agentic, acc_mod, sort=TRUE, delta=TRUE, weigh
 
 ```{r acc_mod_agentic_b, cache=TRUE}
 acc_mod_agentic_b <- glmer(response ~ trial_z*stim + stim*AGENTIC_F + cond + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                           data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 summary(acc_mod_agentic_b)
 
@@ -411,12 +499,12 @@ AICtab(acc_mod_agentic_b, acc_mod_agentic_a, acc_mod_agentic, acc_mod, sort=TRUE
 
 
 acc_mod_agentic_c <- glmer(response ~ trial_z*stim + stim*AGENTIC_F + cond*AGENTIC_F + (1 + AGENTIC_F| subj_idx:stim) + (1 + AGENTIC_F*stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                           data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 acc_mod_agentic_d <- glmer(response ~ trial_z*stim + stim*AGENTIC_F + cond*AGENTIC_F +(1 + AGENTIC_F| subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                           data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 acc_mod_agentic_e <- glmer(response ~ trial_z*stim + stim*AGENTIC_F + cond*AGENTIC_F +  (1 | subj_idx:stim) + (1 + AGENTIC_F*stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                           data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 AICtab(acc_mod_agentic_a,acc_mod_agentic_b, acc_mod_agentic, acc_mod_agentic_d,acc_mod_agentic_e, acc_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
 ```
@@ -425,7 +513,7 @@ Prefers agentic a
 
 ```{r acc_mod_affiliative, cache=TRUE}
 acc_mod_affiliative <- glmer(response ~ trial_z*stim*AFFILIATIVE_F + cond*AFFILIATIVE_F + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                             data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 summary(acc_mod_affiliative)
 
@@ -435,18 +523,18 @@ summary(acc_mod_affiliative)
 
 ```{r acc_mod_affiliative_a, cache=TRUE}
 acc_mod_affiliative_a <- glmer(response ~AFFILIATIVE_F+  trial_z*stim + cond + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                               data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 summary(acc_mod_affiliative_a)
 AICtab(acc_mod_affiliative_a, acc_mod_affiliative, acc_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
 
 acc_mod_affiliative_b <- glmer(response ~AFFILIATIVE_F+  trial_z*stim + cond + (1 + AFFILIATIVE_F| subj_idx:stim) + (1 + AFFILIATIVE_F*stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                               data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 acc_mod_affiliative_c <- glmer(response ~AFFILIATIVE_F+  trial_z*stim + cond +(1 + AFFILIATIVE_F| subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                               data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 acc_mod_affiliative_d <- glmer(response ~AFFILIATIVE_F+  trial_z*stim + cond  +  (1 | subj_idx:stim) + (1 + AFFILIATIVE_F*stim | subj_idx), na.action = na.exclude, 
-          data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                               data = gng, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 AICtab(acc_mod_affiliative_a, acc_mod_affiliative_c, acc_mod_affiliative_d, acc_mod_affiliative_b, acc_mod_affiliative, acc_mod, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)
 
@@ -514,16 +602,16 @@ Acc Findings
 
 This is what needs to be capitulated here.
 rt_mod_antagonism_a <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*ANTAGONISM_F + prev_rt*block_trial_z + prev_rt*ANTAGONISM_F, 
-          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
+weights=varIdent(form=~1|cond),
+na.action = na.exclude,
+data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
 
 MNH initial mlm_trait model
 ```{r}
 traits <- read.csv("~/github_dirs/PD_Inhibition_DDM/data/preprocessed/all_personality_no_invalids.csv") %>% rename(subj_idx = subject)
 gng_rt_traits_formplus <- dplyr::mutate(gng_rt, bltrz = block_trial_z[,1]) %>% dplyr::select(-block_trial_z) %>% left_join(traits) %>% dplyr::select(subj_idx, rt, trial_z, trial, rt_log_trim_grp, prev_rt, bltrz, T_Mistrust,
-     T_Manipulativeness, T_Aggression, T_SelfHarm)
+                                                                                                                                                     T_Manipulativeness, T_Aggression, T_SelfHarm)
 rt_mod_antagonism_a_mplus <- mplusObject(
   TITLE = "Antagonismesque factor and gng",
   DEFINE = "
@@ -583,7 +671,7 @@ rt_mod_antagonism_a_mplus <- mplusObject(
   rdata = gng_rt_traits_formplus
 )
 mout <- mplusModeler(rt_mod_antagonism_a_mplus,
-                        modelout="rt_mod_antagonism_a_mplus", run=TRUE, Mplus_command = "/Users/alisonmarie526/Applications/Mplus/mplus", hashfilename = FALSE)
+                     modelout="rt_mod_antagonism_a_mplus", run=TRUE, Mplus_command = "/Users/alisonmarie526/Applications/Mplus/mplus", hashfilename = FALSE)
 ```
 
 Now test with the updated factor structure that uses parcels so that have 3 indicator CFA.
@@ -650,11 +738,11 @@ rt_mod_cfa_antagonism_a_mplus <- mplusObject(
   rdata = gng_rt_traits_formplus
 )
 mout <- mplusModeler(rt_mod_cfa_antagonism_a_mplus,
-                        modelout="rt_mod_cfa_antagonism_a_mplus.inp", run=TRUE, Mplus_command = "/Users/alisonmarie526/Applications/Mplus/mplus", hashfilename = FALSE)
+                     modelout="rt_mod_cfa_antagonism_a_mplus.inp", run=TRUE, Mplus_command = "/Users/alisonmarie526/Applications/Mplus/mplus", hashfilename = FALSE)
 ```
 
 acc_mod_antagonism_a_updatedag <- glmer(response ~ ANTAGONISM_F + trial_z*stim + cond + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng_formlm, family = "binomial")
+data = gng_formlm, family = "binomial")
 
 ```{r}
 savedat <- readModels("~/github_dirs/PD_Inhibition_DDM/Code/factor_structure/AC_bsem_cfa_parcel.out", what = "savedata")$savedata %>% rename(subj_idx = SUBJECT) %>% dplyr::select(MANIP, P5, P1, subj_idx)
@@ -710,7 +798,7 @@ acc_mod_cfa_antagonism_a_mplus <- mplusObject(
   rdata = gng_traits_formplus
 )
 mout <- mplusModeler(acc_mod_cfa_antagonism_a_mplus,
-                        modelout="acc_mod_cfa_antagonism_a_mplus.inp", run=TRUE, Mplus_command = "/Users/alisonmarie526/Applications/Mplus/mplus", hashfilename = FALSE)
+                     modelout="acc_mod_cfa_antagonism_a_mplus.inp", run=TRUE, Mplus_command = "/Users/alisonmarie526/Applications/Mplus/mplus", hashfilename = FALSE)
 ```
 
 # Verify models with updated factor scores
@@ -744,13 +832,13 @@ gng_rt_formlm <- left_join(dplyr::select(gng_rt,-ANTAGONISM_F, -DISINHIBITION_F)
 gng_formlm <- left_join(dplyr::select(gng,-ANTAGONISM_F,-DISINHIBITION_F), fscores)
 
 rt_mod_antagonism_a_updatedag <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*ANTAGONISM_F + prev_rt*block_trial_z + prev_rt*ANTAGONISM_F, 
-          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt_formlm, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+                                      random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
+                                      weights=varIdent(form=~1|cond),
+                                      na.action = na.exclude,
+                                      data = gng_rt_formlm, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
 
 acc_mod_antagonism_a_updatedag <- glmer(response ~ ANTAGONISM_F + trial_z*stim + cond + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng_formlm, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                                        data = gng_formlm, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 ```
 
@@ -784,14 +872,14 @@ The different effects are specific to the effects of disinhibtion. Is this facto
 
 ```{r}
 rt_mod_disinhibition_a_updatedag <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*DISINHIBITION_F + prev_rt*block_trial_z, 
-          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt_formlm, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+                                         random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
+                                         weights=varIdent(form=~1|cond),
+                                         na.action = na.exclude,
+                                         data = gng_rt_formlm, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
 
 
 acc_mod_disinhibition_updatedag <- glmer(response ~ trial_z*stim*DISINHIBITION_F + cond*DISINHIBITION_F + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng_formlm, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+                                         data = gng_formlm, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
 
 ```
 
@@ -831,13 +919,13 @@ gng_rt_formlm <- left_join(dplyr::select(gng_rt,-AGENTIC_F, -AFFILIATIVE_F), fsc
 gng_formlm <- left_join(dplyr::select(gng,-AGENTIC_F,-AFFILIATIVE_F), fscores)
 
 rt_mod_agentic_a_updatedag <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AGENTIC_F + prev_rt*block_trial_z + AGENTIC_F*prev_rt, 
-          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt_formlm, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, 
+                                   random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
+                                   weights=varIdent(form=~1|cond),
+                                   na.action = na.exclude,
+                                   data = gng_rt_formlm, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, 
 
 acc_mod_agentic_a_updatedag <- glmer(response ~ trial_z*stim + stim*AGENTIC_F + cond*AGENTIC_F + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng_formlm, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                                     data = gng_formlm, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 ```
 
@@ -871,13 +959,13 @@ Does seem that the cfa approach does change the content of this factor somewhat 
 
 ```{r}
 rt_mod_affiliative_a_updatedag <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AFFILIATIVE_F + prev_rt*block_trial_z, 
-          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt_formlm, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, 
+                                       random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
+                                       weights=varIdent(form=~1|cond),
+                                       na.action = na.exclude,
+                                       data = gng_rt_formlm, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, 
 
 acc_mod_affiliative_updatedag <- glmer(response ~ trial_z*stim*AFFILIATIVE_F + cond*AFFILIATIVE_F + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng_formlm, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+                                       data = gng_formlm, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 
 ```
@@ -888,14 +976,14 @@ Overall, feel comofortable with the new CFA F scores for Agentic Extraversion an
 
 # Combine antag and disinhib in the same model
 rt_mod_disinhibition_a_updatedag <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*DISINHIBITION_F + prev_rt*block_trial_z, 
-          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt_formlm, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
+random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
+weights=varIdent(form=~1|cond),
+na.action = na.exclude,
+data = gng_rt_formlm, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200))
 
 
 acc_mod_disinhibition_updatedag <- glmer(response ~ trial_z*stim*DISINHIBITION_F + cond*DISINHIBITION_F + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng_formlm, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+data = gng_formlm, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
 
 ```{r}
 
@@ -907,7 +995,7 @@ snap <- get(load("~/github_dirs/PD_Inhibition_DDM/Data/preprocessed/SNAP_all_sco
 self_reps <- inner_join(mpq, snap, by = "subject")
 
 tofactor <- self_reps %>% dplyr::select(subject, MPS_agR, AGG, MISTRUST, MPS_alR, MANIP,
-      PROPER, MPS_clR, IMPUL, MPS_tdR, MPS_acR, HDWK) %>% 
+                                        PROPER, MPS_clR, IMPUL, MPS_tdR, MPS_acR, HDWK) %>% 
   mutate(IMPUL =-1*IMPUL) %>% #score toward constraint to make loadings upright
   mutate_at(vars(-subject), list(~as.vector(scale(.)))) %>%
   dplyr::rename(subj_idx=subject)
@@ -989,11 +1077,11 @@ rt_mod_cfa_antaginhib_a_mplus <- mplusObject(
   rdata = gng_rt_traits_formplus
 )
 mout <- mplusModeler(rt_mod_cfa_antaginhib_a_mplus,
-                        modelout="rt_mod_cfa_antaginhib_a_mplus.inp", run=TRUE, Mplus_command = "/Users/alisonmarie526/Applications/Mplus/mplus", hashfilename = FALSE)
+                     modelout="rt_mod_cfa_antaginhib_a_mplus.inp", run=TRUE, Mplus_command = "/Users/alisonmarie526/Applications/Mplus/mplus", hashfilename = FALSE)
 ```
 
 acc_mod_disinhibition_updatedag <- glmer(response ~ trial_z*stim*DISINHIBITION_F + cond*DISINHIBITION_F + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng_formlm, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
+data = gng_formlm, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000)))
 
 ```{r}
 
@@ -1068,23 +1156,23 @@ acc_mod_cfa_antaginhib_a_mplus <- mplusObject(
   rdata = gng_traits_formplus
 )
 mout <- mplusModeler(acc_mod_cfa_antaginhib_a_mplus,
-                        modelout="acc_mod_cfa_antaginhib_a_mplus.inp", run=TRUE, Mplus_command = "/Users/alisonmarie526/Applications/Mplus/mplus", hashfilename = FALSE)
+                     modelout="acc_mod_cfa_antaginhib_a_mplus.inp", run=TRUE, Mplus_command = "/Users/alisonmarie526/Applications/Mplus/mplus", hashfilename = FALSE)
 
 
 ```
 
 # Combine agentic and affiliative extraversion in the same model
 rt_mod_agentic_a_updatedag <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AGENTIC_F + prev_rt*block_trial_z + AGENTIC_F*prev_rt, 
-          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt_formlm, method='ML', control = lmeControl(opt="optim"))
-          
+random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
+weights=varIdent(form=~1|cond),
+na.action = na.exclude,
+data = gng_rt_formlm, method='ML', control = lmeControl(opt="optim"))
+
 rt_mod_affiliative_a_updatedag <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z*AFFILIATIVE_F + prev_rt*block_trial_z, 
-          random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
-          weights=varIdent(form=~1|cond),
-          na.action = na.exclude,
-          data = gng_rt_formlm, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, 
+random=list(~1+trial_z+block_trial_z| subj_idx, ~1 + block_trial_z|cond_id),
+weights=varIdent(form=~1|cond),
+na.action = na.exclude,
+data = gng_rt_formlm, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, 
 
 ```{r}
 
@@ -1161,15 +1249,15 @@ rt_mod_cfa_agenaff_a_mplus <- mplusObject(
   rdata = gng_rt_traits_formplus
 )
 mout <- mplusModeler(rt_mod_cfa_agenaff_a_mplus,
-                        modelout="rt_mod_cfa_agenaff_a_mplus.inp", run=FALSE, Mplus_command = "/Users/alisonmarie526/Applications/Mplus/mplus", hashfilename = FALSE)
+                     modelout="rt_mod_cfa_agenaff_a_mplus.inp", run=FALSE, Mplus_command = "/Users/alisonmarie526/Applications/Mplus/mplus", hashfilename = FALSE)
 
 ```
 
 acc_mod_agentic_a_updatedag <- glmer(response ~ trial_z*stim + stim*AGENTIC_F + cond*AGENTIC_F + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng_formlm, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+data = gng_formlm, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 acc_mod_affiliative_updatedag <- glmer(response ~ trial_z*stim*AFFILIATIVE_F + cond*AFFILIATIVE_F + (1 | subj_idx:stim) + (1 + stim | subj_idx), na.action = na.exclude, 
-          data = gng_formlm, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
+data = gng_formlm, family = "binomial") #, control=glmerControl(optCtrl=list(maxfun=50000)))
 
 
 ```{r}
@@ -1237,7 +1325,7 @@ acc_mod_cfa_agenaff_a_mplus <- mplusObject(
   rdata = gng_traits_formplus
 )
 mout <- mplusModeler(acc_mod_cfa_agenaff_a_mplus,
-                        modelout="acc_mod_cfa_agenaff_a_mplus.inp", run=FALSE, Mplus_command = "/Users/alisonmarie526/Applications/Mplus/mplus", hashfilename = FALSE)
+                     modelout="acc_mod_cfa_agenaff_a_mplus.inp", run=FALSE, Mplus_command = "/Users/alisonmarie526/Applications/Mplus/mplus", hashfilename = FALSE)
 
 
 ```

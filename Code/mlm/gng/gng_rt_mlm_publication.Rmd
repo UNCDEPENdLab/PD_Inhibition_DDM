@@ -313,7 +313,6 @@ flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5,m6,m7)) %>% autofit()
 
 wow, that helps quite a bit! This likely indicates that there is significant heterogeneity amongst subjects regarding how block_trial_z influences rt
 
-
 ```{r}
 library(sjPlot)
 library(sjmisc)
@@ -328,775 +327,930 @@ library(sjmisc)
 
 Indeed.
 
-## m8: re-introduce condition, now that trials from no-go is a random effect
+Interim summary: Rather than fitting conditions separately, the model is greatly aided by simply analyzing the number of trials since the most recent no-go. This makes good sense, as this shows linear scaling of the effect rather than blocking it together. This also makes sense, since participants are not aware of what condition they are in and are likely only tracking info about when they last completed a no-go trial. 
+
+
+
+
+## m8: Per AMS suggestion, test ixn of block trial and trial number. start with additive effect
 
 ```{r m8, cache=TRUE}
-minfo[["m8"]] <- c(fixed="Condition, Trials from no-go", l2="Subject: Intercept, Trials from no-go")
+minfo[["m8"]] <- c(fixed="Trials from no-go, Trial number", l2="Subject: Intercept, Trials from no-go")
 
-m8 <- lmer(rt_log_trim_grp ~ cond + block_trial_z + (1 + block_trial_z | id),
+m8 <- lmer(rt_log_trim_grp ~  block_trial_z+trial_z + (1 + block_trial_z | id),
            na.action = na.exclude, 
-          data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4))) #bump up iterations)
+          data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4)), REML = FALSE) #bump up iterations)
 summary(m8)
 # emmeans(m2, ~cond)
 
 
 
-flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5,m6,m7,m8)) %>% autofit()
+flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5,m6,m7, m8)) %>% autofit()
 ```
 
+## m9: Per AMS suggestion, test ixn of block trial and trial number
 
-Interim summary: Rather than fitting conditions separately, the model is greatly aided by simply analyzing the number of trials since the most recent no-go. This makes good sense, as this shows linear scaling of the effect rather than blocking it together. This also makes sense, since participants are not aware of what condition they are in and are likely only tracking info about when they last completed a no-go trial. 
+```{r m9, cache=TRUE}
+minfo[["m9"]] <- c(fixed="Trials from no-go, Trial number, Trials from no-go x Trial number", l2="Subject: Intercept, Trials from no-go")
 
-
-## m9: building on model 7, add previous RT as fixed. m10 also includes it as a random effect.
-
-```{r m9.1, cache=TRUE}
-minfo[["m9"]] <- c(fixed=" Trials from no-go, Previous RT", l2="Subject: Intercept, Trials from no-go")
-
-m9 <- lmer(rt_log_trim_grp ~ block_trial_z + prev_rt_z + (1 + block_trial_z | id),
+m9 <- lmer(rt_log_trim_grp ~  block_trial_z*trial_z + (1 + block_trial_z | id),
            na.action = na.exclude, 
-          data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4))) #bump up iterations)
+          data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4)), REML = FALSE) #bump up iterations)
 summary(m9)
 # emmeans(m2, ~cond)
 
+
+
+flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5,m6,m7, m8,m9)) %>% autofit()
 ```
 
-## m10: 
 
-```{r m10.1, cache=TRUE}
-minfo[["m10"]] <- c(fixed=" Trials from no-go, Previous RT", l2="Subject: Intercept, Trials from no-go, Previous RT")
+## m10: add random slope of trial_z
 
-m10 <- lmer(rt_log_trim_grp ~  block_trial_z + prev_rt_z + (1 + block_trial_z +prev_rt_z | id),
+```{r m10, cache=TRUE}
+minfo[["m10"]] <- c(fixed="Trials from no-go, Trial number, Trials from no-go x Trial number", l2="Subject: Intercept, Trials from no-go, Trial")
+
+m10 <- lmer(rt_log_trim_grp ~  block_trial_z*trial_z + (1 + block_trial_z + trial_z| id),
            na.action = na.exclude, 
-          data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4))) #bump up iterations)
+          data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4)), REML = FALSE) #bump up iterations)
 summary(m10)
 # emmeans(m2, ~cond)
 
-flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5,m6,m7,m8, m9, m10)) %>% autofit()
-# flextb_vif(m10)
-# 
-# tocor <- gng_rt %>% data.frame() %>% select(-cond, -stim, - stim_cond, -response, -bad_subj)#%>% as.matrix()
-# cor(as.matrix(tocor), use = "complete.obs")
-# sapply(tocor, class)
 
+
+flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5,m6,m7, m8,m9, m10)) %>% autofit()
 ```
 
-correspondence with MNH indicates that this huge drop-off likely has to do with rows getting dropped from analysis for those trials that were preceded by a no-go. Run a sensitivity analysis and probably just move on, without reporting m9 and m10 and note in methods (supplement?).
 
-## m6.2 remove rows with prev_rt_z == NA for direct comparison.
+## m11: re-introduce condition as fixed
 
-```{r m6.2, cache=TRUE}
+```{r m11, cache=TRUE}
+minfo[["m11"]] <- c(fixed="Trials from no-go, Trial number, Trials from no-go x Trial number, Condition", l2="Subject: Intercept, Trials from no-go, Trial")
 
-gng_filt <- filter(gng_rt, !is.na(prev_rt_z))
-
-
-minfo[["m6.2"]] <- c(fixed="Trials from no-go: FILTERED", l2="Subject: Intercept, Trials from no-go")
-
-m6.2 <- lmer(rt_log_trim_grp ~  block_trial_z + (1 + block_trial_z| id),
+m11 <- lmer(rt_log_trim_grp ~  block_trial_z*trial_z + cond + (1 + block_trial_z + trial_z| id),
            na.action = na.exclude, 
-          data = gng_filt,  control=lmerControl(optCtrl=list(maxfun=2e4))) #bump up iterations)
-summary(m6.2)
-# emmeans(m2, ~cond)
-
-flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5,m6,m7,m8, m9, m10, m6.2)) %>% autofit()
-
-```
-
-
-Looks like adding does imporve fit in the filtered case. Regardless, we're going to omit prev_rt entirely, bc we'd need to drop a large number of trials, which we don't want. Start again by removing these comparisons from the table.
-
-```{r}
-minfo_prev_rts <- minfo
-minfo$m9 <- NULL
-minfo$m10 <- NULL
-minfo$m6.2 <- NULL
-```
-
-## m9 and on: take 2!
-
-## m9: building on model 7, add previous error as fixed. m10 also includes it as a random effect.
-
-```{r m9.2, cache = TRUE}
-minfo[["m9"]] <- c(fixed=" Trials from no-go, Previous Error", l2="Subject: Intercept, Trials from no-go")
-
-m9 <- lmer(rt_log_trim_grp ~ block_trial_z + prev_error + (1 + block_trial_z | id),
-           na.action = na.exclude, 
-          data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4))) #bump up iterations)
-summary(m9)
-# emmeans(m2, ~cond)
-
-```
-
-## m10: 
-
-```{r m10.2, cache = TRUE}
-minfo[["m10"]] <- c(fixed=" Trials from no-go, Previous Error", l2="Subject: Intercept, Trials from no-go, Previous Error")
-
-m10 <- lmer(rt_log_trim_grp ~  block_trial_z + prev_error + (1 + block_trial_z +prev_error | id),
-           na.action = na.exclude, 
-          data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4))) #bump up iterations)
-summary(m10)
-# emmeans(m2, ~cond)
-
-# flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5,m6,m7,m8, m9, m10)) %>% autofit()
-```
-
-## m11: trials from nogo x prev_error
-
-```{r m11, cache = TRUE}
-minfo[["m11"]] <- c(fixed=" Trials from no-go, Previous Error, Trials from no-go x Previous Error", l2="Subject: Intercept, Trials from no-go, Previous Error")
-
-m11 <- lmer(rt_log_trim_grp ~  block_trial_z * prev_error + (1 + block_trial_z +prev_error | id),
-           na.action = na.exclude, 
-          data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4))) #bump up iterations)
+          data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4)), REML = FALSE) #bump up iterations)
 summary(m11)
 # emmeans(m2, ~cond)
 
-flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5,m6,m7,m8, m9, m10, m11)) %>% autofit() #%>% save_as_docx(path = "~/Desktop/emmeans_gng_aictable.docx") #save for inclusion in supplement
+
+
+flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5,m6,m7, m8,m9, m10, m11)) %>% autofit()
+```
+
+
+## m12: add random block_trial as a random slope of condition nested within ID
+
+```{r m12, cache=TRUE}
+minfo[["m12"]] <- c(fixed="Trials from no-go, Trial number, Trials from no-go x Trial number", l2="Condition within subject: Trials from no-go\nSubject: Intercept, Trials from no-go, Trial")
+
+m12 <- lmer(rt_log_trim_grp ~  block_trial_z*trial_z + (1 + block_trial_z + trial_z| id) + (1 + block_trial_z | id:cond),
+           na.action = na.exclude, 
+          data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4)), REML = FALSE) #bump up iterations)
+summary(m12)
+# emmeans(m2, ~cond)
+
+
+
+flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5,m6,m7, m8,m9, m10, m11, m12)) %>% autofit()
+```
+
+
+## m13: add previous error as fixed
+
+```{r m13, cache=TRUE}
+minfo[["m13"]] <- c(fixed="Trials from no-go, Trial number, Trials from no-go x Trial number, Previous error", 
+                    l2="Condition within subject: Trials from no-go\nSubject: Intercept, Trials from no-go, Trial")
+
+m13 <- lmer(rt_log_trim_grp ~  block_trial_z*trial_z + prev_error + (1 + block_trial_z + trial_z| id) + (1 + block_trial_z | id:cond),
+           na.action = na.exclude, 
+          data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4)), REML = FALSE) #bump up iterations)
+summary(m13)
+# emmeans(m2, ~cond)
+
+
+
+flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5,m6,m7, m8,m9, m10, m11, m12, m13)) %>% autofit()
+```
+
+## m14: prev_error ixn
+
+```{r m14, cache=TRUE}
+minfo[["m14"]] <- c(fixed="Trials from no-go, Trial number, Trials from no-go x Trial number, Previous error, Trials from no-go x Previous error", 
+                    l2="Condition within subject: Trials from no-go\nSubject: Intercept, Trials from no-go, Trial, Previous error")
+
+m14 <- lmer(rt_log_trim_grp ~  block_trial_z*trial_z + block_trial_z*prev_error + (1 + block_trial_z + trial_z + prev_error | id) + (1 + block_trial_z | id:cond),
+           na.action = na.exclude, 
+          data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4)), REML = FALSE) #bump up iterations)
+summary(m14)
+# emmeans(m2, ~cond)
+
+
+
+flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5,m6,m7, m8,m9, m10, m11, m12, m13, m14)) %>% autofit()
+```
+
+
+## m15: add previous error as random within ID 
+
+```{r m15, cache=TRUE}
+minfo[["m15"]] <- c(fixed="Trials from no-go, Trial number, Trials from no-go x Trial number", 
+                    l2="Condition within subject: Trials from no-go\nSubject: Intercept, Trials from no-go, Trial, Previous error")
+
+m15 <- lmer(rt_log_trim_grp ~  block_trial_z*trial_z  + (1 + block_trial_z + trial_z + prev_error | id) + (1 + block_trial_z | id:cond),
+           na.action = na.exclude, 
+          data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4)), REML = FALSE) #bump up iterations)
+summary(m15)
+# emmeans(m2, ~cond)
+
+
+
+flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5,m6,m7, m8,m9, m10, m11, m12, m13, m14,m15)) %>% autofit() #%>% save_as_docx(path = "~/Desktop/emmeans_gng_aictable.docx") #save for inclusion in supplement
+```
+
+
+m12 is winner. grab relevant statistics for results
+
+```{r}
+test(emtrends(m12, ~trial_z, var = "block_trial_z", at = list(trial_z = c(-2, -1, 1, 2)))) 
+test(emtrends(m12, ~block_trial_z, var = "trial_z", at = list(block_trial_z = c(-1, 1)))) 
+
+library(interactions)
+
+interact_plot(m12, pred = "block_trial_z", modx = "trial_z")
+
+flextable(anova(m12) %>% tibble::rownames_to_column("Effect")) %>% autofit() #lmerTest reports Satterthwaite degrees of freedom
+flextable(car::Anova(m1, type=3)) %>% autofit()
+
+# 
+# quantile(gng_rt$prev_rt, .16, na.rm = TRUE) # to get what is equivalent to -1, 1 in z scores
+# quantile(gng_rt$prev_rt, .84, na.rm = TRUE)
+# test(emtrends(m19, ~prev_rt, var = "block_trial_z", at = list(prev_rt = c(.26, .42))))
+# random.effects(m19)
+
 
 
 ```
 
-m7 is the clear winner in this case, nice that it's relatively simple. Interesting that there is so much variability at L2, but this leaves an opening for L2 moderation by ANT and CON.
-
-<!-- ## m4: random intercept estimated for each condition within each person -->
-<!-- Don't specify covariance struture. This is not a great model. m3 still preferred. -->
-<!-- This suggests that a good base model estimates intercepts within condition within subject and estimates covariance for each of the conditions  -->
-
-<!-- ```{r m4, cache=TRUE} -->
-<!-- m4 <- lme(rt_log_trim_grp ~ trial_z + cond,  -->
-<!--           random = ~ 1 | id/cond, -->
-<!--           correlation=corCompSymm(form=~trial|id), na.action = na.exclude,  -->
-<!--           data = gng_rt, method='ML') -->
-<!-- summary(m4) -->
-
-<!-- AICtab(m1, m2, m3, m4, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
-<!-- ``` -->
 
 
-<!-- ## Add random slope of trial -->
-
-<!-- We could make ourselves crazy with the consideration of whether a random slope of trial depends on block or condition.  -->
-
-<!-- Let's just build on m14 and consider whether the random slope of trial depends on block. -->
-
-<!-- ## m5: add random slope of trial, allowing for differences between blocks -->
-
-<!-- ```{r m5, cache=TRUE} -->
-<!-- m5 <-  lme(rt_log_trim_grp ~ trial_z + cond,  -->
-<!--           random=~1 + trial_z|id/cond, -->
-<!--           weights=varIdent(form=~1|cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML') -->
-
-<!-- summary(m5) -->
-
-<!-- AICtab(m5, m3, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
-<!-- ``` -->
-
-<!-- As expected, we see a huge boost when we allow for individual differences in the slope of trial_z, which captures the tendency of subjects to speed up or slow down over the experiment. -->
-
-<!-- ## m6 random slope of trial only by id, not block within id -->
-
-<!-- What if we simplify the random slope of trial so that it is not nested within block. In lme, we need to create the interaction term ourselves, unlike the `(1+trial_z | id) + (1 | id/block)` notation of `lmer`. -->
-
-<!-- ```{r m6, cache=TRUE} -->
-<!-- m6 <- lme(rt_log_trim_grp ~ trial_z + cond,  -->
-<!--            random=list(~1+trial_z | id, ~1 | cond_id), -->
-<!--            weights=varIdent(form=~1|cond),  -->
-<!--            na.action = na.exclude, -->
-<!--            data = gng_rt, method='ML') -->
-
-<!-- summary(m6) -->
-
-<!-- AICtab(m3, m5, m6, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
-
-<!-- #check order of blocks -->
-<!-- #xtabs(~trial+block, flanker) -->
-<!-- ``` -->
-
-<!-- So far, it looks like allowing trial slope to vary between condition improves fit (m5 > m6). -->
-
-<!-- ## m7: trial x cond -->
-<!-- m5 still preferred. evidence for one fixed effect for an interaction but others non significant.  -->
-
-<!-- ```{r m7, cache=TRUE} -->
-<!-- m7 <- lme(rt_log_trim_grp ~ trial_z*cond,  -->
-<!--           random=list(~1+trial_z | id, ~1 | cond_id), -->
-<!--            weights=varIdent(form=~1|cond),  -->
-<!--            na.action = na.exclude, -->
-<!--            data = gng_rt, method='ML') -->
-
-<!-- summary(m7) -->
-
-<!-- AICtab(m3, m5, m6, m7, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
-
-<!-- #check order of blocks -->
-<!-- #xtabs(~trial+block, flanker) -->
-<!-- ``` -->
-<!-- ## m8: trial x cond -->
-<!-- m5 still preferred. Somewhat equivocal between m8 and m5 but go with m5 because more simple -->
-
-<!-- ```{r m8, cache=TRUE} -->
-<!-- m8 <-  lme(rt_log_trim_grp ~ trial_z*cond,  -->
-<!--           random=~1 + trial_z|id/cond, -->
-<!--           weights=varIdent(form=~1|cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML') -->
-
-<!-- AICtab(m3, m5, m6, m8, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
-
-<!-- ``` -->
 
 
-<!-- ## m9: Any evidence of local trial (run_trial) effects? -->
+<!-- ## m9: building on model 7, add previous RT as fixed. m10 also includes it as a random effect. -->
 
-<!-- Alternatively, rather thinking about it interms of condition, could think of it in terms of local trial related effects related to the number of Go's recently.  -->
+<!-- ```{r m9.1, cache=TRUE} -->
+<!-- minfo[["m9"]] <- c(fixed=" Trials from no-go, Previous RT", l2="Subject: Intercept, Trials from no-go") -->
 
-
-<!-- ```{r m9, cache=TRUE} -->
-<!-- m9 <-  lme(rt_log_trim_grp ~ block_trial_z*cond,  -->
-<!--           random=~1 + block_trial_z|id/cond, -->
-<!--           weights=varIdent(form=~1|cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML') -->
+<!-- m9 <- lmer(rt_log_trim_grp ~ block_trial_z + prev_rt_z + (1 + block_trial_z | id), -->
+<!--            na.action = na.exclude,  -->
+<!--           data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4))) #bump up iterations) -->
 <!-- summary(m9) -->
-
-<!-- emtrends(m9, ~cond, var = "block_trial_z") -->
-<!-- AICtab(m9, m5, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
+<!-- # emmeans(m2, ~cond) -->
 
 <!-- ``` -->
 
-<!-- ## m10: Any evidence of local trial (run_trial) effects? -->
+<!-- ## m10:  -->
 
-<!-- Alternatively, rather thinking about it interms of condition, could think of it in terms of local trial related effects related to the number of Go's recently.  -->
+<!-- ```{r m10.1, cache=TRUE} -->
+<!-- minfo[["m10"]] <- c(fixed=" Trials from no-go, Previous RT", l2="Subject: Intercept, Trials from no-go, Previous RT") -->
 
-
-<!-- ```{r m10, cache=TRUE} -->
-<!-- m10 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z,  -->
-<!--           random=~1 + block_trial_z|id, -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML') -->
+<!-- m10 <- lmer(rt_log_trim_grp ~  block_trial_z + prev_rt_z + (1 + block_trial_z +prev_rt_z | id), -->
+<!--            na.action = na.exclude,  -->
+<!--           data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4))) #bump up iterations) -->
 <!-- summary(m10) -->
+<!-- # emmeans(m2, ~cond) -->
 
-<!-- AICtab(m10, m9, m5, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
+<!-- flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5,m6,m7,m8, m9, m10)) %>% autofit() -->
+<!-- # flextb_vif(m10) -->
+<!-- #  -->
+<!-- # tocor <- gng_rt %>% data.frame() %>% select(-cond, -stim, - stim_cond, -response, -bad_subj)#%>% as.matrix() -->
+<!-- # cor(as.matrix(tocor), use = "complete.obs") -->
+<!-- # sapply(tocor, class) -->
 
 <!-- ``` -->
 
-<!-- Evidence for interaction between block_trial and trial but using cond to represent these effects is preferred in this data -->
+correspondence with MNH indicates that this huge drop-off likely has to do with rows getting dropped from analysis for those trials that were preceded by a no-go. Run a sensitivity analysis and probably just move on, without reporting m9 and m10 and note in methods (supplement?).
 
-<!-- ## m11: run_trial and trial effects -->
+<!-- ## m6.2 remove rows with prev_rt_z == NA for direct comparison. -->
 
-<!-- It's possible that we could have both local (run) and overall (experiment) trial effects. Adding run_trial_z as a fixed effect only to the winning m16 does result in a substantial model fit improvement.  -->
+<!-- ```{r m6.2, cache=TRUE} -->
 
-<!-- ```{r m11, cache=TRUE} -->
-<!-- m11 <-  lme(rt_log_trim_grp ~ block_trial_z + trial_z + cond,  -->
-<!--           random=~1 + trial_z|id/cond, -->
-<!--           weights=varIdent(form=~1|cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML') -->
+<!-- gng_filt <- filter(gng_rt, !is.na(prev_rt_z)) -->
 
+
+<!-- minfo[["m6.2"]] <- c(fixed="Trials from no-go: FILTERED", l2="Subject: Intercept, Trials from no-go") -->
+
+<!-- m6.2 <- lmer(rt_log_trim_grp ~  block_trial_z + (1 + block_trial_z| id), -->
+<!--            na.action = na.exclude,  -->
+<!--           data = gng_filt,  control=lmerControl(optCtrl=list(maxfun=2e4))) #bump up iterations) -->
+<!-- summary(m6.2) -->
+<!-- # emmeans(m2, ~cond) -->
+
+<!-- flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5,m6,m7,m8, m9, m10, m6.2)) %>% autofit() -->
+
+<!-- ``` -->
+
+
+<!-- Looks like adding does imporve fit in the filtered case. Regardless, we're going to omit prev_rt entirely, bc we'd need to drop a large number of trials, which we don't want. Start again by removing these comparisons from the table. -->
+
+<!-- ```{r} -->
+<!-- minfo_prev_rts <- minfo -->
+<!-- minfo$m9 <- NULL -->
+<!-- minfo$m10 <- NULL -->
+<!-- minfo$m6.2 <- NULL -->
+<!-- ``` -->
+
+<!-- ## m9 and on: take 2! -->
+
+<!-- ## m9: building on model 7, add previous error as fixed. m10 also includes it as a random effect. -->
+
+<!-- ```{r m9.2, cache = TRUE} -->
+<!-- minfo[["m9"]] <- c(fixed=" Trials from no-go, Previous Error", l2="Subject: Intercept, Trials from no-go") -->
+
+<!-- m9 <- lmer(rt_log_trim_grp ~ block_trial_z + prev_error + (1 + block_trial_z | id), -->
+<!--            na.action = na.exclude,  -->
+<!--           data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4))) #bump up iterations) -->
+<!-- summary(m9) -->
+<!-- # emmeans(m2, ~cond) -->
+
+<!-- ``` -->
+
+<!-- ## m10:  -->
+
+<!-- ```{r m10.2, cache = TRUE} -->
+<!-- minfo[["m10"]] <- c(fixed=" Trials from no-go, Previous Error", l2="Subject: Intercept, Trials from no-go, Previous Error") -->
+
+<!-- m10 <- lmer(rt_log_trim_grp ~  block_trial_z + prev_error + (1 + block_trial_z +prev_error | id), -->
+<!--            na.action = na.exclude,  -->
+<!--           data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4))) #bump up iterations) -->
+<!-- summary(m10) -->
+<!-- # emmeans(m2, ~cond) -->
+
+<!-- # flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5,m6,m7,m8, m9, m10)) %>% autofit() -->
+<!-- ``` -->
+
+<!-- ## m11: trials from nogo x prev_error -->
+
+<!-- ```{r m11, cache = TRUE} -->
+<!-- minfo[["m11"]] <- c(fixed=" Trials from no-go, Previous Error, Trials from no-go x Previous Error", l2="Subject: Intercept, Trials from no-go, Previous Error") -->
+
+<!-- m11 <- lmer(rt_log_trim_grp ~  block_trial_z * prev_error + (1 + block_trial_z +prev_error | id), -->
+<!--            na.action = na.exclude,  -->
+<!--           data = gng_rt, control=lmerControl(optCtrl=list(maxfun=2e4))) #bump up iterations) -->
 <!-- summary(m11) -->
+<!-- # emmeans(m2, ~cond) -->
 
-<!-- AICtab(m11, m5, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
-<!-- ``` -->
-<!-- Interesting. Even though you'd think that cond and block trial are largely redundant, evidence favors m11.  -->
-
-
-<!-- ## m12: Drop cond as fixed effect since inclusion of block_trial nullifies fixed effects -->
-
-
-<!-- Keep cond in random effects structure given that we don't have the estimation power to get block_trial_z effects captured nested within random effects structure.  -->
-<!-- ```{r m12, cache=TRUE} -->
-<!-- m12 <-  lme(rt_log_trim_grp ~ block_trial_z + trial_z,  -->
-<!--           random=~1 + trial_z|id/cond, -->
-<!--           weights=varIdent(form=~1|cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML') -->
-
-<!-- summary(m12) -->
-
-<!-- AICtab(m11, m12, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
-<!-- ``` -->
-<!-- m12 preferred slightly. Choose m12 because simpler -->
-
-<!-- ## m13: Include block_trial_z*trial_z at the fixed effects and cond in ranef -->
-
-<!-- ```{r m13, cache=TRUE} -->
-<!-- m13 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z,  -->
-<!--           random=~1 + trial_z|id/cond, -->
-<!--           weights=varIdent(form=~1|cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML') -->
-
-<!-- summary(m13) -->
-
-<!-- AICtab(m11, m12, m13, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
-<!-- ``` -->
-<!-- m13 highly preferred. Indicates that people slow in RT as number GOs in a row increases and that this slowing effect and this is amplified across trials of the experiment.  -->
-
-
-<!-- ##m14: add run_trial_z as random, too -->
-
-<!-- ```{r m14, cache=TRUE} -->
-<!-- m14 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z,  -->
-<!--           random=~1 + block_trial_z + trial_z|id/cond, -->
-<!--           weights=varIdent(form=~1|cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) -->
-
-<!-- summary(m14) -->
-
-<!-- AICtab(m14, m13, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
-<!-- ``` -->
-
-<!-- Kinda equivocal. Simplify to see if can keep both -->
-
-<!-- ## m15: simplify a bit -- block_trial_z as random at cond/subject level only -->
-
-<!-- ```{r m15, cache=TRUE} -->
-<!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization -->
-<!-- m15 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z,  -->
-<!--           random=list(~1+trial_z+block_trial_z| id, ~1 + block_trial_z|cond_id), -->
-<!--           weights=varIdent(form=~1|cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
-
-<!-- summary(m15) -->
-<!-- car::vif(m15) # no issues -->
-
-<!-- AICtab(m14, m15, m13, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
-<!-- ``` -->
-
-
-<!-- ## m16: simplify a bit -- trial_z as random at subject level only -->
-
-<!-- ```{r m16, cache=TRUE} -->
-<!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization -->
-<!-- m16 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z,  -->
-<!--           random=list(~1+trial_z+block_trial_z| id, ~1 + trial_z|cond_id), -->
-<!--           weights=varIdent(form=~1|cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
-
-<!-- summary(m16) -->
-
-<!-- AICtab(m14, m15, m13, m16, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
-<!-- ``` -->
-
-
-<!-- ## m17: trial, run_trial, and condition as random slopes within id -->
-
-<!-- ```{r m17, cache=TRUE} -->
-<!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization -->
-<!-- m17 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z,  -->
-<!--           random=list(~1+trial_z+block_trial_z + cond| id), -->
-<!--           weights=varIdent(form=~1|cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
-
-<!-- summary(m17) -->
-
-<!-- AICtab(m14, m15, m13, m17, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
-
-<!-- ``` -->
-<!-- No evidence in favor of this Like none -->
-
-<!-- So, even though it is a ton of parameters, the model with random slopes of condition, trial, and run_trial is faring well. What if we tried to treat block as a random slope, not a blocking factor? This is conceptually distinct, but also simpler. -->
-
-<!-- ## m18: add prev_rt to winning model (m15) to capture local RT dependency -->
-
-<!-- ```{r m18, cache=TRUE} -->
-
-<!-- m18 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt,  -->
-<!--           random=list(~1+trial_z+block_trial_z| id, ~1 + block_trial_z|cond_id), -->
-<!--           weights=varIdent(form=~1|cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
-
-<!-- summary(m18) -->
-<!-- AICtab(m15, m18, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
-
-<!-- car::vif(m18) -->
-<!-- ``` -->
-<!-- prev rt helps slightly. see if works interactively  -->
-<!-- ## m19: let prev_rt interact with run_trial -->
-
-<!-- ```{r m19, cache=TRUE} -->
-<!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization -->
-<!-- m19 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z,  -->
-<!--           random=list(~1+trial_z+block_trial_z| id, ~1 + block_trial_z|cond_id), -->
-<!--           weights=varIdent(form=~1|cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
-<!-- m19b <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z,  -->
-<!--           random=list(~1+trial_z+block_trial_z| id, ~1 + block_trial_z|cond_id), -->
-<!--           #weights=varIdent(form=~1|cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
-
-<!-- summary(m19) -->
-<!-- AICtab(m15, m18, m19,  sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
-
-<!-- car::vif(m19) -->
-
-<!-- test(emtrends(m19, ~trial_z, var = "block_trial_z", at = list(trial_z = c(-1, 1)))) -->
-<!-- quantile(gng_rt$prev_rt, .16, na.rm = TRUE) # to get what is equivalent to -1, 1 in z scores -->
-<!-- quantile(gng_rt$prev_rt, .84, na.rm = TRUE) -->
-<!-- test(emtrends(m19, ~prev_rt, var = "block_trial_z", at = list(prev_rt = c(.26, .42)))) -->
-<!-- random.effects(m19) -->
-<!-- ``` -->
-<!-- m19 slightly preferred so keep it around for now -->
-<!-- ## m20: let prev_rt be random slope -->
-
-<!-- Don't treat it as nested -->
-
-<!-- ```{r m20, cache=TRUE} -->
-
-<!-- m20 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z,  -->
-<!--           random=list(~1+trial_z+block_trial_z + prev_rt| id, ~1 + block_trial_z|cond_id), -->
-<!--           weights=varIdent(form=~1|cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
-
-<!-- summary(m20) -->
-<!-- AICtab(m20, m18, m19, m15, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
-<!-- ``` -->
-<!-- m20 is NOT liked  -->
-
-<!-- ## m21: Move cond to id-level only (not nested) -->
-
-<!-- Trying to put fewer random slopes on block varying-level... -->
-
-<!-- Start by moving cond to id only. Success! -->
-
-<!-- ```{r m21, cache=TRUE} -->
-<!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization -->
-<!-- m21 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z,  -->
-<!--           random=list(id = ~1+trial_z+block_trial_z + cond), -->
-<!--           weights=varIdent(form=~1|cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
-
-<!-- summary(m21) -->
-<!-- AICtab(m19, m21,  sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
-
-<!-- ``` -->
-<!-- The only thing that could move over would be block_trial_z and it much prefers to have their be random slopes per condition within subject. m19 still preferred -->
-
-<!-- ## m22: drop run_trial_z as fixed -->
-
-
-<!-- ```{r m22, cache=TRUE} -->
-<!-- m22 <-  lme(rt_log_trim_grp ~ trial_z + prev_rt,  -->
-<!--           random=list(~1+trial_z+block_trial_z| id, ~1 + block_trial_z|cond_id), -->
-<!--           weights=varIdent(form=~1|cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
-
-<!-- summary(m22) -->
-<!-- AICtab(m15, m18, m19, m22, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
-
-<!-- car::vif(m22) -->
-
-<!-- ``` -->
-
-<!-- m22 v not preferred. Important to have block_trial_z as fixed effect -->
-
-
-<!-- ## m23: drop run_trial_z as random at id level -->
-
-<!-- Restore `run_trial_z` as fixed effect, drop from id-level random effects. -->
-
-<!-- ```{r m23, cache=TRUE} -->
-<!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization -->
-<!-- m23 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z,  -->
-<!--           random=list(id=~1+trial_z, cond =~1 + block_trial_z), -->
-<!--           weights=varIdent(form=~1|cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
-
-<!-- summary(m23) -->
-<!-- AICtab(m15, m18, m19,m23,  sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) -->
-
-<!-- car::vif(m23) -->
-<!-- ``` -->
-
-<!-- So, dropping `run_trial_z` at subject level and just keeping `run_trial_z` within block is a small improvement. -->
-
-<!-- ## m24: get rid of run_trial_z altogether -->
-
-<!-- But let prev_rt be a block-level random effect. -->
-
-<!-- ```{r m24, cache=TRUE} -->
-<!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization -->
-<!-- m24<-  lme(rt_log_trim_grp ~ trial_z + cond + prev_rt,  -->
-<!--           random=list(id=~ 1 + trial_z, cond=~1 + prev_rt), -->
-<!--           weights=varIdent(form=~1|cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) -->
-
-<!-- summary(m24) -->
-<!-- AICtab(m24, m19,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  -->
-<!-- ``` -->
-
-<!-- m19 strongly preferred.  -->
-<!-- Thus suggests that this may be the best characterization of RT in this task.  -->
-
-
-
-
-
-
-<!-- # Resp analyses -->
-<!-- Here, were are predicted whether individuals Go versus No-Go'd. -->
-<!-- Relevant aspects of the model: stimuli (whether Go vs. No Go), condition, block trial and trial -->
-<!-- Will initially test a model of trial, stim and cond as fixed effects and will then add block trial. Finally, I will add in random slopes to the random effects structure and will then ensure that the preferred model is as simple as it can be.  -->
-
-<!-- ```{r} -->
-<!-- gng <- mutate(gng, go = if_else((response == 1 & stim == "Go" )|(response == 0 & stim == "NoGo"), 1, 0)) -->
-
-<!-- ``` -->
-
-<!-- ## m25 tests interaction between stim and cond -->
-<!-- starting point in ML: random intercept of subject, compound symmetry residual correlation structure wrt trial -->
-
-<!-- ```{r m25, cache=TRUE} -->
-<!-- m25 <- glmer(response ~ trial_z + cond*stim + (1 | id), na.action = na.exclude,  -->
-<!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) -->
-
-<!-- summary(m25) -->
-<!-- emmeans(m25, ~cond) -->
-<!-- ``` -->
-
-<!-- ## m26 tests whether additive effects of trial, cond and stim -->
-<!-- Much preferred to have cond and stim not interact -->
-
-<!-- ```{r m26, cache=TRUE} -->
-<!-- m26 <- glmer(response ~ trial_z + cond + stim + (1 | id), na.action = na.exclude,  -->
-<!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) -->
-
-<!-- summary(m26) -->
-<!-- emmeans(m26, ~cond) -->
-<!-- AICtab(m25, m26,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  -->
+<!-- flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5,m6,m7,m8, m9, m10, m11)) %>% autofit() #%>% save_as_docx(path = "~/Desktop/emmeans_gng_aictable.docx") #save for inclusion in supplement -->
 
 
 <!-- ``` -->
 
-<!-- ## m27 tests whether two way interaction for trial and cond -->
-<!-- Does trial interact with cond? Nope -->
-<!-- ```{r m27, cache=TRUE} -->
-<!-- m27 <- glmer(response ~ trial_z*cond + stim + (1 | id), na.action = na.exclude,  -->
-<!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) -->
+<!-- m7 is the clear winner in this case, nice that it's relatively simple. Interesting that there is so much variability at L2, but this leaves an opening for L2 moderation by ANT and CON. -->
 
-<!-- summary(m27) -->
-<!-- emmeans(m27, ~cond) -->
-<!-- AICtab(m27, m26,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  -->
 
 
-<!-- ``` -->
 
-<!-- ## m28 sees whetehr two-way interaction for trial and stim -->
-<!-- Does trial interact with stim? Support for an interaction and m28 preferred (83%). -->
-<!-- ```{r m28, cache=TRUE} -->
-<!-- m28 <- glmer(response ~ trial_z*stim + cond + (1 | id), na.action = na.exclude,  -->
-<!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) -->
 
-<!-- summary(m28) -->
-<!-- emmeans(m28, ~cond) -->
-<!-- AICtab(m28, m26,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  -->
 
 
-<!-- ``` -->
+<!-- <!-- ## m4: random intercept estimated for each condition within each person --> -->
+<!-- <!-- Don't specify covariance struture. This is not a great model. m3 still preferred. --> -->
+<!-- <!-- This suggests that a good base model estimates intercepts within condition within subject and estimates covariance for each of the conditions  --> -->
 
-<!-- ## m29 tests whether there is a three way interaction between trial stim and cond -->
-<!-- Double check that not a three way interaction? Nope.  -->
-<!-- ```{r m29, cache=TRUE} -->
-<!-- m29 <- glmer(response ~ trial_z*stim*cond + (1 | id), na.action = na.exclude,  -->
-<!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) -->
+<!-- <!-- ```{r m4, cache=TRUE} --> -->
+<!-- <!-- m4 <- lme(rt_log_trim_grp ~ trial_z + cond,  --> -->
+<!-- <!--           random = ~ 1 | id/cond, --> -->
+<!-- <!--           correlation=corCompSymm(form=~trial|id), na.action = na.exclude,  --> -->
+<!-- <!--           data = gng_rt, method='ML') --> -->
+<!-- <!-- summary(m4) --> -->
 
-<!-- summary(m29) -->
-<!-- emmeans(m29, ~cond) -->
-<!-- AICtab(m28, m29,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  -->
+<!-- <!-- AICtab(m1, m2, m3, m4, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
+<!-- <!-- ``` --> -->
 
 
-<!-- ``` -->
+<!-- <!-- ## Add random slope of trial --> -->
 
-<!-- ## m30 tests what the addititve value of including both block trial and cond is  -->
-<!-- Building on m28, add in block trial. No evidence for block trial and the simpler m28 preferred.  -->
-<!-- ```{r m30, cache=TRUE} -->
-<!-- m30 <- glmer(response ~ trial_z*stim + cond + block_trial + (1 | id), na.action = na.exclude,  -->
-<!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) -->
+<!-- <!-- We could make ourselves crazy with the consideration of whether a random slope of trial depends on block or condition.  --> -->
 
-<!-- summary(m30) -->
-<!-- emmeans(m30, ~cond) -->
-<!-- AICtab(m28, m30,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  -->
+<!-- <!-- Let's just build on m14 and consider whether the random slope of trial depends on block. --> -->
 
+<!-- <!-- ## m5: add random slope of trial, allowing for differences between blocks --> -->
 
-<!-- ``` -->
+<!-- <!-- ```{r m5, cache=TRUE} --> -->
+<!-- <!-- m5 <-  lme(rt_log_trim_grp ~ trial_z + cond,  --> -->
+<!-- <!--           random=~1 + trial_z|id/cond, --> -->
+<!-- <!--           weights=varIdent(form=~1|cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML') --> -->
 
-<!-- ## m31 tests whether block trial can replace cond (as that would be simpler) -->
-<!-- Building on m30, add in block trial. See whether block trial is redundant with cond by excluding cond. -->
-<!-- While block trial becomes non-significiant, AIC strongly favors m28 over m31. Based off of this, will instead focus on cond rather than block trial.  -->
-<!-- ```{r m31, cache=TRUE} -->
-<!-- m31 <- glmer(response ~ trial_z*stim + block_trial + (1 | id), na.action = na.exclude,  -->
-<!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) -->
+<!-- <!-- summary(m5) --> -->
 
-<!-- summary(m31) -->
-<!-- AICtab(m28, m31,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  -->
+<!-- <!-- AICtab(m5, m3, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
+<!-- <!-- ``` --> -->
 
+<!-- <!-- As expected, we see a huge boost when we allow for individual differences in the slope of trial_z, which captures the tendency of subjects to speed up or slow down over the experiment. --> -->
 
-<!-- ``` -->
+<!-- <!-- ## m6 random slope of trial only by id, not block within id --> -->
 
-<!-- ## m32 tests whether random slope of each cond with each subject helps -->
-<!-- Check whether a different intercept structure makes sense. Not strong evidence for including cond as part of the nesting structure.  -->
-<!-- ```{r m32, cache=TRUE} -->
-<!-- m32 <- glmer(response ~ trial_z*stim + cond + (1 | id/cond), na.action = na.exclude,  -->
-<!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) -->
+<!-- <!-- What if we simplify the random slope of trial so that it is not nested within block. In lme, we need to create the interaction term ourselves, unlike the `(1+trial_z | id) + (1 | id/block)` notation of `lmer`. --> -->
 
-<!-- summary(m32) -->
-<!-- emmeans(m32, ~cond) -->
-<!-- AICtab(m28, m32,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  -->
+<!-- <!-- ```{r m6, cache=TRUE} --> -->
+<!-- <!-- m6 <- lme(rt_log_trim_grp ~ trial_z + cond,  --> -->
+<!-- <!--            random=list(~1+trial_z | id, ~1 | cond_id), --> -->
+<!-- <!--            weights=varIdent(form=~1|cond),  --> -->
+<!-- <!--            na.action = na.exclude, --> -->
+<!-- <!--            data = gng_rt, method='ML') --> -->
 
+<!-- <!-- summary(m6) --> -->
 
-<!-- ``` -->
+<!-- <!-- AICtab(m3, m5, m6, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
 
-<!-- ## m33 tests whether random intercepts estimated per stimuli per subject helps -->
-<!-- Check whether a different intercept structure makes sense. Super strong evidence in favor of having stim be part of the nesting structure for random intercepts.  -->
-<!-- ```{r m33, cache=TRUE} -->
-<!-- m33 <- glmer(response ~ trial_z*stim + cond + (1 | id/stim), na.action = na.exclude,  -->
-<!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) -->
+<!-- <!-- #check order of blocks --> -->
+<!-- <!-- #xtabs(~trial+block, flanker) --> -->
+<!-- <!-- ``` --> -->
 
-<!-- summary(m33) -->
-<!-- emmeans(m33, ~cond) -->
-<!-- AICtab(m28, m33,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  -->
+<!-- <!-- So far, it looks like allowing trial slope to vary between condition improves fit (m5 > m6). --> -->
 
+<!-- <!-- ## m7: trial x cond --> -->
+<!-- <!-- m5 still preferred. evidence for one fixed effect for an interaction but others non significant.  --> -->
 
-<!-- ``` -->
+<!-- <!-- ```{r m7, cache=TRUE} --> -->
+<!-- <!-- m7 <- lme(rt_log_trim_grp ~ trial_z*cond,  --> -->
+<!-- <!--           random=list(~1+trial_z | id, ~1 | cond_id), --> -->
+<!-- <!--            weights=varIdent(form=~1|cond),  --> -->
+<!-- <!--            na.action = na.exclude, --> -->
+<!-- <!--            data = gng_rt, method='ML') --> -->
 
+<!-- <!-- summary(m7) --> -->
 
-<!-- ## m34 tests whether random slope of cond helps -->
-<!-- See whether cond belong as a random slope.That's a no.  -->
-<!-- ```{r m34, cache=TRUE} -->
-<!-- m34 <- glmer(response ~ trial_z*stim + cond + (1 + cond | id/stim), na.action = na.exclude,  -->
-<!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) -->
+<!-- <!-- AICtab(m3, m5, m6, m7, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
 
-<!-- summary(m34) -->
-<!-- emmeans(m34, ~cond) -->
-<!-- AICtab(m34, m33,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  -->
+<!-- <!-- #check order of blocks --> -->
+<!-- <!-- #xtabs(~trial+block, flanker) --> -->
+<!-- <!-- ``` --> -->
+<!-- <!-- ## m8: trial x cond --> -->
+<!-- <!-- m5 still preferred. Somewhat equivocal between m8 and m5 but go with m5 because more simple --> -->
 
+<!-- <!-- ```{r m8, cache=TRUE} --> -->
+<!-- <!-- m8 <-  lme(rt_log_trim_grp ~ trial_z*cond,  --> -->
+<!-- <!--           random=~1 + trial_z|id/cond, --> -->
+<!-- <!--           weights=varIdent(form=~1|cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML') --> -->
 
-<!-- ``` -->
+<!-- <!-- AICtab(m3, m5, m6, m8, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
 
-<!-- ## m35 tests whether random slope of stim for each stim within each subject helps   -->
-<!-- See whether can have stim as a random slope -->
-<!-- ```{r m35, cache=TRUE} -->
-<!-- m35 <- glmer(response ~ trial_z*stim + cond + (1 + stim| id/stim), na.action = na.exclude,  -->
-<!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) -->
+<!-- <!-- ``` --> -->
 
-<!-- summary(m35) -->
-<!-- emmeans(m35, ~cond) -->
-<!-- AICtab(m35, m33,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  -->
 
+<!-- <!-- ## m9: Any evidence of local trial (run_trial) effects? --> -->
 
-<!-- ``` -->
+<!-- <!-- Alternatively, rather thinking about it interms of condition, could think of it in terms of local trial related effects related to the number of Go's recently.  --> -->
 
 
-<!-- ## FAVORITE! m36 tests ranodm slope esimated for stimuli for each subject -->
-<!-- See whether can have stim as a random slope. 36 is slightly preferred and is simpler.  -->
-<!-- ```{r m36, cache=TRUE} -->
-<!-- m36 <- glmer(response ~ trial_z*stim + cond + (1 | id:stim) + (1 + stim | id), na.action = na.exclude,  -->
-<!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) -->
+<!-- <!-- ```{r m9, cache=TRUE} --> -->
+<!-- <!-- m9 <-  lme(rt_log_trim_grp ~ block_trial_z*cond,  --> -->
+<!-- <!--           random=~1 + block_trial_z|id/cond, --> -->
+<!-- <!--           weights=varIdent(form=~1|cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML') --> -->
+<!-- <!-- summary(m9) --> -->
 
-<!-- summary(m36) -->
-<!-- emmeans(m36, ~cond) -->
-<!-- AICtab(m35, m36,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  -->
+<!-- <!-- emtrends(m9, ~cond, var = "block_trial_z") --> -->
+<!-- <!-- AICtab(m9, m5, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
 
+<!-- <!-- ``` --> -->
 
-<!-- ``` -->
+<!-- <!-- ## m10: Any evidence of local trial (run_trial) effects? --> -->
 
-<!-- ## m37 sees whether random slopes for trial estimated per subject helps -->
-<!-- See whether can have stim as a random slope. 36 is slightly preferred and is simpler.  -->
-<!-- ```{r m37, cache=TRUE} -->
-<!-- m37 <- glmer(response ~ trial_z*stim + cond + (1 | id:stim) + (1 + stim + trial_z | id), na.action = na.exclude,  -->
-<!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) -->
+<!-- <!-- Alternatively, rather thinking about it interms of condition, could think of it in terms of local trial related effects related to the number of Go's recently.  --> -->
 
-<!-- summary(m37) -->
-<!-- emmeans(m37, ~cond) -->
-<!-- AICtab(m37, m36,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  -->
 
+<!-- <!-- ```{r m10, cache=TRUE} --> -->
+<!-- <!-- m10 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z,  --> -->
+<!-- <!--           random=~1 + block_trial_z|id, --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML') --> -->
+<!-- <!-- summary(m10) --> -->
 
-<!-- ``` -->
+<!-- <!-- AICtab(m10, m9, m5, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
 
+<!-- <!-- ``` --> -->
 
+<!-- <!-- Evidence for interaction between block_trial and trial but using cond to represent these effects is preferred in this data --> -->
 
-<!-- ## m38 tests whether if random slopes for trial estimated per stimuli per subject helps  -->
-<!-- 36 still strongly preferred -->
-<!-- ```{r m38, cache=TRUE} -->
-<!-- m38 <- glmer(response ~ trial_z*stim + cond + (1 + trial_z | id:stim) + (1 + stim + trial_z | id), na.action = na.exclude,  -->
-<!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) -->
+<!-- <!-- ## m11: run_trial and trial effects --> -->
 
-<!-- summary(m38) -->
-<!-- emmeans(m38, ~cond) -->
-<!-- AICtab(m36, m38,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  -->
+<!-- <!-- It's possible that we could have both local (run) and overall (experiment) trial effects. Adding run_trial_z as a fixed effect only to the winning m16 does result in a substantial model fit improvement.  --> -->
 
+<!-- <!-- ```{r m11, cache=TRUE} --> -->
+<!-- <!-- m11 <-  lme(rt_log_trim_grp ~ block_trial_z + trial_z + cond,  --> -->
+<!-- <!--           random=~1 + trial_z|id/cond, --> -->
+<!-- <!--           weights=varIdent(form=~1|cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML') --> -->
 
-<!-- ``` -->
+<!-- <!-- summary(m11) --> -->
 
-<!-- ## m39 tests whether can simplify by only including stim as random slope -->
-<!-- Testing if I can make 36 simpler by only including stim in random slopes. Does not help. 36 highly preferred.  -->
-<!-- ```{r m39, cache=TRUE} -->
-<!-- m39 <- glmer(response ~ trial_z + cond + (1 | id:stim) + (1 + stim | id), na.action = na.exclude,  -->
-<!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) -->
+<!-- <!-- AICtab(m11, m5, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
+<!-- <!-- ``` --> -->
+<!-- <!-- Interesting. Even though you'd think that cond and block trial are largely redundant, evidence favors m11.  --> -->
 
-<!-- summary(m39) -->
-<!-- emmeans(m39, ~cond) -->
-<!-- AICtab(m39, m36,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  -->
 
+<!-- <!-- ## m12: Drop cond as fixed effect since inclusion of block_trial nullifies fixed effects --> -->
 
-<!-- ``` -->
 
-<!-- Thus, m36 is the winner.  -->
+<!-- <!-- Keep cond in random effects structure given that we don't have the estimation power to get block_trial_z effects captured nested within random effects structure.  --> -->
+<!-- <!-- ```{r m12, cache=TRUE} --> -->
+<!-- <!-- m12 <-  lme(rt_log_trim_grp ~ block_trial_z + trial_z,  --> -->
+<!-- <!--           random=~1 + trial_z|id/cond, --> -->
+<!-- <!--           weights=varIdent(form=~1|cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML') --> -->
 
+<!-- <!-- summary(m12) --> -->
 
-<!-- # Run m19 in lmer to get correct degrees of freedom  -->
+<!-- <!-- AICtab(m11, m12, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
+<!-- <!-- ``` --> -->
+<!-- <!-- m12 preferred slightly. Choose m12 because simpler --> -->
 
-<!-- ```{r} -->
-<!-- m19_lmer <-  lmer(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z +   -->
-<!--           (1+trial_z+block_trial_z| id) +  (1 + block_trial_z|id: cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt,control=lmerControl(optCtrl=list(maxfun=2e4))) -->
+<!-- <!-- ## m13: Include block_trial_z*trial_z at the fixed effects and cond in ranef --> -->
 
-<!-- m19_reml <-  lmer(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z +   -->
-<!--           (1+trial_z+block_trial_z| id) +  (1 + block_trial_z|id: cond), -->
-<!--           na.action = na.exclude, -->
-<!--           data = gng_rt,control=lmerControl(optCtrl=list(maxfun=2e4)), REML=TRUE) -->
-<!-- car::vif(m19_lmer) # not particularly concerning; moderately correlated -->
-<!-- car::vif(m19_reml) # not particularly concerning; moderately correlated -->
-<!-- emm_options(lmerTest.limit = 50000) -->
-<!-- test(emtrends(m19_reml, ~trial_z, var = "block_trial_z", at = list(trial_z = c(-1, 1)), lmer.df = "satterthwaite")) -->
-<!-- quantile(gng_rt$prev_rt, .16, na.rm = TRUE) # to get what is equivalent to -1, 1 in z scores -->
-<!-- quantile(gng_rt$prev_rt, .84, na.rm = TRUE) -->
-<!-- test(emtrends(m19_reml, ~prev_rt, var = "block_trial_z", at = list(prev_rt = c(.26, .42)), lmer.df = "satterthwaite")) -->
+<!-- <!-- ```{r m13, cache=TRUE} --> -->
+<!-- <!-- m13 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z,  --> -->
+<!-- <!--           random=~1 + trial_z|id/cond, --> -->
+<!-- <!--           weights=varIdent(form=~1|cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML') --> -->
 
+<!-- <!-- summary(m13) --> -->
 
+<!-- <!-- AICtab(m11, m12, m13, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
+<!-- <!-- ``` --> -->
+<!-- <!-- m13 highly preferred. Indicates that people slow in RT as number GOs in a row increases and that this slowing effect and this is amplified across trials of the experiment.  --> -->
 
-<!-- ``` -->
-<!-- Verify m36 for publication -->
 
-<!-- ```{r m36, cache=TRUE} -->
-<!-- m36_opt <- glmer(response ~ trial_z*stim + cond + (1 | id:stim) + (1 + stim | id), na.action = na.exclude,  -->
-<!--           data = gng, family = "binomial", control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=50000)), contrasts = list(stim = "contr.poly", cond = "contr.poly")) -->
+<!-- <!-- ##m14: add run_trial_z as random, too --> -->
 
-<!-- summary(m36_opt) -->
-<!-- car::vif(m36_opt) # not particularly concerning; moderately correlated -->
-<!-- cond_em <- emmeans(m36_opt, ~cond) -->
-<!-- contrast(cond_em, "poly") -->
-<!-- car::Anova(m36_opt, type=3)  -->
-<!-- stim_em <- emmeans(m36_opt, ~stim) -->
-<!-- emmeans(m36_opt, ~ trial_z, at = list(trial_z = c(1, -1))) -->
-<!-- emtrends(m36_opt, var =  "trial_z") -->
-<!-- test(emtrends(m36_opt, ~ stim, var =  "trial_z")) -->
+<!-- <!-- ```{r m14, cache=TRUE} --> -->
+<!-- <!-- m14 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z,  --> -->
+<!-- <!--           random=~1 + block_trial_z + trial_z|id/cond, --> -->
+<!-- <!--           weights=varIdent(form=~1|cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) --> -->
 
+<!-- <!-- summary(m14) --> -->
 
-<!-- ``` -->
+<!-- <!-- AICtab(m14, m13, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
+<!-- <!-- ``` --> -->
+
+<!-- <!-- Kinda equivocal. Simplify to see if can keep both --> -->
+
+<!-- <!-- ## m15: simplify a bit -- block_trial_z as random at cond/subject level only --> -->
+
+<!-- <!-- ```{r m15, cache=TRUE} --> -->
+<!-- <!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization --> -->
+<!-- <!-- m15 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z,  --> -->
+<!-- <!--           random=list(~1+trial_z+block_trial_z| id, ~1 + block_trial_z|cond_id), --> -->
+<!-- <!--           weights=varIdent(form=~1|cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) --> -->
+
+<!-- <!-- summary(m15) --> -->
+<!-- <!-- car::vif(m15) # no issues --> -->
+
+<!-- <!-- AICtab(m14, m15, m13, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
+<!-- <!-- ``` --> -->
+
+
+<!-- <!-- ## m16: simplify a bit -- trial_z as random at subject level only --> -->
+
+<!-- <!-- ```{r m16, cache=TRUE} --> -->
+<!-- <!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization --> -->
+<!-- <!-- m16 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z,  --> -->
+<!-- <!--           random=list(~1+trial_z+block_trial_z| id, ~1 + trial_z|cond_id), --> -->
+<!-- <!--           weights=varIdent(form=~1|cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) --> -->
+
+<!-- <!-- summary(m16) --> -->
+
+<!-- <!-- AICtab(m14, m15, m13, m16, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
+<!-- <!-- ``` --> -->
+
+
+<!-- <!-- ## m17: trial, run_trial, and condition as random slopes within id --> -->
+
+<!-- <!-- ```{r m17, cache=TRUE} --> -->
+<!-- <!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization --> -->
+<!-- <!-- m17 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z,  --> -->
+<!-- <!--           random=list(~1+trial_z+block_trial_z + cond| id), --> -->
+<!-- <!--           weights=varIdent(form=~1|cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) --> -->
+
+<!-- <!-- summary(m17) --> -->
+
+<!-- <!-- AICtab(m14, m15, m13, m17, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
+
+<!-- <!-- ``` --> -->
+<!-- <!-- No evidence in favor of this Like none --> -->
+
+<!-- <!-- So, even though it is a ton of parameters, the model with random slopes of condition, trial, and run_trial is faring well. What if we tried to treat block as a random slope, not a blocking factor? This is conceptually distinct, but also simpler. --> -->
+
+<!-- <!-- ## m18: add prev_rt to winning model (m15) to capture local RT dependency --> -->
+
+<!-- <!-- ```{r m18, cache=TRUE} --> -->
+
+<!-- <!-- m18 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt,  --> -->
+<!-- <!--           random=list(~1+trial_z+block_trial_z| id, ~1 + block_trial_z|cond_id), --> -->
+<!-- <!--           weights=varIdent(form=~1|cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) --> -->
+
+<!-- <!-- summary(m18) --> -->
+<!-- <!-- AICtab(m15, m18, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
+
+<!-- <!-- car::vif(m18) --> -->
+<!-- <!-- ``` --> -->
+<!-- <!-- prev rt helps slightly. see if works interactively  --> -->
+<!-- <!-- ## m19: let prev_rt interact with run_trial --> -->
+
+<!-- <!-- ```{r m19, cache=TRUE} --> -->
+<!-- <!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization --> -->
+<!-- <!-- m19 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z,  --> -->
+<!-- <!--           random=list(~1+trial_z+block_trial_z| id, ~1 + block_trial_z|cond_id), --> -->
+<!-- <!--           weights=varIdent(form=~1|cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) --> -->
+<!-- <!-- m19b <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z,  --> -->
+<!-- <!--           random=list(~1+trial_z+block_trial_z| id, ~1 + block_trial_z|cond_id), --> -->
+<!-- <!--           #weights=varIdent(form=~1|cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) --> -->
+
+<!-- <!-- summary(m19) --> -->
+<!-- <!-- AICtab(m15, m18, m19,  sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
+
+<!-- <!-- car::vif(m19) --> -->
+
+<!-- <!-- test(emtrends(m19, ~trial_z, var = "block_trial_z", at = list(trial_z = c(-1, 1)))) --> -->
+<!-- <!-- quantile(gng_rt$prev_rt, .16, na.rm = TRUE) # to get what is equivalent to -1, 1 in z scores --> -->
+<!-- <!-- quantile(gng_rt$prev_rt, .84, na.rm = TRUE) --> -->
+<!-- <!-- test(emtrends(m19, ~prev_rt, var = "block_trial_z", at = list(prev_rt = c(.26, .42)))) --> -->
+<!-- <!-- random.effects(m19) --> -->
+<!-- <!-- ``` --> -->
+<!-- <!-- m19 slightly preferred so keep it around for now --> -->
+<!-- <!-- ## m20: let prev_rt be random slope --> -->
+
+<!-- <!-- Don't treat it as nested --> -->
+
+<!-- <!-- ```{r m20, cache=TRUE} --> -->
+
+<!-- <!-- m20 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z,  --> -->
+<!-- <!--           random=list(~1+trial_z+block_trial_z + prev_rt| id, ~1 + block_trial_z|cond_id), --> -->
+<!-- <!--           weights=varIdent(form=~1|cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) --> -->
+
+<!-- <!-- summary(m20) --> -->
+<!-- <!-- AICtab(m20, m18, m19, m15, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
+<!-- <!-- ``` --> -->
+<!-- <!-- m20 is NOT liked  --> -->
+
+<!-- <!-- ## m21: Move cond to id-level only (not nested) --> -->
+
+<!-- <!-- Trying to put fewer random slopes on block varying-level... --> -->
+
+<!-- <!-- Start by moving cond to id only. Success! --> -->
+
+<!-- <!-- ```{r m21, cache=TRUE} --> -->
+<!-- <!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization --> -->
+<!-- <!-- m21 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z,  --> -->
+<!-- <!--           random=list(id = ~1+trial_z+block_trial_z + cond), --> -->
+<!-- <!--           weights=varIdent(form=~1|cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) --> -->
+
+<!-- <!-- summary(m21) --> -->
+<!-- <!-- AICtab(m19, m21,  sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
+
+<!-- <!-- ``` --> -->
+<!-- <!-- The only thing that could move over would be block_trial_z and it much prefers to have their be random slopes per condition within subject. m19 still preferred --> -->
+
+<!-- <!-- ## m22: drop run_trial_z as fixed --> -->
+
+
+<!-- <!-- ```{r m22, cache=TRUE} --> -->
+<!-- <!-- m22 <-  lme(rt_log_trim_grp ~ trial_z + prev_rt,  --> -->
+<!-- <!--           random=list(~1+trial_z+block_trial_z| id, ~1 + block_trial_z|cond_id), --> -->
+<!-- <!--           weights=varIdent(form=~1|cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) --> -->
+
+<!-- <!-- summary(m22) --> -->
+<!-- <!-- AICtab(m15, m18, m19, m22, sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
+
+<!-- <!-- car::vif(m22) --> -->
+
+<!-- <!-- ``` --> -->
+
+<!-- <!-- m22 v not preferred. Important to have block_trial_z as fixed effect --> -->
+
+
+<!-- <!-- ## m23: drop run_trial_z as random at id level --> -->
+
+<!-- <!-- Restore `run_trial_z` as fixed effect, drop from id-level random effects. --> -->
+
+<!-- <!-- ```{r m23, cache=TRUE} --> -->
+<!-- <!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization --> -->
+<!-- <!-- m23 <-  lme(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z,  --> -->
+<!-- <!--           random=list(id=~1+trial_z, cond =~1 + block_trial_z), --> -->
+<!-- <!--           weights=varIdent(form=~1|cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) --> -->
+
+<!-- <!-- summary(m23) --> -->
+<!-- <!-- AICtab(m15, m18, m19,m23,  sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE) --> -->
+
+<!-- <!-- car::vif(m23) --> -->
+<!-- <!-- ``` --> -->
+
+<!-- <!-- So, dropping `run_trial_z` at subject level and just keeping `run_trial_z` within block is a small improvement. --> -->
+
+<!-- <!-- ## m24: get rid of run_trial_z altogether --> -->
+
+<!-- <!-- But let prev_rt be a block-level random effect. --> -->
+
+<!-- <!-- ```{r m24, cache=TRUE} --> -->
+<!-- <!-- #doesn't like to converge with nlminb... maybe a sign of overparameterization --> -->
+<!-- <!-- m24<-  lme(rt_log_trim_grp ~ trial_z + cond + prev_rt,  --> -->
+<!-- <!--           random=list(id=~ 1 + trial_z, cond=~1 + prev_rt), --> -->
+<!-- <!--           weights=varIdent(form=~1|cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt, method='ML', control = lmeControl(opt="optim")) #lmeControl(maxIter = 200, msMaxIter = 200)) --> -->
+
+<!-- <!-- summary(m24) --> -->
+<!-- <!-- AICtab(m24, m19,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  --> -->
+<!-- <!-- ``` --> -->
+
+<!-- <!-- m19 strongly preferred.  --> -->
+<!-- <!-- Thus suggests that this may be the best characterization of RT in this task.  --> -->
+
+
+
+
+
+
+<!-- <!-- # Resp analyses --> -->
+<!-- <!-- Here, were are predicted whether individuals Go versus No-Go'd. --> -->
+<!-- <!-- Relevant aspects of the model: stimuli (whether Go vs. No Go), condition, block trial and trial --> -->
+<!-- <!-- Will initially test a model of trial, stim and cond as fixed effects and will then add block trial. Finally, I will add in random slopes to the random effects structure and will then ensure that the preferred model is as simple as it can be.  --> -->
+
+<!-- <!-- ```{r} --> -->
+<!-- <!-- gng <- mutate(gng, go = if_else((response == 1 & stim == "Go" )|(response == 0 & stim == "NoGo"), 1, 0)) --> -->
+
+<!-- <!-- ``` --> -->
+
+<!-- <!-- ## m25 tests interaction between stim and cond --> -->
+<!-- <!-- starting point in ML: random intercept of subject, compound symmetry residual correlation structure wrt trial --> -->
+
+<!-- <!-- ```{r m25, cache=TRUE} --> -->
+<!-- <!-- m25 <- glmer(response ~ trial_z + cond*stim + (1 | id), na.action = na.exclude,  --> -->
+<!-- <!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) --> -->
+
+<!-- <!-- summary(m25) --> -->
+<!-- <!-- emmeans(m25, ~cond) --> -->
+<!-- <!-- ``` --> -->
+
+<!-- <!-- ## m26 tests whether additive effects of trial, cond and stim --> -->
+<!-- <!-- Much preferred to have cond and stim not interact --> -->
+
+<!-- <!-- ```{r m26, cache=TRUE} --> -->
+<!-- <!-- m26 <- glmer(response ~ trial_z + cond + stim + (1 | id), na.action = na.exclude,  --> -->
+<!-- <!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) --> -->
+
+<!-- <!-- summary(m26) --> -->
+<!-- <!-- emmeans(m26, ~cond) --> -->
+<!-- <!-- AICtab(m25, m26,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  --> -->
+
+
+<!-- <!-- ``` --> -->
+
+<!-- <!-- ## m27 tests whether two way interaction for trial and cond --> -->
+<!-- <!-- Does trial interact with cond? Nope --> -->
+<!-- <!-- ```{r m27, cache=TRUE} --> -->
+<!-- <!-- m27 <- glmer(response ~ trial_z*cond + stim + (1 | id), na.action = na.exclude,  --> -->
+<!-- <!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) --> -->
+
+<!-- <!-- summary(m27) --> -->
+<!-- <!-- emmeans(m27, ~cond) --> -->
+<!-- <!-- AICtab(m27, m26,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  --> -->
+
+
+<!-- <!-- ``` --> -->
+
+<!-- <!-- ## m28 sees whetehr two-way interaction for trial and stim --> -->
+<!-- <!-- Does trial interact with stim? Support for an interaction and m28 preferred (83%). --> -->
+<!-- <!-- ```{r m28, cache=TRUE} --> -->
+<!-- <!-- m28 <- glmer(response ~ trial_z*stim + cond + (1 | id), na.action = na.exclude,  --> -->
+<!-- <!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) --> -->
+
+<!-- <!-- summary(m28) --> -->
+<!-- <!-- emmeans(m28, ~cond) --> -->
+<!-- <!-- AICtab(m28, m26,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  --> -->
+
+
+<!-- <!-- ``` --> -->
+
+<!-- <!-- ## m29 tests whether there is a three way interaction between trial stim and cond --> -->
+<!-- <!-- Double check that not a three way interaction? Nope.  --> -->
+<!-- <!-- ```{r m29, cache=TRUE} --> -->
+<!-- <!-- m29 <- glmer(response ~ trial_z*stim*cond + (1 | id), na.action = na.exclude,  --> -->
+<!-- <!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) --> -->
+
+<!-- <!-- summary(m29) --> -->
+<!-- <!-- emmeans(m29, ~cond) --> -->
+<!-- <!-- AICtab(m28, m29,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  --> -->
+
+
+<!-- <!-- ``` --> -->
+
+<!-- <!-- ## m30 tests what the addititve value of including both block trial and cond is  --> -->
+<!-- <!-- Building on m28, add in block trial. No evidence for block trial and the simpler m28 preferred.  --> -->
+<!-- <!-- ```{r m30, cache=TRUE} --> -->
+<!-- <!-- m30 <- glmer(response ~ trial_z*stim + cond + block_trial + (1 | id), na.action = na.exclude,  --> -->
+<!-- <!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) --> -->
+
+<!-- <!-- summary(m30) --> -->
+<!-- <!-- emmeans(m30, ~cond) --> -->
+<!-- <!-- AICtab(m28, m30,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  --> -->
+
+
+<!-- <!-- ``` --> -->
+
+<!-- <!-- ## m31 tests whether block trial can replace cond (as that would be simpler) --> -->
+<!-- <!-- Building on m30, add in block trial. See whether block trial is redundant with cond by excluding cond. --> -->
+<!-- <!-- While block trial becomes non-significiant, AIC strongly favors m28 over m31. Based off of this, will instead focus on cond rather than block trial.  --> -->
+<!-- <!-- ```{r m31, cache=TRUE} --> -->
+<!-- <!-- m31 <- glmer(response ~ trial_z*stim + block_trial + (1 | id), na.action = na.exclude,  --> -->
+<!-- <!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) --> -->
+
+<!-- <!-- summary(m31) --> -->
+<!-- <!-- AICtab(m28, m31,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  --> -->
+
+
+<!-- <!-- ``` --> -->
+
+<!-- <!-- ## m32 tests whether random slope of each cond with each subject helps --> -->
+<!-- <!-- Check whether a different intercept structure makes sense. Not strong evidence for including cond as part of the nesting structure.  --> -->
+<!-- <!-- ```{r m32, cache=TRUE} --> -->
+<!-- <!-- m32 <- glmer(response ~ trial_z*stim + cond + (1 | id/cond), na.action = na.exclude,  --> -->
+<!-- <!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) --> -->
+
+<!-- <!-- summary(m32) --> -->
+<!-- <!-- emmeans(m32, ~cond) --> -->
+<!-- <!-- AICtab(m28, m32,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  --> -->
+
+
+<!-- <!-- ``` --> -->
+
+<!-- <!-- ## m33 tests whether random intercepts estimated per stimuli per subject helps --> -->
+<!-- <!-- Check whether a different intercept structure makes sense. Super strong evidence in favor of having stim be part of the nesting structure for random intercepts.  --> -->
+<!-- <!-- ```{r m33, cache=TRUE} --> -->
+<!-- <!-- m33 <- glmer(response ~ trial_z*stim + cond + (1 | id/stim), na.action = na.exclude,  --> -->
+<!-- <!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) --> -->
+
+<!-- <!-- summary(m33) --> -->
+<!-- <!-- emmeans(m33, ~cond) --> -->
+<!-- <!-- AICtab(m28, m33,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  --> -->
+
+
+<!-- <!-- ``` --> -->
+
+
+<!-- <!-- ## m34 tests whether random slope of cond helps --> -->
+<!-- <!-- See whether cond belong as a random slope.That's a no.  --> -->
+<!-- <!-- ```{r m34, cache=TRUE} --> -->
+<!-- <!-- m34 <- glmer(response ~ trial_z*stim + cond + (1 + cond | id/stim), na.action = na.exclude,  --> -->
+<!-- <!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) --> -->
+
+<!-- <!-- summary(m34) --> -->
+<!-- <!-- emmeans(m34, ~cond) --> -->
+<!-- <!-- AICtab(m34, m33,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  --> -->
+
+
+<!-- <!-- ``` --> -->
+
+<!-- <!-- ## m35 tests whether random slope of stim for each stim within each subject helps   --> -->
+<!-- <!-- See whether can have stim as a random slope --> -->
+<!-- <!-- ```{r m35, cache=TRUE} --> -->
+<!-- <!-- m35 <- glmer(response ~ trial_z*stim + cond + (1 + stim| id/stim), na.action = na.exclude,  --> -->
+<!-- <!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) --> -->
+
+<!-- <!-- summary(m35) --> -->
+<!-- <!-- emmeans(m35, ~cond) --> -->
+<!-- <!-- AICtab(m35, m33,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  --> -->
+
+
+<!-- <!-- ``` --> -->
+
+
+<!-- <!-- ## FAVORITE! m36 tests ranodm slope esimated for stimuli for each subject --> -->
+<!-- <!-- See whether can have stim as a random slope. 36 is slightly preferred and is simpler.  --> -->
+<!-- <!-- ```{r m36, cache=TRUE} --> -->
+<!-- <!-- m36 <- glmer(response ~ trial_z*stim + cond + (1 | id:stim) + (1 + stim | id), na.action = na.exclude,  --> -->
+<!-- <!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) --> -->
+
+<!-- <!-- summary(m36) --> -->
+<!-- <!-- emmeans(m36, ~cond) --> -->
+<!-- <!-- AICtab(m35, m36,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  --> -->
+
+
+<!-- <!-- ``` --> -->
+
+<!-- <!-- ## m37 sees whether random slopes for trial estimated per subject helps --> -->
+<!-- <!-- See whether can have stim as a random slope. 36 is slightly preferred and is simpler.  --> -->
+<!-- <!-- ```{r m37, cache=TRUE} --> -->
+<!-- <!-- m37 <- glmer(response ~ trial_z*stim + cond + (1 | id:stim) + (1 + stim + trial_z | id), na.action = na.exclude,  --> -->
+<!-- <!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) --> -->
+
+<!-- <!-- summary(m37) --> -->
+<!-- <!-- emmeans(m37, ~cond) --> -->
+<!-- <!-- AICtab(m37, m36,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  --> -->
+
+
+<!-- <!-- ``` --> -->
+
+
+
+<!-- <!-- ## m38 tests whether if random slopes for trial estimated per stimuli per subject helps  --> -->
+<!-- <!-- 36 still strongly preferred --> -->
+<!-- <!-- ```{r m38, cache=TRUE} --> -->
+<!-- <!-- m38 <- glmer(response ~ trial_z*stim + cond + (1 + trial_z | id:stim) + (1 + stim + trial_z | id), na.action = na.exclude,  --> -->
+<!-- <!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) --> -->
+
+<!-- <!-- summary(m38) --> -->
+<!-- <!-- emmeans(m38, ~cond) --> -->
+<!-- <!-- AICtab(m36, m38,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  --> -->
+
+
+<!-- <!-- ``` --> -->
+
+<!-- <!-- ## m39 tests whether can simplify by only including stim as random slope --> -->
+<!-- <!-- Testing if I can make 36 simpler by only including stim in random slopes. Does not help. 36 highly preferred.  --> -->
+<!-- <!-- ```{r m39, cache=TRUE} --> -->
+<!-- <!-- m39 <- glmer(response ~ trial_z + cond + (1 | id:stim) + (1 + stim | id), na.action = na.exclude,  --> -->
+<!-- <!--           data = gng, family = "binomial", control=glmerControl(optCtrl=list(maxfun=50000))) --> -->
+
+<!-- <!-- summary(m39) --> -->
+<!-- <!-- emmeans(m39, ~cond) --> -->
+<!-- <!-- AICtab(m39, m36,sort=TRUE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE)  --> -->
+
+
+<!-- <!-- ``` --> -->
+
+<!-- <!-- Thus, m36 is the winner.  --> -->
+
+
+<!-- <!-- # Run m19 in lmer to get correct degrees of freedom  --> -->
+
+<!-- <!-- ```{r} --> -->
+<!-- <!-- m19_lmer <-  lmer(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z +   --> -->
+<!-- <!--           (1+trial_z+block_trial_z| id) +  (1 + block_trial_z|id: cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt,control=lmerControl(optCtrl=list(maxfun=2e4))) --> -->
+
+<!-- <!-- m19_reml <-  lmer(rt_log_trim_grp ~ block_trial_z*trial_z + prev_rt*block_trial_z +   --> -->
+<!-- <!--           (1+trial_z+block_trial_z| id) +  (1 + block_trial_z|id: cond), --> -->
+<!-- <!--           na.action = na.exclude, --> -->
+<!-- <!--           data = gng_rt,control=lmerControl(optCtrl=list(maxfun=2e4)), REML=TRUE) --> -->
+<!-- <!-- car::vif(m19_lmer) # not particularly concerning; moderately correlated --> -->
+<!-- <!-- car::vif(m19_reml) # not particularly concerning; moderately correlated --> -->
+<!-- <!-- emm_options(lmerTest.limit = 50000) --> -->
+<!-- <!-- test(emtrends(m19_reml, ~trial_z, var = "block_trial_z", at = list(trial_z = c(-1, 1)), lmer.df = "satterthwaite")) --> -->
+<!-- <!-- quantile(gng_rt$prev_rt, .16, na.rm = TRUE) # to get what is equivalent to -1, 1 in z scores --> -->
+<!-- <!-- quantile(gng_rt$prev_rt, .84, na.rm = TRUE) --> -->
+<!-- <!-- test(emtrends(m19_reml, ~prev_rt, var = "block_trial_z", at = list(prev_rt = c(.26, .42)), lmer.df = "satterthwaite")) --> -->
+
+
+
+<!-- <!-- ``` --> -->
+<!-- <!-- Verify m36 for publication --> -->
+
+<!-- <!-- ```{r m36, cache=TRUE} --> -->
+<!-- <!-- m36_opt <- glmer(response ~ trial_z*stim + cond + (1 | id:stim) + (1 + stim | id), na.action = na.exclude,  --> -->
+<!-- <!--           data = gng, family = "binomial", control=glmerControl(optimizer="bobyqa", optCtrl=list(maxfun=50000)), contrasts = list(stim = "contr.poly", cond = "contr.poly")) --> -->
+
+<!-- <!-- summary(m36_opt) --> -->
+<!-- <!-- car::vif(m36_opt) # not particularly concerning; moderately correlated --> -->
+<!-- <!-- cond_em <- emmeans(m36_opt, ~cond) --> -->
+<!-- <!-- contrast(cond_em, "poly") --> -->
+<!-- <!-- car::Anova(m36_opt, type=3)  --> -->
+<!-- <!-- stim_em <- emmeans(m36_opt, ~stim) --> -->
+<!-- <!-- emmeans(m36_opt, ~ trial_z, at = list(trial_z = c(1, -1))) --> -->
+<!-- <!-- emtrends(m36_opt, var =  "trial_z") --> -->
+<!-- <!-- test(emtrends(m36_opt, ~ stim, var =  "trial_z")) --> -->
+
+
+<!-- <!-- ``` --> -->

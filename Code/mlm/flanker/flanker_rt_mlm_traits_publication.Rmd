@@ -36,12 +36,13 @@ options(width=180)
 
 #flanker data processed in flanker_mlm.Rmd
 #has the worst subjects removed, rt_inv transformation, etc.
-load("../../../Data/preprocessed/flanker_for_traits.RData")
+load("~/github_repos/PD_Inhibition_DDM/Data/preprocessed/flanker_for_traits.RData")
 flanker <- flanker %>% mutate(rt_inv=if_else(correct==0, NA_real_, rt_inv),  #treat incorrect RTs as missing
                               prev_rt_z=as.vector(scale(prev_rt)))
 
 #basedir <- "C:/Users/timot/Documents/GitHub/PD_Inhibition_DDM"
-basedir <- "~/Data_Analysis/PD_Inhibition_DDM" 
+# basedir <- "~/Data_Analysis/PD_Inhibition_DDM" 
+basedir <- "~/github_repos/PD_Inhibition_DDM" 
 
 mpq <- get(load(file.path(basedir, "Data/preprocessed/MPQ_all_scored_final.RData"))) %>% 
   filter(exclude_MPQ == 0) %>% select(subject, MPS_wbR:MPS_abR)
@@ -55,7 +56,7 @@ stai <- sas7bdat::read.sas7bdat(file.path(basedir, "Data/SAS Originals/stai.sas7
 self_reps <- inner_join(mpq, snap, by = "subject")
 self_reps <- left_join(self_reps, k10, by = "subject")
 self_reps <- left_join(self_reps, stai, by = "subject")
-mpluscmd <- "/Users/mnh5174/Applications/Mplus/mplus"
+mpluscmd <- "/Users/natehall/Desktop/Mplus/mplus"
 #mpluscmd <- "/Applications/Mplus/mplus"
 ```
 
@@ -74,7 +75,7 @@ m17 <- lmer(rt_inv ~ cond*block + trial_z + prev_rt_z + prev_error +
 
 ```
 
-```{r m17_mplus, cache=TRUE}
+```{r m17_mplus, cache=TRUE, eval=FALSE}
 m17_mplus <- mplusObject(
   TITLE = "Equivalent model to lmer m17",
   DEFINE = "
@@ -293,7 +294,11 @@ Here are the couplets:
 ```{r}
 tofactor <- self_reps %>% select(subject, MPS_agR, AGG, MISTRUST, MPS_alR, MANIP,
       PROPER, MPS_clR, IMPUL, MPS_tdR, MPS_acR, HDWK, K10, STAI) %>% 
-  mutate(IMPUL =-1*IMPUL) %>% #score toward constraint to make loadings upright
+  # mutate(IMPUL =-1*IMPUL) %>% #score toward constraint to make loadings upright. Update 6/25: reverse coding to scale positively with high externalizing
+  mutate(PROPER = -1*PROPER, MPS_tdR = -1*MPS_tdR, #P2
+         MPS_clR = -1*MPS_clR, #P3
+         HDWK = -1*HDWK, MPS_acR = -1*MPS_acR
+         ) %>%
   mutate_at(vars(-subject), list(~as.vector(scale(.)))) %>%
   dplyr::rename(id=subject)
 

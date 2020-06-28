@@ -1,0 +1,313 @@
+---
+title: "Final Recent Probes Accuracy Analyses"
+subtitle: "PD Inhibition Project"
+author: "Michael Hallquist"
+date: "17 June 2020"
+output: 
+  html_document:
+    code_folding: show
+    df_print: default
+    mathjax: default
+    number_sections: no
+    theme: spacelab
+    toc: yes
+    toc_depth: 2
+    toc_float: no
+    fig_width: 9 
+    fig_height: 6 
+  pdf_document:
+    df_print: default
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+if (!require(pacman)) { install.packages("pacman"); library(pacman) }
+p_load(car, nlme, lme4, readr, tidyverse, emmeans, cowplot, bbmle, broom, knitr, kableExtra, flextable, stargazer, lmerTest)
+knitr::opts_chunk$set(echo = TRUE) #print code by default
+#knitr::opts_chunk$set(cache.path = "../../Outputs/flanker_mlms/")
+#options(digits=2)
+options(scipen = 2, digits = 3)
+options(width = 140)
+emm_options(disable.pbkrtest = TRUE, lmerTest.limit=2e4) #disable KR and estimate Satterthwaite
+
+#preprocessed in flanker_mlm.Rmd
+rp <- read.csv(file="../../../Data/preprocessed/recent_probes_full_sample_accCode.csv") %>% rename(correct = response, rt_log = rt_log_trim_grp, conflict = cond, cond = stim, id = subj_idx) 
+rp <- rp %>% 
+  mutate(correct = ifelse(is.na(rt_log), NA, correct),
+         prev_rt=lag(rt) ,
+         prev_rt = prev_rt - mean(prev_rt, na.rm=TRUE),
+         prev_rt_z = as.vector(scale(prev_rt)),
+         prev_error = ifelse(lag(correct) == 1, 0, 1)) #%>% #z-score rt to put parameter estimates on smaller scale
+  # filter(correct==1) # & exclude < 3) %>% #least restrictive exclusions
+  
+  rp[1,"prev_rt"] <- rp[2,"prev_rt"]
+rp[1,"prev_rt_z"] <- rp[2,"prev_rt_z"]
+rp[1,"prev_error"] <- 0
+
+render_aictab <- function(minfo, ...) {
+  mc <- match.call(expand.dots = TRUE)
+  mlist <- list(...)
+  
+  #N.B. AICtab fails if you try to assign names to the list names(mlist) <- ...
+  mnames <- sapply(3:length(mc), function(x) { as.character(mc[[x]])})
+  mdf <- do.call(rbind, minfo) %>% as.data.frame() %>% rownames_to_column("model")
+  adf <- AICtab(mlist, sort=FALSE, delta=TRUE, weights=TRUE, logLik=TRUE, base=TRUE, mnames=mnames) %>% 
+    as.data.frame() %>% rownames_to_column("model") %>% dplyr::select(-dLogLik)
+  
+  res <- mdf %>% left_join(adf, by="model")
+  return(res)
+}
+
+flextb_vif <- function(m) {
+  flextable(data.frame(vif=car::vif(m)) %>% rownames_to_column("Predictor")) %>% autofit()
+}
+
+check_singularity <- function(lmerobj) {
+  tt <- getME(lmerobj,"theta") #RE estimates
+  ll <- getME(lmerobj,"lower") #lower bound on estimate
+  
+  #look for RE estimates that are very small (near zero) and the lower bound encompasses 0
+  low_re <- tt[ll==0 & tt < 1e-2]
+  return(low_re)
+  
+  #eventually, would be nice to provide functionality to drop these from model and refit automatically
+}
+
+minfo <- list() #used for building model summary table
+```
+
+This file contains final MLMs for accuracy statistics on the recent probes task for the PD Inhibition DDM project.
+
+## m1: design effects random intercept of subject
+
+```{r}
+minfo <- list() 
+minfo[["m1"]] <- c(fixed="Condition", l2="Subject: Intercept")
+```
+
+```{r m1_lmer, cache=TRUE}
+m1 <- glmer(correct ~ cond + (1|id),
+          na.action = na.exclude, 
+          data = rp, family=binomial)
+```
+
+```{r}
+flextable(car::Anova(m1, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+# flextb_vif(m0)
+emmeans(m1, ~cond, type = "response") %>% data.frame() %>%
+    flextable() %>% autofit() %>%
+    save_as_docx(path = "~/Desktop/emmeans_rp_conditions_acc.docx")
+  
+emm1 <- emmeans(m1, ~cond, type = "response")
+
+pairs(emm1)
+anova(m1)
+summary(m1)
+```
+interesting that positive seems the lowest... easy to forget?
+
+## m2: fixed condition, random condition
+
+```{r}
+# minfo <- list() 
+minfo[["m2"]] <- c(fixed="Condition", l2="Subject: Intercept, Condition")
+```
+
+```{r m1_lmer, cache=TRUE}
+m2 <- glmer(correct ~ cond + (1 + cond|id),
+          na.action = na.exclude, 
+          data = rp, family=binomial,
+          control=glmerControl(optCtrl=list(maxfun=2e4)))
+# beepr::beep()         
+```
+
+```{r}
+flextable(car::Anova(m2, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+# flextb_vif(m0)
+(emm2 <- emmeans(m2, ~cond, type="response"))
+pairs(emm2)
+# anova(m2)
+flextable(render_aictab(minfo=minfo, m1, m2)) %>% autofit()
+```
+
+
+## m3: fixed condition add trial as fixed effect
+
+```{r}
+# minfo <- list() 
+minfo[["m3"]] <- c(fixed="Condition, Trial", l2="Subject: Intercept")
+```
+
+```{r m3_lmer, cache=TRUE}
+m3 <- glmer(correct ~ cond+ trial_z + (1 |id),
+          na.action = na.exclude, 
+          data = rp, family=binomial)#,
+          # control=glmerControl(optCtrl=list(maxfun=2e4)))
+# beepr::beep()         
+```
+
+```{r}
+flextable(car::Anova(m3, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+# flextb_vif(m0)
+# (emm3 <- emmeans(m3, ~cond, type="response"))
+# pairs(emm3)
+summary(m3)
+flextable(render_aictab(minfo=minfo, m1, m2, m3)) %>% autofit()
+```
+
+## m4: fixed condition and trial, random trial
+
+```{r}
+# minfo <- list() 
+minfo[["m4"]] <- c(fixed="Condition, Trial", l2="Subject: Intercept, Trial")
+```
+
+```{r m1_lmer, cache=TRUE}
+m4 <- glmer(correct ~ cond + trial_z + (1 + trial_z|id),
+          na.action = na.exclude, 
+          data = rp, family=binomial)#,
+          # control=glmerControl(optCtrl=list(maxfun=2e4)))
+# beepr::beep()  
+
+
+```
+
+```{r}
+summary(m4)
+flextable(car::Anova(m4, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+# flextb_vif(m0)
+# (emm2 <- emmeans(m2, ~cond, type="response"))
+# pairs(emm2)
+# anova(m2)
+flextable(render_aictab(minfo=minfo, m1, m2, m3, m4)) %>% autofit()
+```
+
+## m5: fixed condition, trial, prev rt, random trial
+
+```{r}
+# minfo <- list() 
+minfo[["m5"]] <- c(fixed="Condition, Trial, Previous RT", l2="Subject: Intercept, Trial")
+```
+
+```{r m1_lmer, cache=TRUE}
+m5 <- glmer(correct ~ cond + trial_z + prev_rt_z + (1 + trial_z|id),
+          na.action = na.exclude, 
+          data = rp, family=binomial,
+          control=glmerControl(optCtrl=list(maxfun=2e4)))
+# beepr::beep()         
+```
+
+```{r}
+summary(m5)
+flextable(car::Anova(m5, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+# flextb_vif(m0)
+# (emm2 <- emmeans(m2, ~cond, type="response"))
+# pairs(emm2)
+# anova(m2)
+flextable(render_aictab(minfo=minfo, m1, m2, m3, m4, m5)) %>% autofit()
+flextb_vif(m5)
+```
+
+## m6: fixed condition, trial, prev rt, random trial, prev_rt
+
+```{r}
+# minfo <- list() 
+minfo[["m6"]] <- c(fixed="Condition, Trial, Previous RT", l2="Subject: Intercept, Trial, Previous RT")
+```
+
+```{r m6_lmer, cache=TRUE}
+m6 <- glmer(correct ~ cond + trial_z + prev_rt_z + (1 + trial_z + prev_rt_z |id),
+          na.action = na.exclude, 
+          data = rp, family=binomial,
+          control=glmerControl(optCtrl=list(maxfun=2e4)))
+# beepr::beep()         
+```
+
+```{r}
+summary(m6)
+flextable(car::Anova(m6, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+# flextb_vif(m0)
+# (emm2 <- emmeans(m2, ~cond, type="response"))
+# pairs(emm2)
+# anova(m2)
+flextable(render_aictab(minfo=minfo, m1, m2, m3, m4, m5, m6)) %>% autofit()
+```
+
+
+## m7: fixed condition, trial, prev rt, prev error. random: trial
+
+```{r}
+# minfo <- list() 
+minfo[["m7"]] <- c(fixed="Condition, Trial, Previous RT, Previous Error", l2="Subject: Intercept, Trial")
+```
+
+```{r m7_lmer, cache=TRUE}
+m7 <- glmer(correct ~ cond + trial_z + prev_rt_z + prev_error + (1 + trial_z|id),
+          na.action = na.exclude, 
+          data = rp, family=binomial,
+          control=glmerControl(optCtrl=list(maxfun=2e4)))
+# beepr::beep()         
+```
+
+```{r}
+summary(m7)
+flextable(car::Anova(m7, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+# flextb_vif(m0)
+# (emm2 <- emmeans(m2, ~cond, type="response"))
+# pairs(emm2)
+# anova(m2)
+flextable(render_aictab(minfo=minfo, m1, m2, m3, m4, m5, m6, m7)) %>% autofit()# %>% save_as_docx(path = "~/Desktop/rp_aictable_accuracy.docx")
+```
+
+
+
+```{r fplot, cache=TRUE, fig=TRUE}
+rp$cond <- as.factor(ifelse(rp$cond == "positive", "apositive", as.character(rp$cond )))
+
+m5 <- glmer(correct ~ cond + trial_z + prev_rt_z + (1 + trial_z|id),
+          na.action = na.exclude, 
+          data = rp, family=binomial,
+          control=glmerControl(optCtrl=list(maxfun=2e4)))
+
+summary(m5)
+flextable(car::Anova(m5, type=3) %>% rownames_to_column("Predictor")) %>% autofit()
+tidy(m5,conf.int=TRUE,exponentiate=TRUE,effects="fixed")
+
+emm5 <- emmeans(m5, ~cond, type = "response")
+pairs(emm5)
+```
+
+```{r}
+library(sjPlot)
+gg <- plot_model(m5, type="std", show.p=TRUE, ci.lvl=.95, dot.size=5, 
+                 line.size=2, vline.color = "black", axis.lim=c(.5, 8)) + 
+  theme_bw(base_size=24) +
+  theme(panel.grid.major.y=element_blank()) +
+  ggtitle("") + ylab("Odds Ratio")
+plot(gg)
+ggsave(gg, filename="Rp_Acc_Params.pdf", width=9, height=6, useDingbats=FALSE)
+```
+```{r}
+
+```
+
+
+
+
+## m15 as probit
+
+To match Mplus
+
+```{r m15_probit, cache=TRUE}
+m15 <- glmer(correct ~ cond + block + prev_rt_z + prev_error +
+              (1 + prev_rt_z + cond + prev_error | id) +
+              (1 | id:block),
+          na.action = na.exclude, control=glmerControl(optimizer="bobyqa", optCtrl = list(maxfun = 30000)),
+          data = flanker, family = binomial(link = "probit"))
+
+summary(m15)
+```

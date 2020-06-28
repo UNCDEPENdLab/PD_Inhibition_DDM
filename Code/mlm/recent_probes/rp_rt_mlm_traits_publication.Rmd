@@ -1,0 +1,156 @@
+---
+title: "Recent Probes MLM Trait Relationships for Publication"
+subtitle: "PD Inhibition Project"
+author: "Nate Hall, Michael Hallquist"
+date: "22 June 2020"
+output:
+  html_document:
+    code_folding: show
+    df_print: default
+    mathjax: default
+    number_sections: no
+    theme: spacelab
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+    fig_width: 9 
+    fig_height: 6 
+  pdf_document:
+    code_folding: hide
+    df_print: default
+    number_sections: no
+    toc: yes
+    toc_depth: 4
+---
+<style type="text/css">
+body{ max-width: 2000px; margin: auto; padding: 1em; }
+</style>
+
+```{r setup, include=FALSE}
+if (!require(pacman)) { install.packages("pacman"); library(pacman) }
+p_load(car, nlme, lme4, readr, tidyverse, emmeans, cowplot, MplusAutomation, knitr, sas7bdat, ggcorrplot, psych, flextable)
+knitr::opts_chunk$set(echo = TRUE) #print code by default
+#knitr::opts_chunk$set(cache.path = "../../Outputs/flanker_mlms/")
+options(digits=3)
+options(width=180)
+
+#preprocessed in flanker_mlm.Rmd
+rp <- read.csv(file="../../../Data/preprocessed/recent_probes_full_sample_accCode.csv") %>% rename(correct = response, rt_log = rt_log_trim_grp, conflict = cond, cond = stim, id = subj_idx) 
+rp <- rp %>% 
+  mutate(correct = ifelse(is.na(rt_log), NA, correct),
+         prev_rt=lag(rt) ,
+         prev_rt = prev_rt - mean(prev_rt, na.rm=TRUE),
+         prev_rt_z = as.vector(scale(prev_rt)),
+         prev_error = ifelse(lag(correct) == 1, 0, 1)) %>% #z-score rt to put parameter estimates on smaller scale
+  filter(correct==1) # & exclude < 3) %>% #least restrictive exclusions
+  
+
+x <- rp %>% mutate(cond = factor(ifelse(cond == "positive", "apositive", as.character(cond))))
+x$cond
+
+  rp[1,"prev_rt"] <- rp[2,"prev_rt"]
+rp[1,"prev_rt_z"] <- rp[2,"prev_rt_z"]
+rp[1,"prev_error"] <- 0
+
+
+
+#basedir <- "C:/Users/timot/Documents/GitHub/PD_Inhibition_DDM"
+# basedir <- "~/Data_Analysis/PD_Inhibition_DDM" 
+basedir <- "~/github_repos/PD_Inhibition_DDM" 
+
+mpq <- get(load(file.path(basedir, "Data/preprocessed/MPQ_all_scored_final.RData"))) %>% 
+  filter(exclude_MPQ == 0) %>% select(subject, MPS_wbR:MPS_abR)
+snap <- get(load(file.path(basedir, "Data/preprocessed/SNAP_all_scored_final.RData"))) %>% filter(exclude_SNAP == 0) %>% 
+  select(subject, NEGTEMP:HDWK, DISINHP)
+k10 <- sas7bdat::read.sas7bdat(file.path(basedir, "Data/SAS Originals/k10.sas7bdat")) %>%
+  dplyr::select(subject, k10Total) %>% dplyr::rename(K10=k10Total)
+stai <- sas7bdat::read.sas7bdat(file.path(basedir, "Data/SAS Originals/stai.sas7bdat")) %>%
+  dplyr::select(subject, staitotal) %>% dplyr::rename(STAI=staitotal)
+
+self_reps <- inner_join(mpq, snap, by = "subject")
+self_reps <- left_join(self_reps, k10, by = "subject")
+self_reps <- left_join(self_reps, stai, by = "subject")
+# mpluscmd <- "/Users/mnh5174/Applications/Mplus/mplus"
+mpluscmd <- "/Applications/Mplus/mplus"
+```
+
+
+# Initial model in Mplus (m5)
+
+This model mimics m5 from flanker RT mlms for publication. 
+
+```{r}
+# <!-- m17 <- lmer(rt_inv ~ cond*block + trial_z + prev_rt_z + prev_error + -->
+# <!--               (1 + trial_z + prev_rt_z + cond + prev_error | id) + -->
+# <!--               (1 + trial_z + run_trial_z + prev_rt_z | id:block), -->
+# <!--           na.action = na.exclude, control=lmerControl(optCtrl=list(maxfun=2e4)), #bump up iterations -->
+# <!--           data = flanker, REML=FALSE) # control=lmerControl(optimizer = "nlminbwrap")) -->
+
+m5 <- lmer(rt_log ~ cond  + trial_z + (1 + trial_z| id),
+           na.action = na.exclude,
+           data = rp, REML=FALSE)
+
+```
+
+```{r m17_mplus, cache=TRUE}
+m17_mplus <- mplusObject(
+  TITLE = "Equivalent model to lmer m17",
+  DEFINE = "
+    cond = cond - 1; ! 0=congruent, 1=incongruent
+  ",
+  VARIABLE = "
+    WITHIN = cond block cond_block prev_rt_z prev_error trial_z run_trial_z;
+    USEVARIABLES = id rt_inv cond block prev_rt_z 
+      prev_error trial_z run_trial_z cond_block;
+    CLUSTER = id;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(10000);
+    CHAINS=2;
+    PROCESSORS=4;
+  ",
+  MODEL = "
+    %WITHIN%
+    rt_inv ON block cond_block;
+    condslo | rt_inv ON cond;        !random slope of cond
+    runslo | rt_inv ON run_trial_z;  !random slope of run_trial
+    trialslo | rt_inv ON trial_z;    !random slope of trial
+    prevslo | rt_inv ON prev_rt_z;   !random slope of rt autocorrelation
+    errslo | rt_inv ON prev_error;   !random slope of previous error
+    
+    %BETWEEN%
+    !means of random slopes
+    [condslo];
+    [runslo];
+    [trialslo];
+    [prevslo];
+    [errslo];
+    
+    !variances of random slopes
+    condslo;
+    runslo;
+    trialslo;
+    prevslo;
+    errslo;
+    
+    !slope correlations
+    condslo runslo trialslo prevslo errslo WITH
+       condslo runslo trialslo prevslo errslo;
+    
+    [rt_inv]; !mean average inverse RT
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
+  rdata = flanker
+)
+
+mout <- mplusModeler(m17_mplus, dataout="flanker_mplus.dat", 
+                     modelout="rt_m17.inp", run=TRUE, hashfilename = FALSE,
+                     Mplus_command = mpluscmd)
+summary(mout)
+```
+
+
+

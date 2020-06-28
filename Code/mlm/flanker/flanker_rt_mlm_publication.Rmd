@@ -1,8 +1,8 @@
 ---
-title: "Final Flanker RT Analyses"
+title: "Final Recent Probes RT Analyses"
 subtitle: "PD Inhibition Project"
-author: "Michael Hallquist"
-date: "28 May 2020"
+author: "Nate Hall and Michael Hallquist"
+date: "15 June 2020"
 output: 
   html_document:
     code_folding: show
