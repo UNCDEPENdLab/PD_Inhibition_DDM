@@ -1,0 +1,98 @@
+TITLE:
+Antagonism, Disinhibition moderates gng random slopes and fixed effects interaction
+DATA:
+FILE = "rt_with_mod_gng3.dat";
+ 
+VARIABLE:
+NAMES = id trial_z rt_log_trim_grp block_trial_z MPS_agR AGG MISTRUST MPS_alR MANIP
+     PROPER MPS_clR IMPUL MPS_tdR MPS_acR HDWK; 
+ MISSING=.;
+ 
+    WITHIN = trial_z block_trial_z;
+    USEVARIABLES = id rt_log_trim_grp block_trial_z trial_z 
+      MANIP p1 p2 p3 p4 p5;
+      !t_ixn;
+    BETWEEN = MANIP p1 p2 p3 p4 p5;
+    
+    CLUSTER = id;
+  
+DEFINE:
+
+    !t_ixn = block_trial_z*trial_z; !ixn of trials from no-go and overall trial;
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+  
+ANALYSIS:
+
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(15000);
+    BCONVERGENCE=.02;
+    CHAINS=2;
+    PROCESSORS=2;
+  
+MODEL:
+
+    %WITHIN%
+    
+    b_trial | rt_log_trim_grp ON trial_z; 
+    b_block_trial |  rt_log_trim_grp ON block_trial_z; 
+      
+    
+    %BETWEEN%
+    [b_trial b_block_trial]; !slope means
+    b_trial b_block_trial; !slope variances
+    
+        !slope correlations
+    b_trial b_block_trial  WITH
+       b_trial b_block_trial;
+    
+    [rt_log_trim_grp] (b0); !mean average log RT
+    
+    
+    !TRAIT MODEL
+        
+    antag BY 
+      p5* ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+    antag@1;
+
+    disinhib BY
+      p2*  !PROPER MPS_tdR
+      p3  !MPS_clR IMPUL
+      p4 !MPS_acR HDWK;
+      p1; 
+    disinhib@1;
+
+    antag WITH disinhib;
+    
+    !disinhib BY p1; !modification index cross-loading for fit
+
+    !TRAIT MODERATION
+    
+    ! trait moderates flanker performance
+    b_block_trial ON antag (b_bA)
+      disinhib (b_bD);
+    
+    b_trial ON antag (t_bA)
+      disinhib (t_bD);
+    
+    !t_ixn ON antag (ixn_bA) 
+    !  disinhib (ixn_bD);
+    
+    !N.B. Leaving out the association of antag with rt_inv 
+    !omits a hugely important relationship.
+    !Thus, allow antag as a predictor of average (person) RT
+    
+    rt_log_trim_grp ON antag (bA) 
+      disinhib (bD);
+    
+  
+OUTPUT:
+TECH1 TECH8 STANDARDIZED CINTERVAL;
+PLOT:
+TYPE = PLOT2;
