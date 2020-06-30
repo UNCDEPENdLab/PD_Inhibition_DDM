@@ -41,16 +41,16 @@ rp <- rp %>%
          prev_rt=lag(rt) ,
          prev_rt = prev_rt - mean(prev_rt, na.rm=TRUE),
          prev_rt_z = as.vector(scale(prev_rt)),
-         prev_error = ifelse(lag(correct) == 1, 0, 1)) %>% #z-score rt to put parameter estimates on smaller scale
-  filter(correct==1) # & exclude < 3) %>% #least restrictive exclusions
+         prev_error = ifelse(lag(correct) == 1, 0, 1))  #z-score rt to put parameter estimates on smaller scale
+  
   
 
-x <- rp %>% mutate(cond = factor(ifelse(cond == "positive", "apositive", as.character(cond))))
-x$cond
+rp <- rp %>% mutate(cond = factor(ifelse(cond == "positive", "apositive", as.character(cond))))
+# x$cond
 
-  rp[1,"prev_rt"] <- rp[2,"prev_rt"]
-rp[1,"prev_rt_z"] <- rp[2,"prev_rt_z"]
-rp[1,"prev_error"] <- 0
+#   rp[1,"prev_rt"] <- rp[2,"prev_rt"]
+# rp[1,"prev_rt_z"] <- rp[2,"prev_rt_z"]
+# rp[1,"prev_error"] <- 0
 
 
 
@@ -86,22 +86,66 @@ This model mimics m5 from flanker RT mlms for publication.
 # <!--           na.action = na.exclude, control=lmerControl(optCtrl=list(maxfun=2e4)), #bump up iterations -->
 # <!--           data = flanker, REML=FALSE) # control=lmerControl(optimizer = "nlminbwrap")) -->
 
-m5 <- lmer(rt_log ~ cond  + trial_z + (1 + trial_z| id),
+m5_orig <- lmer(rt_log ~ cond  + trial_z + (1 + trial_z| id),
            na.action = na.exclude,
            data = rp, REML=FALSE)
 
+jtools::summ(m5_orig)
+
+
+#look for preliminary evidence of moderation
+fscores_update <- read.csv("/Users/natehall/github_repos/PD_Inhibition_DDM/Code/factor_structure/AC_bsem_cfa_parcel_mod_savedata.csv") %>% select(SUBJECT, DISINHIB.Median, ANTAG.Median) %>% rename(id = SUBJECT, DISINH = DISINHIB.Median, ANTAG = ANTAG.Median) #%>% mutate(DISINH = -1*DISINH) #reverse code Constraint to set in maladaptive direction. 
+cor(fscores_update) #make sure scores positively correlate
+
+rp <- rp %>% left_join(fscores_update, by = "id")
+
+m5 <- lmer(rt_log ~ cond*ANTAG  + trial_z*ANTAG + (1 + trial_z| id),
+           na.action = na.exclude,
+           data = rp, REML=FALSE)
+
+jtools::summ(m5)
+
+
+m5 <- lmer(rt_log ~ cond*DISINH  + trial_z*DISINH + (1 + trial_z| id),
+           na.action = na.exclude,
+           data = rp, REML=FALSE)
+
+jtools::summ(m5)
+
+m5 <- lmer(rt_log ~ cond*DISINH +cond*ANTAG  + trial_z*DISINH+ trial_z*ANTAG + (1 + trial_z| id),
+           na.action = na.exclude,
+           data = rp, REML=FALSE)
+
+jtools::summ(m5)
 ```
 
 ```{r m17_mplus, cache=TRUE}
-m17_mplus <- mplusObject(
-  TITLE = "Equivalent model to lmer m17",
+
+# rp <- rp %>% mutate(cond = ifelse(cond == "positive", 0,
+#                             ifelse(cond == "negative_familiar", 1,
+#                                    ifelse(cond == "negative_highly_familiar", 2,
+#                                           ifelse(cond == "negative_rc", 3,4)))))
+# head(rp)
+m5_mplus <- mplusObject(
+  TITLE = "Equivalent model to lmer m5 recent probes",
   DEFINE = "
-    cond = cond - 1; ! 0=congruent, 1=incongruent
+  !cond = cond -1; ! 0 = negative_familiar, 1 = negative_highly_familiar, 2= negative_rc, 3 = negative_unfamiliar, 4 = positive 
+  
+  !positive = 0; 
+  !IF (cond == 5) then positive = 1; 
+  n_fam = 0; 
+  IF (cond == 1) then n_fam = 1; 
+  n_hfam = 0; 
+  IF (cond == 2) then n_hfam = 1; 
+  n_rc = 0; 
+  IF (cond == 3) then n_rc = 1; 
+  n_unfam = 0; 
+  IF (cond == 4) then n_unfam = 1; 
+  
   ",
   VARIABLE = "
-    WITHIN = cond block cond_block prev_rt_z prev_error trial_z run_trial_z;
-    USEVARIABLES = id rt_inv cond block prev_rt_z 
-      prev_error trial_z run_trial_z cond_block;
+    WITHIN = trial_z cond n_fam n_hfam n_rc n_unfam;
+    USEVARIABLES = id rt_log trial_z cond n_fam n_hfam n_rc n_unfam;
     CLUSTER = id;
   ",
   ANALYSIS = "
@@ -113,44 +157,60 @@ m17_mplus <- mplusObject(
   ",
   MODEL = "
     %WITHIN%
-    rt_inv ON block cond_block;
-    condslo | rt_inv ON cond;        !random slope of cond
-    runslo | rt_inv ON run_trial_z;  !random slope of run_trial
-    trialslo | rt_inv ON trial_z;    !random slope of trial
-    prevslo | rt_inv ON prev_rt_z;   !random slope of rt autocorrelation
-    errslo | rt_inv ON prev_error;   !random slope of previous error
-    
+    rt_log ON cond n_fam n_hfam n_rc n_unfam;
+    trialslo | rt_log ON trial_z;    !random slope of trial
+  
     %BETWEEN%
     !means of random slopes
-    [condslo];
-    [runslo];
+  
     [trialslo];
-    [prevslo];
-    [errslo];
-    
+  
     !variances of random slopes
-    condslo;
-    runslo;
     trialslo;
-    prevslo;
-    errslo;
+    
+    ! 
+    !rt_log ON trial_z
     
     !slope correlations
-    condslo runslo trialslo prevslo errslo WITH
-       condslo runslo trialslo prevslo errslo;
+    !condslo runslo trialslo prevslo errslo WITH
+    !   condslo runslo trialslo prevslo errslo;
     
-    [rt_inv]; !mean average inverse RT
+    [rt_log]; !mean average RT
   ",
   PLOT = "TYPE = PLOT2;",
   OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
-  rdata = flanker
+  rdata = rp
 )
 
-mout <- mplusModeler(m17_mplus, dataout="flanker_mplus.dat", 
-                     modelout="rt_m17.inp", run=TRUE, hashfilename = FALSE,
+mout <- mplusModeler(m5_mplus, dataout="rp_mplus.dat", 
+                     modelout="rt_m5_rp.inp", run=TRUE, hashfilename = FALSE,
                      Mplus_command = mpluscmd)
-summary(mout)
+
+
+# psych::dummy.code(rp$cond)
+flextable(mout$results$parameters$stdyx.standardized %>% 
+            filter(!paramHeader %in% c("Variances")) %>%
+            select(-sig, -posterior_sd) %>%
+            mutate(pval=2*pval, #convert to 2-tailed
+                   pval=if_else(pval < .05, as.character(paste0(pval, "*")), as.character(pval))) 
+) %>% autofit() #%>% save_as_docx(path = "~/Desktop/flanker_acc_traits.docx")
+library(jtools)
+
+summ(m5_orig)
+summ(m5)
 ```
+
+
+## Accuracy models
+
+```{r}
+
+m5_acc <- glmer(correct ~ cond + trial_z + prev_rt_z + (1 + trial_z|id),
+          na.action = na.exclude, 
+          data = rp, family=binomial,
+          control=glmerControl(optCtrl=list(maxfun=2e4)))
+```
+
 
 
 
