@@ -34,19 +34,35 @@ options(scipen = 2, digits = 3)
 options(width = 140)
 emm_options(disable.pbkrtest = TRUE, lmerTest.limit=2e4) #disable KR and estimate Satterthwaite
 
+##MNH: You need to group_by subject by lagging to avoid copying the first RT of one subject as the last RT of the previous
+
 #preprocessed in flanker_mlm.Rmd
-rp <- read.csv(file="../../../Data/preprocessed/recent_probes_full_sample_accCode.csv") %>% rename(correct = response, rt_log = rt_log_trim_grp, conflict = cond, cond = stim, id = subj_idx) 
-rp <- rp %>% 
-  mutate(correct = ifelse(is.na(rt_log), NA, correct),
-         prev_rt=lag(rt) ,
-         prev_rt = prev_rt - mean(prev_rt, na.rm=TRUE),
-         prev_rt_z = as.vector(scale(prev_rt)),
-         prev_error = ifelse(lag(correct) == 1, 0, 1)) %>% #z-score rt to put parameter estimates on smaller scale
-  filter(correct==1) # & exclude < 3) %>% #least restrictive exclusions
+rp <- read.csv(file="../../../Data/preprocessed/recent_probes_full_sample_accCode.csv") %>% 
+  rename(correct = response, rt_log = rt_log_trim_grp, conflict = cond, cond = stim, id = subj_idx) %>%
+  mutate(
+    correct = if_else(is.na(rt_log), NA_integer_, correct),
+    error = 1-correct
+  ) %>% group_by(id) %>%
+  mutate(
+    prev_rt=dplyr::lag(rt, 1, order_by=trial),
+    prev_rt_wicent = prev_rt - mean(prev_rt, na.rm=TRUE), #within-person centering
+    prev_error=dplyr::lag(error, 1, order_by=trial),
+    prev_cond=dplyr::lag(cond, 1, order_by=trial)
+  ) %>% ungroup() %>%
+  mutate(
+    prev_rt_z = as.vector(scale(prev_rt))
+  )
   
-  rp[1,"prev_rt"] <- rp[2,"prev_rt"]
-rp[1,"prev_rt_z"] <- rp[2,"prev_rt_z"]
-rp[1,"prev_error"] <- 0
+#sanity checks
+xtabs(~trial + id, rp)
+xtabs(~cond + id, rp)
+xtabs(~correct + id, rp)
+
+#only keep RTs for correct trials
+rp <- rp %>% filter(correct==1)
+
+#MNH: for the prev_rt models to be commensurable to models lacking that predictor, we need to drop all rows with a missing prev_rt.
+rp <- rp %>% filter(!is.na(prev_rt))
 
 render_aictab <- function(minfo, ...) {
   mc <- match.call(expand.dots = TRUE)
@@ -190,11 +206,13 @@ m5 <- lmer(rt_log ~ cond  + trial_z + (1 + trial_z| id),
 flextable(render_aictab(minfo=minfo, m1, m2, m3,m4,m5)) %>% autofit()
 ```
 
-## m6: Add prev_rt as fixed: CONVERGENCE FAILURE
+## m6: Add prev_rt as fixed
+
+MNH: converges okay for me
 
 ```{r m6_lmer, cache=TRUE}
 minfo[["m6"]] <- c(fixed="Condition,  Trial, Previous RT", l2="Subject:Intercept, Trial")
-m6 <- lmer(rt_log ~ cond  + trial_z + prev_rt_z +  (1 + trial_z| id),
+m6 <- lmer(rt_log ~ cond + trial_z + prev_rt_z +  (1 + trial_z| id),
            na.action = na.exclude,
            data = rp, REML=FALSE)
 ```
@@ -217,11 +235,11 @@ m8 <- lmer(rt_log ~ cond  + trial_z  +  (1 + trial_z + prev_rt_z | id),
            data = rp, REML=FALSE)
 ```
 
-
 ```{r}
 
 flextable(render_aictab(minfo=minfo, m1, m2, m3, m4, m5,m6, m7, m8)) %>% autofit()
 ```
+
 ## m9: add prev_error as fixed
 
 ```{r m9_lmer, cache=TRUE}
@@ -232,6 +250,7 @@ m9 <- lmer(rt_log ~ cond  + trial_z + prev_error +  (1 + trial_z  | id),
 flextb_vif(m9)
 summary(m9)
 ```
+
 ## m10: add prev_error as random
 
 ```{r m10_lmer, cache=TRUE}
@@ -260,44 +279,107 @@ summary(m11)
 
 flextable(render_aictab(minfo=minfo, m1, m2, m3, m4, m5,m6, m7, m8, m9, m10, m11)) %>% autofit() %>% save_as_docx(path = "~/Desktop/aictable_rp_rt.docx")
 ```
-<!-- ## m13: allow trial and Condition to interact at fixed level -->
 
-<!-- ```{r m12_lmer, cache=TRUE} -->
-<!-- minfo[["m12"]] <- c(fixed="Condition,  Trial, Condition x Trial", l2="Subject:Intercept, Trial") -->
-<!-- m12 <- lmer(rt_log ~ cond*trial_z +  (1 + trial_z | id), -->
-<!--            na.action = na.exclude, -->
-<!--            data = rp, REML=FALSE) -->
-<!-- # flextb_vif(m12) -->
-<!-- # summary(m10) -->
-<!-- ``` -->
+## m12: allow trial and Condition to interact at fixed level
 
-<!-- ## m13: allow previous RT and Condition to interact at fixed level -->
-<!-- ```{r m12_lmer, cache=TRUE} -->
-<!-- minfo[["m13"]] <- c(fixed="Condition,  Trial, Condition x Previous RT", l2="Subject:Intercept, Trial") -->
-<!-- m13 <- lmer(rt_log ~ cond*prev_rt_z  + trial_z +  (1 + trial_z | id), -->
-<!--            na.action = na.exclude, -->
-<!--            data = rp, REML=FALSE) -->
-<!-- # flextb_vif(m12) -->
-<!-- # summary(m10) -->
-<!-- ``` -->
+Ugly vifs for trial x cond interaction
 
-<!-- ## m14: allow previous error and Condition to interact at fixed level -->
+```{r m12_lmer, cache=TRUE}
+minfo[["m12"]] <- c(fixed="Condition,  Trial, Condition x Trial", l2="Subject:Intercept, Trial")
+m12 <- lmer(rt_log ~ cond*trial_z + (1 + trial_z | id),
+           na.action = na.exclude,
+           data = rp, REML=FALSE)
+flextb_vif(m12)
+# summary(m10)
+```
 
-<!-- ```{r m14_lmer, cache=TRUE} -->
-<!-- minfo[["m14"]] <- c(fixed="Condition,  Trial, Condition x Previous Error", l2="Subject:Intercept, Trial") -->
-<!-- m14 <- lmer(rt_log ~ cond*prev_error  + trial_z +  (1 + trial_z | id), -->
-<!--            na.action = na.exclude, -->
-<!--            data = rp, REML=FALSE) -->
-<!-- # flextb_vif(m12) -->
-<!-- # summary(m10) -->
-<!-- ``` -->
+## m13: allow previous RT and Condition to interact at fixed level
+```{r m13_lmer, cache=TRUE}
+minfo[["m13"]] <- c(fixed="Condition,  Trial, Condition x Previous RT", l2="Subject:Intercept, Trial")
+m13 <- lmer(rt_log ~ cond*prev_rt_z  + trial_z +  (1 + trial_z | id),
+           na.action = na.exclude,
+           data = rp, REML=FALSE)
+flextb_vif(m13)
+```
 
+## m14: allow previous error and Condition to interact at fixed level
 
+```{r m14_lmer, cache=TRUE}
+minfo[["m14"]] <- c(fixed="Condition,  Trial, Condition x Previous Error", l2="Subject:Intercept, Trial")
+m14 <- lmer(rt_log ~ cond*prev_error+ trial_z +  (1 + trial_z | id),
+           na.action = na.exclude,
+           data = rp, REML=FALSE)
+flextb_vif(m14)
+```
+
+## m15: allow previous condition effect
+
+```{r, m15_lmer, cache=TRUE, fig=TRUE}
+minfo[["m15"]] <- c(fixed="Condition, Trial, Previous RT, Previous Condition", l2="Subject: Intercept, Trial")
+m15 <- lmer(rt_log ~ cond + trial_z + prev_rt_z + prev_cond + (1 + trial_z| id),
+           na.action = na.exclude,
+           data = rp, REML=FALSE)
+
+flextb_vif(m15)
+plot(emmeans(m15, ~prev_cond))
+```
+
+It looks like there is a tendency for RTs after negative familiar trials to be slower, while the other four conditions don't show much separation. Test a simple negative unfamiliar versus other contrast.
+
+## m16: treat prev cond effects as neg familiar vs. other
+
+```{r m16_lmer, cache=TRUE}
+minfo[["m16"]] <- c(fixed="Condition, Trial, Previous RT, Previous Neg Familiar", l2="Subject: Intercept, Trial")
+rp$prev_negfam <- as.numeric(rp$prev_cond=="negative_familiar")
+m16 <- lmer(rt_log ~ cond + trial_z + prev_rt_z + prev_negfam + (1 + trial_z| id),
+           na.action = na.exclude,
+           data = rp, REML=FALSE)
+
+flextb_vif(m16)
+plot(emmeans(m16, ~prev_negfam))
+```
+
+## m17: check for any other random effects
+
+```{r m17_lmer, cache=TRUE}
+minfo[["m17"]] <- c(fixed="Condition, Trial, Previous RT, Previous Neg Familiar", l2="Subject: Intercept, Trial, a bunch")
+m17 <- lmer(rt_log ~ cond + trial_z + prev_rt_z + prev_negfam + (1 + trial_z + prev_negfam + cond | id),
+           na.action = na.exclude,
+           data = rp, REML=FALSE)
+
+flextb_vif(m17)
+plot(emmeans(m17, ~prev_negfam))
+```
+Yeah, that's over-specified. But the positive condition seems to have some variance to it...
+
+## m18: re for positive vs. other only
+```{r m18_lmer, cache=TRUE}
+minfo[["m18"]] <- c(fixed="Condition, Trial, Previous RT, Previous Neg Familiar", l2="Subject: Intercept, Trial, Condpos")
+rp$condpos=as.numeric(rp$cond=="positive")
+m18 <- lmer(rt_log ~ cond + trial_z + prev_rt_z + prev_negfam + (1 + trial_z + condpos | id),
+           na.action = na.exclude,
+           data = rp, REML=FALSE)
+
+flextb_vif(m18)
+
+```
+
+## m19: add re for negfam, too
+```{r m19_lmer, cache=TRUE}
+minfo[["m19"]] <- c(fixed="Condition, Trial, Previous RT, Previous Neg Familiar", l2="Subject: Intercept, Trial, Negfam, Condpos")
+rp$condpos=as.numeric(rp$cond=="positive")
+m19 <- lmer(rt_log ~ cond + trial_z + prev_rt_z + prev_negfam + (1 + trial_z + prev_negfam + condpos | id),
+           na.action = na.exclude,
+           data = rp, REML=FALSE)
+
+flextb_vif(m19)
+
+```
 
 
 ```{r}
 
-flextable(render_aictab(minfo=minfo, m1, m2, m3, m4, m5,m6, m7, m8, m9, m10, m11)) %>% autofit()#, m12, m13, m14)) %>% autofit()
+flextable(render_aictab(minfo=minfo, m1, m2, m3, m4, m5,m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16, m17, m18, m19)) %>% autofit()
 ```
 ```{r recode_condition}
 
@@ -328,11 +410,11 @@ gg <- plot_model(m5, type="std", show.p=TRUE, ci.lvl=.95, dot.size=5, line.size=
   theme(panel.grid.major.y=element_blank()) +
   ggtitle("") + ylab("Standardized regression coefficient")
 plot(gg)
-ggsave(gg, filename="~/github_repos/PD_Inhibition_DDM/Code/mlm/Recent_Probes_RT_Params.pdf", width=9, height=9, useDingbats=FALSE)
+#ggsave(gg, filename="~/github_repos/PD_Inhibition_DDM/Code/mlm/Recent_Probes_RT_Params.pdf", width=9, height=9, useDingbats=FALSE)
 ```
 
 get model statistics to write-up
-```{r}
+```{r, eval=FALSE}
 
 anova()
 
