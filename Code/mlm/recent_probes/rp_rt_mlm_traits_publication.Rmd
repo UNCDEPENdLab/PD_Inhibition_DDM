@@ -28,35 +28,41 @@ body{ max-width: 2000px; margin: auto; padding: 1em; }
 
 ```{r setup, include=FALSE}
 if (!require(pacman)) { install.packages("pacman"); library(pacman) }
-p_load(car, nlme, lme4, readr, tidyverse, emmeans, cowplot, MplusAutomation, knitr, sas7bdat, ggcorrplot, psych, flextable)
+p_load(car, nlme, lme4, readr, tidyverse, emmeans, cowplot, MplusAutomation, knitr, sas7bdat, ggcorrplot, psych, flextable, jtools)
 knitr::opts_chunk$set(echo = TRUE) #print code by default
 #knitr::opts_chunk$set(cache.path = "../../Outputs/flanker_mlms/")
 options(digits=3)
 options(width=180)
 
 #preprocessed in flanker_mlm.Rmd
-rp <- read.csv(file="../../../Data/preprocessed/recent_probes_full_sample_accCode.csv") %>% rename(correct = response, rt_log = rt_log_trim_grp, conflict = cond, cond = stim, id = subj_idx) 
-rp <- rp %>% 
-  mutate(correct = ifelse(is.na(rt_log), NA, correct),
-         prev_rt=lag(rt) ,
-         prev_rt = prev_rt - mean(prev_rt, na.rm=TRUE),
-         prev_rt_z = as.vector(scale(prev_rt)),
-         prev_error = ifelse(lag(correct) == 1, 0, 1))  #z-score rt to put parameter estimates on smaller scale
-  
-  
+rp <- read.csv(file="../../../Data/preprocessed/recent_probes_full_sample_accCode.csv", stringsAsFactors = TRUE) %>% 
+  rename(correct = response, rt_log = rt_log_trim_grp, conflict = cond, cond = stim, id = subj_idx) %>%
+  mutate(
+    correct = if_else(is.na(rt_log), NA_integer_, correct),
+    error = 1-correct
+  ) %>% group_by(id) %>%
+  mutate(
+    prev_rt=dplyr::lag(rt, 1, order_by=trial),
+    prev_rt_wicent = prev_rt - mean(prev_rt, na.rm=TRUE), #within-person centering
+    prev_error=dplyr::lag(error, 1, order_by=trial),
+    prev_cond=dplyr::lag(cond, 1, order_by=trial)
+  ) %>% ungroup() %>%
+  mutate(
+    prev_rt_z = as.vector(scale(prev_rt)),
+    prev_negfam = as.numeric(prev_cond=="negative_familiar"),
+    condpos = as.numeric(cond=="positive")
+  )
 
-rp <- rp %>% mutate(cond = factor(ifelse(cond == "positive", "apositive", as.character(cond))))
-# x$cond
+#only keep RTs for correct trials
+rp <- rp %>% filter(correct==1)
 
-#   rp[1,"prev_rt"] <- rp[2,"prev_rt"]
-# rp[1,"prev_rt_z"] <- rp[2,"prev_rt_z"]
-# rp[1,"prev_error"] <- 0
+#rp <- rp %>% mutate(cond = factor(ifelse(cond == "positive", "apositive", as.character(cond))))
 
-
+#keep the NA prev_rt trials (trial 1) for Mplus -- already established model superiority in rp_rt_mlm_publication.Rmd
 
 #basedir <- "C:/Users/timot/Documents/GitHub/PD_Inhibition_DDM"
-# basedir <- "~/Data_Analysis/PD_Inhibition_DDM" 
-basedir <- "~/github_repos/PD_Inhibition_DDM" 
+basedir <- "~/Data_Analysis/PD_Inhibition_DDM" 
+#basedir <- "~/github_repos/PD_Inhibition_DDM" 
 
 mpq <- get(load(file.path(basedir, "Data/preprocessed/MPQ_all_scored_final.RData"))) %>% 
   filter(exclude_MPQ == 0) %>% select(subject, MPS_wbR:MPS_abR)
@@ -70,8 +76,8 @@ stai <- sas7bdat::read.sas7bdat(file.path(basedir, "Data/SAS Originals/stai.sas7
 self_reps <- inner_join(mpq, snap, by = "subject")
 self_reps <- left_join(self_reps, k10, by = "subject")
 self_reps <- left_join(self_reps, stai, by = "subject")
-# mpluscmd <- "/Users/mnh5174/Applications/Mplus/mplus"
-mpluscmd <- "/Applications/Mplus/mplus"
+mpluscmd <- "/Users/mnh5174/Applications/Mplus/mplus"
+#mpluscmd <- "/Applications/Mplus/mplus"
 ```
 
 
@@ -79,7 +85,7 @@ mpluscmd <- "/Applications/Mplus/mplus"
 
 This model mimics m5 from flanker RT mlms for publication. 
 
-```{r}
+```{r, eval=FALSE}
 # <!-- m17 <- lmer(rt_inv ~ cond*block + trial_z + prev_rt_z + prev_error + -->
 # <!--               (1 + trial_z + prev_rt_z + cond + prev_error | id) + -->
 # <!--               (1 + trial_z + run_trial_z + prev_rt_z | id:block), -->
@@ -119,61 +125,53 @@ m5 <- lmer(rt_log ~ cond*DISINH +cond*ANTAG  + trial_z*DISINH+ trial_z*ANTAG + (
 jtools::summ(m5)
 ```
 
-```{r m17_mplus, cache=TRUE}
+## MNH: mimic m18 Mplus
+```{r m18_lmer, cache=TRUE}
+m18 <- lmer(rt_log ~ cond + trial_z + prev_rt_z + prev_negfam + (1 + trial_z + condpos | id),
+           na.action = na.exclude,
+           data = rp, REML=FALSE)
 
-# rp <- rp %>% mutate(cond = ifelse(cond == "positive", 0,
-#                             ifelse(cond == "negative_familiar", 1,
-#                                    ifelse(cond == "negative_highly_familiar", 2,
-#                                           ifelse(cond == "negative_rc", 3,4)))))
-# head(rp)
-m5_mplus <- mplusObject(
-  TITLE = "Equivalent model to lmer m5 recent probes",
-  DEFINE = "
-  !cond = cond -1; ! 0 = negative_familiar, 1 = negative_highly_familiar, 2= negative_rc, 3 = negative_unfamiliar, 4 = positive 
-  
-  !positive = 0; 
-  !IF (cond == 5) then positive = 1; 
-  n_fam = 0; 
-  IF (cond == 1) then n_fam = 1; 
-  n_hfam = 0; 
-  IF (cond == 2) then n_hfam = 1; 
-  n_rc = 0; 
-  IF (cond == 3) then n_rc = 1; 
-  n_unfam = 0; 
-  IF (cond == 4) then n_unfam = 1; 
-  
-  ",
+summary(m18)
+```
+
+```{r m18_mplus, cache=TRUE}
+
+#in lmer, negative_familiar is reference condition
+#manually code dummy variables
+rp$d_pos <- as.numeric(rp$cond=="positive")
+rp$d_nhfam  <- as.numeric(rp$cond=="negative_highly_familiar")
+rp$d_nrc <- as.numeric(rp$cond=="negative_rc")
+rp$d_nu <- as.numeric(rp$cond=="negative_unfamiliar")
+
+m18_mplus <- mplusObject(
+  TITLE = "Equivalent model to lmer m18 recent probes",
   VARIABLE = "
-    WITHIN = trial_z cond n_fam n_hfam n_rc n_unfam;
-    USEVARIABLES = id rt_log trial_z cond n_fam n_hfam n_rc n_unfam;
+    WITHIN = trial_z d_pos d_nhfam d_nrc d_nu;
+    USEVARIABLES = id rt_log trial_z d_pos d_nhfam d_nrc d_nu;
     CLUSTER = id;
   ",
   ANALYSIS = "
     TYPE=TWOLEVEL RANDOM;
     ESTIMATOR=BAYES;
-    BITERATIONS=(10000);
+    BITERATIONS=(15000);
     CHAINS=2;
     PROCESSORS=4;
   ",
   MODEL = "
     %WITHIN%
-    rt_log ON cond n_fam n_hfam n_rc n_unfam;
-    trialslo | rt_log ON trial_z;    !random slope of trial
+    rt_log ON d_nhfam d_nrc d_nu;
+    s_pos | rt_log ON d_pos; !mimic condpos randomeffect
+    trialslo | rt_log ON trial_z; !random slope of trial
   
     %BETWEEN%
     !means of random slopes
-  
-    [trialslo];
+    [trialslo s_pos];
   
     !variances of random slopes
-    trialslo;
+    trialslo s_pos;
     
-    ! 
-    !rt_log ON trial_z
-    
-    !slope correlations
-    !condslo runslo trialslo prevslo errslo WITH
-    !   condslo runslo trialslo prevslo errslo;
+    rt_log s_pos trialslo WITH 
+      rt_log s_pos trialslo;
     
     [rt_log]; !mean average RT
   ",
@@ -182,28 +180,32 @@ m5_mplus <- mplusObject(
   rdata = rp
 )
 
-mout <- mplusModeler(m5_mplus, dataout="rp_mplus.dat", 
-                     modelout="rt_m5_rp.inp", run=TRUE, hashfilename = FALSE,
+mout <- mplusModeler(m18_mplus, dataout="rp_mplus.dat", 
+                     modelout="rt_m18_rp.inp", run=TRUE, hashfilename = FALSE,
                      Mplus_command = mpluscmd)
+```
 
+Looks like a clean match
+
+```{r}
 
 # psych::dummy.code(rp$cond)
-flextable(mout$results$parameters$stdyx.standardized %>% 
-            filter(!paramHeader %in% c("Variances")) %>%
-            select(-sig, -posterior_sd) %>%
-            mutate(pval=2*pval, #convert to 2-tailed
-                   pval=if_else(pval < .05, as.character(paste0(pval, "*")), as.character(pval))) 
-) %>% autofit() #%>% save_as_docx(path = "~/Desktop/flanker_acc_traits.docx")
-library(jtools)
+#kable(mout$results$parameters$stdyx.standardized)
+kable(mout$results$parameters$unstandardized)
+# flextable(mout$results$parameters$stdyx.standardized %>% 
+#             #dplyr::filter(paramHeader != "Variances") %>%
+#             #dplyr::select(-sig, -posterior_sd) %>%
+#             mutate(pval=2*pval, #convert to 2-tailed
+#                    pval=if_else(pval < .05, as.character(paste0(pval, "*")), as.character(pval))) 
+# ) %>% autofit() #%>% save_as_docx(path = "~/Desktop/flanker_acc_traits.docx")
 
-summ(m5_orig)
-summ(m5)
+summ(m18)
 ```
 
 
 ## Accuracy models
 
-```{r}
+```{r, eval=FALSE}
 
 m5_acc <- glmer(correct ~ cond + trial_z + prev_rt_z + (1 + trial_z|id),
           na.action = na.exclude, 
@@ -214,3 +216,108 @@ m5_acc <- glmer(correct ~ cond + trial_z + prev_rt_z + (1 + trial_z|id),
 
 
 
+## add traits
+
+```{r}
+tofactor <- self_reps %>% select(subject, MPS_agR, AGG, MISTRUST, MPS_alR, MANIP,
+      PROPER, MPS_clR, IMPUL, MPS_tdR, MPS_acR, HDWK, K10, STAI) %>% 
+  # mutate(IMPUL =-1*IMPUL) %>% #score toward constraint to make loadings upright. Update 6/25: reverse coding to scale positively with high externalizing
+  mutate(PROPER = -1*PROPER, MPS_tdR = -1*MPS_tdR, #P2
+         MPS_clR = -1*MPS_clR, #P3
+         HDWK = -1*HDWK, MPS_acR = -1*MPS_acR
+         ) %>%
+  mutate_at(vars(-subject), list(~as.vector(scale(.)))) %>%
+  dplyr::rename(id=subject)
+
+for_msem <- rp %>% inner_join(tofactor, by="id")
+anti_join(tofactor, rp, by="id")
+```
+
+
+```{r m18_antag_mod, cache=TRUE, eval=TRUE}
+AC_msem_mod <- mplusObject(
+  TITLE="Antagonism and Constraint BSEM CFA 3+3 Parcels, RP RT Mod",
+  DEFINE="
+    p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+  ",
+  VARIABLE = "
+    USEVARIABLES = id rt_log trial_z d_pos d_nhfam d_nrc d_nu
+          MANIP p1 p2 p3 p4 p5;
+    WITHIN = trial_z d_pos d_nhfam d_nrc d_nu;
+    BETWEEN = MANIP p1 p2 p3 p4 p5;
+    CLUSTER = id;
+  ",
+  ANALYSIS = "
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(15000);
+    CHAINS=2;
+    PROCESSORS=4;
+  ",
+  MODEL = "
+  
+   %WITHIN%
+    rt_log ON d_nhfam d_nrc d_nu;
+    s_pos | rt_log ON d_pos; !mimic condpos randomeffect
+    trialslo | rt_log ON trial_z; !random slope of trial
+  
+    %BETWEEN%
+    !means of random slopes
+    [trialslo s_pos];
+  
+    !variances of random slopes
+    trialslo s_pos;
+    
+    rt_log s_pos trialslo WITH 
+      rt_log s_pos trialslo;
+    
+    [rt_log]; !mean average RT
+    
+    !TRAIT MODEL
+        
+    antag BY p5* ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+    antag@1;
+
+    disinhib BY
+      p2*  !PROPER MPS_tdR
+      p3  !MPS_clR IMPUL
+      p4; !MPS_acR HDWK;
+    disinhib@1;
+
+    antag WITH disinhib;
+    
+    disinhib BY P1; !modification index cross-loading for fit
+
+    !TRAIT MODERATION
+    
+    ! trait moderates flanker performance
+    trialslo ON antag (c_bA)
+      disinhib (c_bC);
+    
+    s_pos ON antag (p_bA)
+      disinhib (p_bC);
+    
+    rt_log ON antag (bA) 
+      disinhib (bC);
+  ",
+  PLOT = "TYPE = PLOT2;",
+  OUTPUT ="
+    TECH1 TECH8 STANDARDIZED CINTERVAL;
+  ",
+  rdata=for_msem
+)
+ 
+mres <- mplusModeler(AC_msem_mod, modelout = file.path("rt_m18_AC_mod.inp"), 
+                     run=TRUE, hashfilename = FALSE,
+                     Mplus_command = mpluscmd)
+```
+
+```{r}
+kable(mres$results$parameters$stdyx.standardized)
+```
