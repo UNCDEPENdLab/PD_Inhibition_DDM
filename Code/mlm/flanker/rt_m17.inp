@@ -5,7 +5,7 @@ FILE = "flanker_mplus.dat";
  
 VARIABLE:
 NAMES = id rt cond block trial trial_z rt_inv run_trial run_trial_z prev_rt
-     prev_error prev_rt_z; 
+     prev_rt_z prev_error; 
  MISSING=.;
  
     WITHIN = cond block cond_block prev_rt_z prev_error trial_z run_trial_z;

@@ -5,8 +5,8 @@ FILE = "rt_m17_AC.dat";
  
 VARIABLE:
 NAMES = id rt cond block trial block_number trial_z rt_inv run_trial run_trial_z
-     prev_rt prev_rt_inv exclude prev_rt_z MPS_agR AGG MISTRUST MPS_alR MANIP PROPER
-     MPS_clR IMPUL MPS_tdR MPS_acR HDWK K10; 
+     prev_rt prev_rt_inv exclude prev_rt_z prev_error MPS_agR AGG MISTRUST MPS_alR
+     MANIP PROPER MPS_clR IMPUL MPS_tdR MPS_acR HDWK K10; 
  MISSING=.;
  
     WITHIN = cond block cond_block prev_rt_z prev_error trial_z run_trial_z;

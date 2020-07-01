@@ -8,14 +8,11 @@ NAMES = id response cond stim trial_z MPS_agR AGG MISTRUST MPS_alR MANIP PROPER
      MPS_clR IMPUL MPS_tdR MPS_acR HDWK; 
  MISSING=.;
  
-    ! WITHIN = stim; !if my understanding is correct, this will only specify an effect at the within-level
+    WITHIN = stim cond trial_z ts_ixn; 
     USEVARIABLES = id response stim cond trial_z 
       MANIP p1 p2 p3 p4 p5
       ts_ixn;
-    BETWEEN = MANIP p1 p2 p3 p4 p5
-      cond trial_z
-      ts_ixn;
-    
+    BETWEEN = MANIP p1 p2 p3 p4 p5;
     CLUSTER = id;
   
 DEFINE:
@@ -41,14 +38,19 @@ MODEL:
     %WITHIN%
     
     b_stim | response ON stim; 
-    
+    b_cond | response ON cond;
+    b_trial | response ON trial_z;
+    b_ts_ixn | response ON ts_ixn;
     
     %BETWEEN%
-    [b_stim]; !slope means
-    b_stim; !slope variances
+    [b_stim b_cond b_trial b_ts_ixn]; !slope means
+    b_stim b_cond b_trial b_ts_ixn; !slope variances
+    
+    b_stim b_cond b_trial b_ts_ixn WITH b_stim b_cond b_trial b_ts_ixn; !correlation of random slopes with one another.
+    
     
         
-    [response] (b0); !mean average ACC
+    [response]; !mean average ACC
     
     
     !TRAIT MODEL
@@ -73,25 +75,16 @@ MODEL:
     !TRAIT MODERATION
     
     ! trait moderates flanker performance
-    b_stim ON antag (b_bA)
-      disinhib (b_bD);
-    
-    stim ON antag (t_bA)
-      disinhib (t_bD);
-    
-    
-    ts_ixn ON antag (ixn_bA) 
-      disinhib (ixn_bD);
-    
-    cond ON antag  
-      disinhib; 
+    b_stim ON antag disinhib;
+    b_cond ON antag disinhib; 
+    b_trial ON antag disinhib;
+    b_ts_ixn ON antag disinhib;
     
     !N.B. Leaving out the association of antag with rt_inv 
     !omits a hugely important relationship.
     !Thus, allow antag as a predictor of average (person) RT
     
-    response ON antag (bA) 
-      disinhib (bD);
+    response ON antag disinhib;
     
   
 OUTPUT:

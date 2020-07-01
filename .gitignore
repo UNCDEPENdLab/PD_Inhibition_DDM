@@ -63,6 +63,7 @@ Code/mlm/recent_probes_traits_mplus_2d4ba0dbb37717f8a55d6dc7a657093c.dat
 Code/mlm/traits_mplus_9e246c8c1205731bf68edb1b5941641f.dat
 Code/mlm/recent_probes_mplus_a5ae7584483a895c8249e8cb856efd6e.dat
 Code/mlm/gng_mlm_cache/*
+Code/mlm/gng/gng_rt_mlm_publication_cache/*
 
 #venv for GNG fitting. available on ACI if needed.
 Code/DDM/gng_sim_test/hddm_local/*

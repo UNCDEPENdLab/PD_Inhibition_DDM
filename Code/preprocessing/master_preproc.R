@@ -915,6 +915,29 @@ flanker <- flanker_SNAP %>% mutate(
                                 .default = exclude_flanker
   ))
 
+### create plot for figure
+length(unique(filter(flanker, exclude_flanker != 3)$id))
+fplot <- filter(flanker, exclude_flanker != 3, correct == 1)
+
+flanker_mean_ci_conditions_full <- summarySEwithin(data = fplot, measurevar = "rt", withinvars = "cond_block", idvar = "id", na.rm = TRUE)
+full_n  <- length(unique(fplot$id))
+
+flanker_mean_ci_conditions_full$cond_block <- factor(as.character(flanker_mean_ci_conditions_full$cond_block),
+                                                     levels = c("congruent_most_con",
+                                                                "congruent_most_incon",
+                                                                "incongruent_most_con",
+                                                                "incongruent_most_incon"),
+                                                     labels = c("Congruent: Mostly Congruent",
+                                                                "Congruent: Mostly Incongruent",
+                                                                "Incongruent: Mostly Congruent",
+                                                                "Incongruent: Mostly Incongruent"))
+
+flanker_point_full <- ggplot(flanker_mean_ci_conditions_full, aes(x = rt_norm, y = cond_block)) +
+  geom_point(shape = 21, size = 2, fill = "black") +
+  geom_errorbar(width = 0, aes(xmin = rt_norm-ci, xmax=rt_norm+ci)) + 
+  labs(y = "", x = "",title = paste0("Flanker task: N=", full_n))
+
+
 recent_probes <- recent_probes_SNAP %>% mutate(
   exclude_recent_probes=dplyr::recode(id,
                                       `7` = 3, 
@@ -927,6 +950,33 @@ recent_probes <- recent_probes_SNAP %>% mutate(
                                       `100` = 3,
                                       .default = exclude_recent_probes
   ))
+
+### create plot for figure
+length(unique(filter(recent_probes, exclude_recent_probes != 3)$id))
+fplot <- filter(recent_probes, exclude_recent_probes != 3, correct == 1)
+
+rp_mean_ci_conditions_full <- summarySEwithin(data = fplot, measurevar = "rt", withinvars = "stim", idvar = "id", na.rm = TRUE)
+full_n  <- length(unique(fplot$id))
+
+rp_mean_ci_conditions_full$stim <- factor(as.character(rp_mean_ci_conditions_full$stim), 
+                                          levels = c("negative_familiar",
+                                                     "negative_highly_familiar",
+                                                     "negative_rc",
+                                                     "negative_unfamiliar",
+                                                     "positive"),
+                                          labels = c("Negative: Familiar",
+                                                     "Negative: Highly Familiar",
+                                                     "Negative: Response Conflict",
+                                                     "Negative: Unfamiliar",
+                                                     "Positive"))
+
+
+rp_point_full <- ggplot(rp_mean_ci_conditions_full, aes(x = rt_norm, y = stim)) +
+  geom_point(shape = 21, size = 2, fill = "black") +
+  geom_errorbar(width = 0, aes(xmin = rt_norm-ci, xmax=rt_norm+ci)) + 
+  labs(y = "", x = "",title = paste0("Recent Probes task: N=", full_n))
+
+
 gng <- go_nogo <- gng_SNAP %>% mutate(
   exclude_go_nogo =dplyr::recode(id,
                                  `7` = 3, 
@@ -941,6 +991,25 @@ gng <- go_nogo <- gng_SNAP %>% mutate(
   ))
 
 
+### create plot for figure
+length(unique(filter(go_nogo, exclude_go_nogo != 3)$id))
+fplot <- filter(go_nogo, exclude_go_nogo != 3, correct == 1, stim == "Go")
+
+gng_mean_ci_conditions_full <- summarySEwithin(data = fplot, measurevar = "rt", withinvars = "cond", idvar = "id", na.rm = TRUE)
+full_n  <- length(unique(fplot$id))
+
+gng_point_full <- ggplot(gng_mean_ci_conditions_full, aes(x = rt_norm, y = cond)) +
+  geom_point(shape = 21, size = 2, fill = "black") +
+  geom_errorbar(width = 0, aes(xmin = rt_norm-ci, xmax=rt_norm+ci)) + 
+  labs(y = "", x = "",title = paste0("Go/No-go task: N=", full_n))
+
+fr <- cowplot::plot_grid(flanker_point_full,  rp_point_full,nrow = 2, align = 'vh',  label_x = "Reaction Time (msec)", label_y = "Condition")
+empty <- ggplot(gng_mean_ci_conditions_full) + theme_minimal()
+right_panel <- cowplot::plot_grid(empty, gng_point_full, empty, ncol = 1, rel_heights = c(.25,.5,.25))
+whole <- cowplot::plot_grid(fr, right_panel, ncol = 2)
+
+ggdraw(add_sub(whole, "Reaction Time (msec)", vpadding=grid::unit(0,"lines"),y=6, x=0.5, vjust=4.5))
+ggdraw(add_sub(whole, "Reaction Time (msec)", vpadding=grid::unit(0,"lines"),y=6, x=0.5, vjust=4.5))
 
 # RT distributions for clean and full sample: GNG  -----------------------------
 

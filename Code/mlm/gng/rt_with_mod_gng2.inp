@@ -45,8 +45,8 @@ MODEL:
     b_trial b_block_trial; !slope variances
 
     !slope correlations
-    b_trial b_block_trial WITH 
-      b_trial b_block_trial;
+    !b_trial b_block_trial WITH 
+    !  b_trial b_block_trial;
 
     [rt_log_trim_grp] (b0); !mean average log RT
     

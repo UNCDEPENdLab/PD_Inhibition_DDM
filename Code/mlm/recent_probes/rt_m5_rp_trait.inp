@@ -1,0 +1,98 @@
+TITLE:
+Equivalent model to lmer m5 recent probes with trait model
+DATA:
+FILE = "rp_mplus_trait.dat";
+ 
+VARIABLE:
+NAMES = id rt cond conflict trial_z trial rt_log prev_rt prev_rt_z prev_error
+     MPS_agR AGG MISTRUST MPS_alR MANIP PROPER MPS_clR IMPUL MPS_tdR MPS_acR HDWK
+     K10; 
+ MISSING=.;
+ 
+    WITHIN = trial_z n_fam n_hfam n_rc n_unfam;
+    USEVARIABLES = id rt_log trial_z MANIP n_fam n_hfam n_rc n_unfam p1 p2 p3 p4 p5;
+    BETWEEN = MANIP p1 p2 p3 p4 p5;
+    CLUSTER = id;
+  
+DEFINE:
+
+  !cond = cond -1; ! 0 = negative_familiar, 1 = negative_highly_familiar, 2= negative_rc, 3 = negative_unfamiliar, 4 = positive 
+  
+  !positive = 0; 
+  !IF (cond == 5) then positive = 1; 
+  n_fam = 0; 
+  IF (cond == 1) then n_fam = 1; 
+  n_hfam = 0; 
+  IF (cond == 2) then n_hfam = 1; 
+  n_rc = 0; 
+  IF (cond == 3) then n_rc = 1; 
+  n_unfam = 0; 
+  IF (cond == 4) then n_unfam = 1; 
+  
+   p1=MEAN(MISTRUST MPS_alR);
+    p2=MEAN(PROPER MPS_tdR);
+    p3=MEAN(MPS_clR IMPUL);
+    p4=MEAN(MPS_acR HDWK);
+    p5=MEAN(MPS_agR AGG);
+  
+  
+ANALYSIS:
+
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(10000);
+    CHAINS=2;
+    PROCESSORS=4;
+  
+MODEL:
+
+    %WITHIN%
+    nfamslo | rt_log ON n_fam; 
+    nhfamslo | rt_log ON n_hfam;
+    nrcslo | rt_log ON n_rc;
+    nunfamslo | rt_log ON n_unfam;
+    trialslo | rt_log ON trial_z;    !random slope of trial
+  
+    %BETWEEN%
+    !means of random slopes
+  
+    [trialslo];
+  
+    !variances of random slopes
+    trialslo;
+    
+    !TRAIT MODEL
+        
+    antag BY 
+      p5* ! MPS_agR AGG
+      p1        ! MISTRUST MPS_alR
+      MANIP;
+    antag@1;
+
+    disinhib BY
+      p2*  !PROPER MPS_tdR
+      p3  !MPS_clR IMPUL
+      p4 !MPS_acR HDWK;
+      p1; 
+    disinhib@1;
+
+    antag WITH disinhib;
+    !slope correlations
+    !condslo runslo trialslo prevslo errslo WITH
+    !   condslo runslo trialslo prevslo errslo;
+    
+    [rt_log]; !mean average RT
+    
+    ! trait moderation
+    nfamslo ON antag disinhib; 
+    nhfamslo ON antag disinhib; 
+    nrcslo ON antag disinhib; 
+    nunfamslo ON antag disinhib; 
+    trialslo ON antag disinhib; 
+    
+    rt_log ON antag disinhib; 
+  
+OUTPUT:
+TECH1 TECH8 STANDARDIZED CINTERVAL;
+PLOT:
+TYPE = PLOT2;

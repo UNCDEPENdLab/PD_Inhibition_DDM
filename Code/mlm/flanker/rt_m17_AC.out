@@ -1,6 +1,6 @@
 Mplus VERSION 8.4 (Mac)
 MUTHEN & MUTHEN
-06/25/2020   5:57 PM
+06/28/2020   3:02 PM
 
 INPUT INSTRUCTIONS
 
@@ -11,8 +11,8 @@ INPUT INSTRUCTIONS
 
   VARIABLE:
   NAMES = id rt cond block trial block_number trial_z rt_inv run_trial run_trial_z
-       prev_rt prev_rt_inv exclude prev_rt_z MPS_agR AGG MISTRUST MPS_alR MANIP PROPER
-       MPS_clR IMPUL MPS_tdR MPS_acR HDWK K10;
+       prev_rt prev_rt_inv exclude prev_rt_z prev_error MPS_agR AGG MISTRUST MPS_alR
+       MANIP PROPER MPS_clR IMPUL MPS_tdR MPS_acR HDWK K10;
    MISSING=.;
 
       WITHIN = cond block cond_block prev_rt_z prev_error trial_z run_trial_z;
@@ -107,10 +107,1797 @@ INPUT INSTRUCTIONS
   PLOT:
   TYPE = PLOT2;
 
-*** ERROR in VARIABLE command
-  On the USEVARIABLES list, variables from the NAMES list must come before
-  all new variables created using the DEFINE command.  The variables(s)
-  violating this order are:  PREV_ERROR
+
+
+*** WARNING in VARIABLE command
+  Note that only the first 8 characters of variable names are used in the output.
+  Shorten variable names to avoid any confusion.
+*** WARNING in PLOT command
+  Note that only the first 8 characters of variable names are used in plots.
+  If variable names are not unique within the first 8 characters, problems
+  may occur.
+*** WARNING
+  One or more individual-level variables have no variation within a
+  cluster for the following clusters.
+
+     Variable   Cluster IDs with no within-cluster variation
+
+      PREV_ERR    92 110 91 24 16 14 21 67 107 50 53 87 108 12 94 96
+
+*** WARNING
+  Data set contains cases with missing on x-variables.
+  These cases were not included in the analysis.
+  Number of cases with missing on x-variables:  798
+   4 WARNING(S) FOUND IN THE INPUT INSTRUCTIONS
+
+
+
+
+Antagonism and Constraint BSEM CFA 3+3 Parcels, Flanker RT
+
+SUMMARY OF ANALYSIS
+
+Number of groups                                                 1
+Number of observations                                       15202
+
+Number of dependent variables                                    7
+Number of independent variables                                  7
+Number of continuous latent variables                            7
+
+Observed dependent variables
+
+  Continuous
+   MANIP       P1          P2          P3          P4          P5
+   RT_INV
+
+Observed independent variables
+   COND        BLOCK       PREV_RT_    PREV_ERR    TRIAL_Z     RUN_TRIA
+   COND_BLO
+
+Continuous latent variables
+   ANTAG       CONSTRAI    CONDSLO     PREVSLO     ERRSLO      RUNSLO
+   TRIALSLO
+
+Variables with special functions
+
+  Cluster variable      ID
+
+  Within variables
+   COND        BLOCK       PREV_RT_    PREV_ERR    TRIAL_Z     RUN_TRIA
+   COND_BLO
+
+  Between variables
+   MANIP       P1          P2          P3          P4          P5
+
+
+Estimator                                                    BAYES
+Specifications for Bayesian Estimation
+  Point estimate                                            MEDIAN
+  Number of Markov chain Monte Carlo (MCMC) chains               4
+  Random seed for the first chain                                0
+  Starting value information                           UNPERTURBED
+  Algorithm used for Markov chain Monte Carlo           GIBBS(PX1)
+  Convergence criterion                                  0.500D-01
+  Maximum number of iterations                               50000
+  K-th iteration used for thinning                               1
+
+Input data file(s)
+  rt_m17_AC.dat
+Input data format  FREE
+
+
+SUMMARY OF DATA
+
+     Number of clusters                        100
+
+       Size (s)    Cluster ID with Size s
+
+        122        37
+        132        63
+        136        13
+        137        62
+        138        93
+        140        36
+        144        92
+        145        25 90
+        146        105 40 61 1
+        147        88 46
+        148        32 89 45 65 73
+        149        17
+        150        74 71 35
+        151        57 58 6 20 22
+        152        110 43 34 111 19 68 27
+        153        42 8 33 66 15 91 109 52 99
+        154        84 3 11 9 24 113 16 29 49
+        155        14 21 103 102 114 18 69 106 59 97 98 2
+        156        64 10 101 67 30 31 70 107 72 5 50 75 76 77 78 79 112
+                   81 53 86 87 54 56 108 104 26 12 60 94 95 96 4 28 41
+
+
+
+COVARIANCE COVERAGE OF DATA
+
+Minimum covariance coverage value   0.100
+
+     Number of missing data patterns             2
+
+
+     PROPORTION OF DATA PRESENT
+
+
+           Covariance Coverage
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+ MANIP          1.000
+ P1             1.000         1.000
+ P2             1.000         1.000         1.000
+ P3             1.000         1.000         1.000         1.000
+ P4             1.000         1.000         1.000         1.000         1.000
+ P5             1.000         1.000         1.000         1.000         1.000
+ RT_INV         0.951         0.951         0.951         0.951         0.951
+ COND           1.000         1.000         1.000         1.000         1.000
+ BLOCK          1.000         1.000         1.000         1.000         1.000
+ PREV_RT_       1.000         1.000         1.000         1.000         1.000
+ PREV_ERR       1.000         1.000         1.000         1.000         1.000
+ TRIAL_Z        1.000         1.000         1.000         1.000         1.000
+ RUN_TRIA       1.000         1.000         1.000         1.000         1.000
+ COND_BLO       1.000         1.000         1.000         1.000         1.000
+
+
+           Covariance Coverage
+              P5            RT_INV        COND          BLOCK         PREV_RT_
+              ________      ________      ________      ________      ________
+ P5             1.000
+ RT_INV         0.951         0.951
+ COND           1.000         0.951         1.000
+ BLOCK          1.000         0.951         1.000         1.000
+ PREV_RT_       1.000         0.951         1.000         1.000         1.000
+ PREV_ERR       1.000         0.951         1.000         1.000         1.000
+ TRIAL_Z        1.000         0.951         1.000         1.000         1.000
+ RUN_TRIA       1.000         0.951         1.000         1.000         1.000
+ COND_BLO       1.000         0.951         1.000         1.000         1.000
+
+
+           Covariance Coverage
+              PREV_ERR      TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________      ________
+ PREV_ERR       1.000
+ TRIAL_Z        1.000         1.000
+ RUN_TRIA       1.000         1.000         1.000
+ COND_BLO       1.000         1.000         1.000         1.000
+
+
+
+UNIVARIATE SAMPLE STATISTICS
+
+
+     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS
+
+         Variable/         Mean/     Skewness/   Minimum/ % with                Percentiles
+        Sample Size      Variance    Kurtosis    Maximum  Min/Max      20%/60%    40%/80%    Median
+
+     MANIP                 0.020       0.065      -1.701    7.00%      -0.898     -0.095      0.172
+             100.000       1.006      -0.475       2.849    1.00%       0.440      0.708
+     P1                    0.018       1.093      -1.197    5.00%      -0.819     -0.370     -0.108
+             100.000       0.886       1.171       3.011    1.00%       0.078      0.645
+     P2                    0.005       0.135      -1.749    1.00%      -0.801     -0.289     -0.051
+             100.000       0.833      -0.639       2.240    1.00%       0.225      0.857
+     P3                   -0.012       0.902      -1.396    1.00%      -0.866     -0.371     -0.231
+             100.000       0.887       0.345       2.672    1.00%      -0.008      0.753
+     P4                   -0.006      -0.027      -1.783    1.00%      -0.919     -0.313     -0.023
+             100.000       0.902      -1.019       1.799    1.00%       0.255      0.909
+     P5                    0.007       1.054      -1.149    7.00%      -0.845     -0.463     -0.199
+             100.000       0.897       0.848       3.259    1.00%       0.065      0.752
+     RT_INV               -2.642       0.100      -4.000    0.03%      -3.030     -2.755     -2.646
+           14460.000       0.226       0.186      -1.031    0.01%      -2.532     -2.268
+     COND                  0.503      -0.011       0.000   49.72%       0.000      0.000      1.000
+           15202.000       0.250      -2.000       1.000   50.28%       1.000      1.000
+     BLOCK                 0.496       0.014       0.000   50.36%       0.000      0.000      0.000
+           15202.000       0.250      -2.000       1.000   49.64%       1.000      1.000
+     PREV_RT_Z            -0.018       1.623      -2.625    0.01%      -0.751     -0.367     -0.187
+           15202.000       0.986       4.914       6.508    0.01%       0.017      0.559
+     PREV_ERROR            0.966      -5.164       0.000    3.37%       1.000      1.000      1.000
+           15202.000       0.033      24.668       1.000   96.63%       1.000      1.000
+     TRIAL_Z               0.003       0.009      -1.700    0.64%      -1.028     -0.336     -0.011
+           15202.000       0.990      -1.199       1.721    0.62%       0.336      1.050
+     RUN_TRIAL_Z           0.042       0.000      -1.582    2.57%      -0.984     -0.299      0.043
+           15202.000       0.930      -1.206       1.668    2.57%       0.385      1.069
+     COND_BLOCK            0.149       1.969       0.000   85.07%       0.000      0.000      0.000
+           15202.000       0.127       1.875       1.000   14.93%       0.000      0.000
+
+
+THE MODEL ESTIMATION TERMINATED NORMALLY
+
+     USE THE FBITERATIONS OPTION TO INCREASE THE NUMBER OF ITERATIONS BY A FACTOR
+     OF AT LEAST TWO TO CHECK CONVERGENCE AND THAT THE PSR VALUE DOES NOT INCREASE.
+
+
+
+MODEL FIT INFORMATION
+
+Number of Free Parameters                              52
+
+Information Criteria
+
+          Deviance (DIC)                        12020.077
+          Estimated Number of Parameters (pD)     369.573
+
+
+
+MODEL RESULTS
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within Level
+
+ RT_INV     ON
+    BLOCK              0.025       0.009      0.003       0.007       0.042      *
+    COND_BLOCK         0.051       0.013      0.000       0.027       0.076      *
+
+ Residual Variances
+    RT_INV             0.119       0.001      0.000       0.116       0.121      *
+
+Between Level
+
+ ANTAG    BY
+    P5                 0.737       0.104      0.000       0.542       0.954      *
+    P1                 0.607       0.107      0.000       0.403       0.825      *
+    MANIP              0.855       0.108      0.000       0.651       1.075      *
+
+ CONSTRAI BY
+    P2                 0.711       0.131      0.000       0.456       0.963      *
+    P3                 0.576       0.127      0.000       0.342       0.843      *
+    P4                 0.484       0.122      0.000       0.252       0.730      *
+
+ CONDSLO    ON
+    ANTAG              0.031       0.010      0.001       0.011       0.052      *
+    CONSTRAINT         0.002       0.011      0.417      -0.020       0.024
+
+ PREVSLO    ON
+    ANTAG             -0.005       0.008      0.276      -0.021       0.011
+    CONSTRAINT         0.020       0.009      0.012       0.003       0.038      *
+
+ ERRSLO     ON
+    ANTAG             -0.006       0.027      0.401      -0.062       0.045
+    CONSTRAINT        -0.036       0.024      0.064      -0.083       0.011
+
+ RT_INV     ON
+    ANTAG             -0.058       0.040      0.069      -0.137       0.020
+    CONSTRAINT         0.022       0.040      0.288      -0.054       0.103
+
+ CONDSLO  WITH
+    RUNSLO             0.000       0.000      0.294      -0.001       0.001
+    TRIALSLO          -0.001       0.001      0.011      -0.003       0.000      *
+    PREVSLO            0.000       0.001      0.234      -0.002       0.001
+    ERRSLO            -0.002       0.001      0.095      -0.004       0.001
+
+ RUNSLO   WITH
+    TRIALSLO           0.000       0.000      0.309       0.000       0.001
+    PREVSLO            0.000       0.000      0.212      -0.001       0.000
+    ERRSLO             0.000       0.001      0.332      -0.001       0.001
+
+ TRIALSLO WITH
+    PREVSLO            0.000       0.000      0.359      -0.001       0.001
+    ERRSLO             0.000       0.001      0.473      -0.002       0.002
+
+ PREVSLO  WITH
+    ERRSLO             0.000       0.001      0.421      -0.002       0.002
+
+ ANTAG    WITH
+    CONSTRAINT         0.177       0.143      0.112      -0.107       0.453
+
+ Means
+    RUNSLO            -0.003       0.004      0.273      -0.011       0.006
+    TRIALSLO          -0.016       0.006      0.007      -0.029      -0.004      *
+
+ Intercepts
+    MANIP              0.021       0.106      0.422      -0.188       0.231
+    P1                 0.019       0.099      0.424      -0.176       0.212
+    P2                 0.003       0.095      0.486      -0.182       0.190
+    P3                -0.013       0.099      0.447      -0.206       0.181
+    P4                -0.008       0.099      0.470      -0.202       0.187
+    P5                 0.008       0.100      0.466      -0.187       0.204
+    RT_INV            -2.731       0.031      0.000      -2.794      -2.671      *
+    CONDSLO            0.120       0.011      0.000       0.097       0.142      *
+    PREVSLO            0.125       0.007      0.000       0.111       0.139      *
+    ERRSLO             0.012       0.020      0.275      -0.028       0.052
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    CONSTRAINT         1.000       0.000      0.000       1.000       1.000
+    RUNSLO             0.001       0.000      0.000       0.001       0.002      *
+    TRIALSLO           0.003       0.001      0.000       0.002       0.005      *
+
+ Residual Variances
+    MANIP              0.363       0.113      0.000       0.153       0.604      *
+    P1                 0.578       0.107      0.000       0.400       0.822      *
+    P2                 0.398       0.148      0.000       0.107       0.683      *
+    P3                 0.612       0.136      0.000       0.352       0.893      *
+    P4                 0.720       0.129      0.000       0.501       1.010      *
+    P5                 0.425       0.101      0.000       0.242       0.640      *
+    RT_INV             0.051       0.008      0.000       0.038       0.071      *
+    CONDSLO            0.004       0.001      0.000       0.002       0.006      *
+    PREVSLO            0.002       0.001      0.000       0.001       0.004      *
+    ERRSLO             0.004       0.002      0.000       0.001       0.010      *
+
+
+STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ CONDSLO | RT_INV ON
+    COND               0.157       0.012      0.000       0.134       0.181      *
+
+ PREVSLO | RT_INV ON
+    PREV_RT_Z          0.242       0.007      0.000       0.226       0.255      *
+
+ ERRSLO | RT_INV ON
+    PREV_ERROR         0.004       0.006      0.268      -0.008       0.015
+
+ RUNSLO | RT_INV ON
+    RUN_TRIAL_        -0.006       0.008      0.217      -0.021       0.009
+
+ TRIALSLO | RT_INV ON
+    TRIAL_Z           -0.041       0.008      0.000      -0.057      -0.026      *
+
+ RT_INV     ON
+    BLOCK              0.032       0.012      0.004       0.009       0.056      *
+    COND_BLOCK         0.050       0.012      0.000       0.026       0.072      *
+
+ Residual Variances
+    RT_INV             0.844       0.005      0.000       0.834       0.854      *
+
+Between Level
+
+ ANTAG    BY
+    P5                 0.749       0.071      0.000       0.592       0.872      *
+    P1                 0.623       0.084      0.000       0.438       0.767      *
+    MANIP              0.818       0.066      0.000       0.671       0.930      *
+
+ CONSTRAI BY
+    P2                 0.747       0.112      0.000       0.509       0.943      *
+    P3                 0.591       0.110      0.000       0.367       0.799      *
+    P4                 0.494       0.108      0.000       0.267       0.688      *
+
+ CONDSLO    ON
+    ANTAG              0.451       0.135      0.001       0.164       0.691      *
+    CONSTRAINT         0.033       0.159      0.417      -0.288       0.335
+
+ PREVSLO    ON
+    ANTAG             -0.089       0.149      0.276      -0.376       0.207
+    CONSTRAINT         0.368       0.151      0.012       0.050       0.643      *
+
+ ERRSLO     ON
+    ANTAG             -0.085       0.316      0.401      -0.670       0.547
+    CONSTRAINT        -0.472       0.262      0.064      -0.854       0.154
+
+ RT_INV     ON
+    ANTAG             -0.245       0.155      0.069      -0.520       0.084
+    CONSTRAINT         0.093       0.161      0.288      -0.224       0.403
+
+ CONDSLO  WITH
+    RUNSLO            -0.107       0.191      0.294      -0.466       0.269
+    TRIALSLO          -0.390       0.158      0.011      -0.677      -0.063      *
+    PREVSLO           -0.152       0.202      0.234      -0.526       0.256
+    ERRSLO            -0.470       0.302      0.095      -0.887       0.261
+
+ RUNSLO   WITH
+    TRIALSLO           0.083       0.162      0.309      -0.238       0.394
+    PREVSLO           -0.150       0.180      0.212      -0.482       0.218
+    ERRSLO             0.115       0.257      0.332      -0.396       0.595
+
+ TRIALSLO WITH
+    PREVSLO           -0.058       0.155      0.359      -0.354       0.250
+    ERRSLO             0.024       0.329      0.473      -0.598       0.661
+
+ PREVSLO  WITH
+    ERRSLO             0.072       0.334      0.421      -0.577       0.702
+
+ ANTAG    WITH
+    CONSTRAINT         0.177       0.143      0.112      -0.107       0.453
+
+ Means
+    RUNSLO            -0.083       0.139      0.273      -0.359       0.188
+    TRIALSLO          -0.287       0.116      0.007      -0.518      -0.066      *
+
+ Intercepts
+    MANIP              0.021       0.101      0.422      -0.176       0.217
+    P1                 0.019       0.100      0.424      -0.179       0.215
+    P2                 0.003       0.099      0.486      -0.189       0.199
+    P3                -0.013       0.100      0.447      -0.208       0.184
+    P4                -0.008       0.100      0.470      -0.204       0.188
+    P5                 0.008       0.101      0.466      -0.188       0.205
+    RT_INV           -11.388       0.963      0.000     -13.338      -9.572      *
+    CONDSLO            1.729       0.281      0.000       1.247       2.350      *
+    PREVSLO            2.278       0.294      0.000       1.761       2.918      *
+    ERRSLO             0.149       0.273      0.275      -0.349       0.733
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    CONSTRAINT         1.000       0.000      0.000       1.000       1.000
+    RUNSLO             1.000       0.000      0.000       1.000       1.000
+    TRIALSLO           1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    MANIP              0.331       0.106      0.000       0.136       0.550      *
+    P1                 0.611       0.102      0.000       0.411       0.808      *
+    P2                 0.443       0.164      0.000       0.110       0.741      *
+    P3                 0.650       0.130      0.000       0.361       0.865      *
+    P4                 0.756       0.104      0.000       0.526       0.929      *
+    P5                 0.439       0.105      0.000       0.239       0.650      *
+    RT_INV             0.913       0.078      0.000       0.706       0.996      *
+    CONDSLO            0.767       0.116      0.000       0.504       0.952      *
+    PREVSLO            0.848       0.106      0.000       0.587       0.987      *
+    ERRSLO             0.641       0.214      0.000       0.206       0.976      *
+
+
+STDY Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ CONDSLO | RT_INV ON
+    COND               0.315       0.024      0.000       0.268       0.361      *
+
+ PREVSLO | RT_INV ON
+    PREV_RT_Z          0.327       0.011      0.000       0.305       0.349      *
+
+ ERRSLO | RT_INV ON
+    PREV_ERROR         0.029       0.047      0.270      -0.066       0.117
+
+ RUNSLO | RT_INV ON
+    RUN_TRIAL_        -0.006       0.008      0.216      -0.022       0.009
+
+ TRIALSLO | RT_INV ON
+    TRIAL_Z           -0.042       0.008      0.000      -0.057      -0.026      *
+
+ RT_INV     ON
+    BLOCK              0.065       0.024      0.004       0.018       0.111      *
+    COND_BLOCK         0.140       0.034      0.000       0.073       0.203      *
+
+ Residual Variances
+    RT_INV             0.844       0.005      0.000       0.834       0.854      *
+
+Between Level
+
+ ANTAG    BY
+    P5                 0.749       0.071      0.000       0.592       0.872      *
+    P1                 0.623       0.084      0.000       0.438       0.767      *
+    MANIP              0.818       0.066      0.000       0.671       0.930      *
+
+ CONSTRAI BY
+    P2                 0.747       0.112      0.000       0.509       0.943      *
+    P3                 0.591       0.110      0.000       0.367       0.799      *
+    P4                 0.494       0.108      0.000       0.267       0.688      *
+
+ CONDSLO    ON
+    ANTAG              0.451       0.135      0.001       0.164       0.691      *
+    CONSTRAINT         0.033       0.159      0.417      -0.288       0.335
+
+ PREVSLO    ON
+    ANTAG             -0.089       0.149      0.276      -0.376       0.207
+    CONSTRAINT         0.368       0.151      0.012       0.050       0.643      *
+
+ ERRSLO     ON
+    ANTAG             -0.085       0.316      0.401      -0.670       0.547
+    CONSTRAINT        -0.472       0.262      0.064      -0.854       0.154
+
+ RT_INV     ON
+    ANTAG             -0.245       0.155      0.069      -0.520       0.084
+    CONSTRAINT         0.093       0.161      0.288      -0.224       0.403
+
+ CONDSLO  WITH
+    RUNSLO            -0.107       0.191      0.294      -0.466       0.269
+    TRIALSLO          -0.390       0.158      0.011      -0.677      -0.063      *
+    PREVSLO           -0.152       0.202      0.234      -0.526       0.256
+    ERRSLO            -0.470       0.302      0.095      -0.887       0.261
+
+ RUNSLO   WITH
+    TRIALSLO           0.083       0.162      0.309      -0.238       0.394
+    PREVSLO           -0.150       0.180      0.212      -0.482       0.218
+    ERRSLO             0.115       0.257      0.332      -0.396       0.595
+
+ TRIALSLO WITH
+    PREVSLO           -0.058       0.155      0.359      -0.354       0.250
+    ERRSLO             0.024       0.329      0.473      -0.598       0.661
+
+ PREVSLO  WITH
+    ERRSLO             0.072       0.334      0.421      -0.577       0.702
+
+ ANTAG    WITH
+    CONSTRAINT         0.177       0.143      0.112      -0.107       0.453
+
+ Means
+    RUNSLO            -0.083       0.139      0.273      -0.359       0.188
+    TRIALSLO          -0.287       0.116      0.007      -0.518      -0.066      *
+
+ Intercepts
+    MANIP              0.021       0.101      0.422      -0.176       0.217
+    P1                 0.019       0.100      0.424      -0.179       0.215
+    P2                 0.003       0.099      0.486      -0.189       0.199
+    P3                -0.013       0.100      0.447      -0.208       0.184
+    P4                -0.008       0.100      0.470      -0.204       0.188
+    P5                 0.008       0.101      0.466      -0.188       0.205
+    RT_INV           -11.388       0.963      0.000     -13.338      -9.572      *
+    CONDSLO            1.729       0.281      0.000       1.247       2.350      *
+    PREVSLO            2.278       0.294      0.000       1.761       2.918      *
+    ERRSLO             0.149       0.273      0.275      -0.349       0.733
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    CONSTRAINT         1.000       0.000      0.000       1.000       1.000
+    RUNSLO             1.000       0.000      0.000       1.000       1.000
+    TRIALSLO           1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    MANIP              0.331       0.106      0.000       0.136       0.550      *
+    P1                 0.611       0.102      0.000       0.411       0.808      *
+    P2                 0.443       0.164      0.000       0.110       0.741      *
+    P3                 0.650       0.130      0.000       0.361       0.865      *
+    P4                 0.756       0.104      0.000       0.526       0.929      *
+    P5                 0.439       0.105      0.000       0.239       0.650      *
+    RT_INV             0.913       0.078      0.000       0.706       0.996      *
+    CONDSLO            0.767       0.116      0.000       0.504       0.952      *
+    PREVSLO            0.848       0.106      0.000       0.587       0.987      *
+    ERRSLO             0.641       0.214      0.000       0.206       0.976      *
+
+
+STD Standardization
+
+                                Posterior  One-Tailed         95% C.I.
+                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance
+
+Within-Level Standardized Estimates Averaged Over Clusters
+
+ CONDSLO | RT_INV ON
+    COND               0.119       0.009      0.000       0.101       0.137      *
+
+ PREVSLO | RT_INV ON
+    PREV_RT_Z          0.125       0.004      0.000       0.116       0.133      *
+
+ ERRSLO | RT_INV ON
+    PREV_ERROR         0.010       0.018      0.276      -0.025       0.044
+
+ RUNSLO | RT_INV ON
+    RUN_TRIAL_        -0.003       0.003      0.188      -0.008       0.003
+
+ TRIALSLO | RT_INV ON
+    TRIAL_Z           -0.016       0.003      0.000      -0.022      -0.011      *
+
+ RT_INV     ON
+    BLOCK              0.024       0.009      0.004       0.007       0.042      *
+    COND_BLOCK         0.052       0.013      0.000       0.027       0.077      *
+
+ Residual Variances
+    RT_INV             0.119       0.001      0.000       0.116       0.121      *
+
+Between Level
+
+ ANTAG    BY
+    P5                 0.737       0.104      0.000       0.542       0.954      *
+    P1                 0.607       0.107      0.000       0.403       0.825      *
+    MANIP              0.855       0.108      0.000       0.651       1.075      *
+
+ CONSTRAI BY
+    P2                 0.711       0.131      0.000       0.456       0.963      *
+    P3                 0.576       0.127      0.000       0.342       0.843      *
+    P4                 0.484       0.122      0.000       0.252       0.730      *
+
+ CONDSLO    ON
+    ANTAG              0.451       0.135      0.001       0.164       0.691      *
+    CONSTRAINT         0.033       0.159      0.417      -0.288       0.335
+
+ PREVSLO    ON
+    ANTAG             -0.089       0.149      0.276      -0.376       0.207
+    CONSTRAINT         0.368       0.151      0.012       0.050       0.643      *
+
+ ERRSLO     ON
+    ANTAG             -0.085       0.316      0.401      -0.670       0.547
+    CONSTRAINT        -0.472       0.262      0.064      -0.854       0.154
+
+ RT_INV     ON
+    ANTAG             -0.058       0.040      0.069      -0.137       0.020
+    CONSTRAINT         0.022       0.040      0.288      -0.054       0.103
+
+ CONDSLO  WITH
+    RUNSLO            -0.107       0.191      0.294      -0.466       0.269
+    TRIALSLO          -0.390       0.158      0.011      -0.677      -0.063      *
+    PREVSLO           -0.152       0.202      0.234      -0.526       0.256
+    ERRSLO            -0.470       0.302      0.095      -0.887       0.261
+
+ RUNSLO   WITH
+    TRIALSLO           0.083       0.162      0.309      -0.238       0.394
+    PREVSLO           -0.150       0.180      0.212      -0.482       0.218
+    ERRSLO             0.115       0.257      0.332      -0.396       0.595
+
+ TRIALSLO WITH
+    PREVSLO           -0.058       0.155      0.359      -0.354       0.250
+    ERRSLO             0.024       0.329      0.473      -0.598       0.661
+
+ PREVSLO  WITH
+    ERRSLO             0.072       0.334      0.421      -0.577       0.702
+
+ ANTAG    WITH
+    CONSTRAINT         0.177       0.143      0.112      -0.107       0.453
+
+ Means
+    RUNSLO            -0.083       0.139      0.273      -0.359       0.188
+    TRIALSLO          -0.287       0.116      0.007      -0.518      -0.066      *
+
+ Intercepts
+    MANIP              0.021       0.106      0.422      -0.188       0.231
+    P1                 0.019       0.099      0.424      -0.176       0.212
+    P2                 0.003       0.095      0.486      -0.182       0.190
+    P3                -0.013       0.099      0.447      -0.206       0.181
+    P4                -0.008       0.099      0.470      -0.202       0.187
+    P5                 0.008       0.100      0.466      -0.187       0.204
+    RT_INV            -2.731       0.031      0.000      -2.794      -2.671      *
+    CONDSLO            1.729       0.281      0.000       1.247       2.350      *
+    PREVSLO            2.278       0.294      0.000       1.761       2.918      *
+    ERRSLO             0.149       0.273      0.275      -0.349       0.733
+
+ Variances
+    ANTAG              1.000       0.000      0.000       1.000       1.000
+    CONSTRAINT         1.000       0.000      0.000       1.000       1.000
+    RUNSLO             1.000       0.000      0.000       1.000       1.000
+    TRIALSLO           1.000       0.000      0.000       1.000       1.000
+
+ Residual Variances
+    MANIP              0.363       0.113      0.000       0.153       0.604      *
+    P1                 0.578       0.107      0.000       0.400       0.822      *
+    P2                 0.398       0.148      0.000       0.107       0.683      *
+    P3                 0.612       0.136      0.000       0.352       0.893      *
+    P4                 0.720       0.129      0.000       0.501       1.010      *
+    P5                 0.425       0.101      0.000       0.242       0.640      *
+    RT_INV             0.051       0.008      0.000       0.038       0.071      *
+    CONDSLO            0.767       0.116      0.000       0.504       0.952      *
+    PREVSLO            0.848       0.106      0.000       0.587       0.987      *
+    ERRSLO             0.641       0.214      0.000       0.206       0.976      *
+
+
+R-SQUARE
+
+Within-Level R-Square Averaged Across Clusters
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    RT_INV             0.156       0.005      0.000       0.146       0.166
+
+Between Level
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    MANIP              0.669       0.106      0.000       0.450       0.864
+    P1                 0.389       0.102      0.000       0.192       0.588
+    P2                 0.557       0.164      0.000       0.259       0.890
+    P3                 0.350       0.130      0.000       0.135       0.638
+    P4                 0.244       0.104      0.000       0.071       0.474
+    P5                 0.561       0.105      0.000       0.350       0.761
+    RT_INV             0.087       0.078      0.000       0.004       0.294
+
+                                Posterior  One-Tailed         95% C.I.
+    Variable        Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%
+
+    CONDSLO            0.233       0.116      0.000       0.048       0.496
+    PREVSLO            0.152       0.106      0.000       0.013       0.413
+    ERRSLO             0.359       0.214      0.000       0.024       0.794
+
+
+CREDIBILITY INTERVALS OF MODEL RESULTS
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ RT_INV   ON
+    BLOCK            0.001       0.007       0.010       0.025       0.040       0.042       0.048
+    COND_BLOCK       0.019       0.027       0.031       0.051       0.072       0.076       0.084
+
+ Residual Variances
+    RT_INV           0.115       0.116       0.116       0.119       0.121       0.121       0.122
+
+Between Level
+
+ ANTAG    BY
+    P5               0.482       0.542       0.572       0.737       0.917       0.954       1.027
+    P1               0.340       0.403       0.436       0.607       0.790       0.825       0.903
+    MANIP            0.586       0.651       0.685       0.855       1.038       1.075       1.155
+
+ CONSTRAI BY
+    P2               0.377       0.456       0.498       0.711       0.926       0.963       1.034
+    P3               0.269       0.342       0.378       0.576       0.796       0.843       0.944
+    P4               0.174       0.252       0.291       0.484       0.690       0.730       0.812
+
+ CONDSLO  ON
+    ANTAG            0.004       0.011       0.014       0.031       0.048       0.052       0.059
+    CONSTRAINT      -0.027      -0.020      -0.016       0.002       0.020       0.024       0.030
+
+ PREVSLO  ON
+    ANTAG           -0.027      -0.021      -0.019      -0.005       0.009       0.011       0.017
+    CONSTRAINT      -0.003       0.003       0.005       0.020       0.035       0.038       0.044
+
+ ERRSLO   ON
+    ANTAG           -0.082      -0.062      -0.052      -0.006       0.036       0.045       0.063
+    CONSTRAINT      -0.101      -0.083      -0.076      -0.036       0.003       0.011       0.025
+
+ RT_INV   ON
+    ANTAG           -0.163      -0.137      -0.124      -0.058       0.007       0.020       0.046
+    CONSTRAINT      -0.078      -0.054      -0.042       0.022       0.089       0.103       0.129
+
+ CONDSLO  WITH
+    RUNSLO          -0.001      -0.001      -0.001       0.000       0.000       0.001       0.001
+    TRIALSLO        -0.003      -0.003      -0.002      -0.001       0.000       0.000       0.000
+    PREVSLO         -0.002      -0.002      -0.001       0.000       0.001       0.001       0.001
+    ERRSLO          -0.006      -0.004      -0.004      -0.002       0.000       0.001       0.002
+
+ RUNSLO   WITH
+    TRIALSLO        -0.001       0.000       0.000       0.000       0.001       0.001       0.001
+    PREVSLO         -0.001      -0.001      -0.001       0.000       0.000       0.000       0.001
+    ERRSLO          -0.001      -0.001      -0.001       0.000       0.001       0.001       0.002
+
+ TRIALSLO WITH
+    PREVSLO         -0.001      -0.001      -0.001       0.000       0.001       0.001       0.001
+    ERRSLO          -0.003      -0.002      -0.002       0.000       0.002       0.002       0.003
+
+ PREVSLO  WITH
+    ERRSLO          -0.003      -0.002      -0.002       0.000       0.002       0.002       0.003
+
+ ANTAG    WITH
+    CONSTRAINT      -0.194      -0.107      -0.061       0.177       0.409       0.453       0.536
+
+ Means
+    RUNSLO          -0.014      -0.011      -0.010      -0.003       0.005       0.006       0.009
+    TRIALSLO        -0.034      -0.029      -0.027      -0.016      -0.006      -0.004       0.000
+
+ Intercepts
+    MANIP           -0.252      -0.188      -0.154       0.021       0.197       0.231       0.295
+    P1              -0.240      -0.176      -0.145       0.019       0.180       0.212       0.275
+    P2              -0.242      -0.182      -0.152       0.003       0.160       0.190       0.251
+    P3              -0.273      -0.206      -0.174      -0.013       0.151       0.181       0.247
+    P4              -0.268      -0.202      -0.171      -0.008       0.154       0.187       0.249
+    P5              -0.251      -0.187      -0.157       0.008       0.174       0.204       0.268
+    RT_INV          -2.813      -2.794      -2.784      -2.731      -2.681      -2.671      -2.652
+    CONDSLO          0.090       0.097       0.101       0.120       0.138       0.142       0.150
+    PREVSLO          0.106       0.111       0.113       0.125       0.136       0.139       0.143
+    ERRSLO          -0.039      -0.028      -0.021       0.012       0.046       0.052       0.065
+
+ Variances
+    ANTAG            1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    CONSTRAINT       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    RUNSLO           0.001       0.001       0.001       0.001       0.001       0.002       0.002
+    TRIALSLO         0.002       0.002       0.002       0.003       0.005       0.005       0.005
+
+ Residual Variances
+    MANIP            0.095       0.153       0.187       0.363       0.559       0.604       0.695
+    P1               0.350       0.400       0.426       0.578       0.776       0.822       0.915
+    P2               0.048       0.107       0.147       0.398       0.637       0.683       0.787
+    P3               0.238       0.352       0.401       0.612       0.842       0.893       1.006
+    P4               0.437       0.501       0.533       0.720       0.957       1.010       1.128
+    P5               0.178       0.242       0.273       0.425       0.601       0.640       0.731
+    RT_INV           0.035       0.038       0.040       0.051       0.067       0.071       0.079
+    CONDSLO          0.001       0.002       0.002       0.004       0.006       0.006       0.007
+    PREVSLO          0.001       0.001       0.002       0.002       0.004       0.004       0.005
+    ERRSLO           0.001       0.001       0.001       0.004       0.009       0.010       0.013
+
+
+CREDIBILITY INTERVALS OF STANDARDIZED MODEL RESULTS
+
+
+STDYX Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ RT_INV   ON
+    BLOCK            0.000       0.009       0.000       0.032       0.000       0.056       0.000
+    COND_BLOCK       0.000       0.026       0.000       0.050       0.000       0.072       0.000
+
+ Residual Variances
+    RT_INV           0.000       0.834       0.000       0.844       0.000       0.854       0.000
+
+Between Level
+
+ ANTAG    BY
+    P5               0.534       0.592       0.621       0.749       0.853       0.872       0.911
+    P1               0.369       0.438       0.472       0.623       0.746       0.767       0.807
+    MANIP            0.611       0.671       0.697       0.818       0.914       0.930       0.958
+
+ CONSTRAI BY
+    P2               0.421       0.509       0.551       0.747       0.918       0.943       0.973
+    P3               0.291       0.367       0.405       0.591       0.765       0.799       0.878
+    P4               0.183       0.267       0.306       0.494       0.659       0.688       0.743
+
+ CONDSLO  ON
+    ANTAG            0.066       0.164       0.211       0.451       0.656       0.691       0.764
+    CONSTRAINT      -0.392      -0.288      -0.235       0.033       0.290       0.335       0.418
+
+ PREVSLO  ON
+    ANTAG           -0.459      -0.376      -0.331      -0.089       0.161       0.207       0.294
+    CONSTRAINT      -0.058       0.050       0.103       0.368       0.600       0.643       0.722
+
+ ERRSLO   ON
+    ANTAG           -0.789      -0.670      -0.597      -0.085       0.451       0.547       0.700
+    CONSTRAINT      -0.921      -0.854      -0.816      -0.472       0.045       0.154       0.358
+
+ RT_INV   ON
+    ANTAG           -0.588      -0.520      -0.481      -0.245       0.029       0.084       0.193
+    CONSTRAINT      -0.312      -0.224      -0.176       0.093       0.356       0.403       0.488
+
+ CONDSLO  WITH
+    RUNSLO          -0.563      -0.466      -0.414      -0.107       0.216       0.269       0.386
+    TRIALSLO        -0.746      -0.677      -0.637      -0.390      -0.117      -0.063       0.049
+    PREVSLO         -0.619      -0.526      -0.470      -0.152       0.193       0.256       0.381
+    ERRSLO          -0.956      -0.887      -0.845      -0.470       0.135       0.261       0.503
+
+ RUNSLO   WITH
+    TRIALSLO        -0.333      -0.238      -0.189       0.083       0.346       0.394       0.482
+    PREVSLO         -0.571      -0.482      -0.434      -0.150       0.160       0.218       0.319
+    ERRSLO          -0.525      -0.396      -0.316       0.115       0.527       0.595       0.718
+
+ TRIALSLO WITH
+    PREVSLO         -0.440      -0.354      -0.308      -0.058       0.203       0.250       0.340
+    ERRSLO          -0.745      -0.598      -0.516       0.024       0.584       0.661       0.775
+
+ PREVSLO  WITH
+    ERRSLO          -0.733      -0.577      -0.488       0.072       0.620       0.702       0.834
+
+ ANTAG    WITH
+    CONSTRAINT      -0.194      -0.107      -0.061       0.177       0.409       0.453       0.536
+
+ Means
+    RUNSLO          -0.453      -0.359      -0.312      -0.083       0.143       0.188       0.273
+    TRIALSLO        -0.594      -0.518      -0.482      -0.287      -0.100      -0.066       0.008
+
+ Intercepts
+    MANIP           -0.237      -0.176      -0.146       0.021       0.187       0.217       0.281
+    P1              -0.239      -0.179      -0.146       0.019       0.184       0.215       0.277
+    P2              -0.251      -0.189      -0.159       0.003       0.167       0.199       0.258
+    P3              -0.271      -0.208      -0.177      -0.013       0.153       0.184       0.248
+    P4              -0.271      -0.204      -0.172      -0.008       0.156       0.188       0.249
+    P5              -0.248      -0.188      -0.157       0.008       0.174       0.205       0.268
+    RT_INV         -14.045     -13.338     -13.015     -11.388      -9.849      -9.572      -9.028
+    CONDSLO          1.122       1.247       1.319       1.729       2.242       2.350       2.586
+    PREVSLO          1.620       1.761       1.835       2.278       2.805       2.918       3.141
+    ERRSLO          -0.504      -0.349      -0.268       0.149       0.628       0.733       0.982
+
+ Variances
+    ANTAG            1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    CONSTRAINT       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    RUNSLO           1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    TRIALSLO         1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    MANIP            0.081       0.136       0.165       0.331       0.514       0.550       0.626
+    P1               0.348       0.411       0.444       0.611       0.778       0.808       0.864
+    P2               0.053       0.110       0.157       0.443       0.696       0.741       0.822
+    P3               0.229       0.361       0.414       0.650       0.836       0.865       0.915
+    P4               0.446       0.526       0.566       0.756       0.906       0.929       0.966
+    P5               0.169       0.239       0.272       0.439       0.615       0.650       0.715
+    RT_INV           0.633       0.706       0.743       0.913       0.991       0.996       0.999
+    CONDSLO          0.419       0.504       0.549       0.767       0.931       0.952       0.983
+    PREVSLO          0.489       0.587       0.637       0.848       0.976       0.987       0.997
+    ERRSLO           0.127       0.206       0.258       0.641       0.953       0.976       0.996
+
+
+STDY Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ RT_INV   ON
+    BLOCK            0.000       0.018       0.000       0.065       0.000       0.111       0.000
+    COND_BLOCK       0.000       0.073       0.000       0.140       0.000       0.203       0.000
+
+ Residual Variances
+    RT_INV           0.000       0.834       0.000       0.844       0.000       0.854       0.000
+
+Between Level
+
+ ANTAG    BY
+    P5               0.534       0.592       0.621       0.749       0.853       0.872       0.911
+    P1               0.369       0.438       0.472       0.623       0.746       0.767       0.807
+    MANIP            0.611       0.671       0.697       0.818       0.914       0.930       0.958
+
+ CONSTRAI BY
+    P2               0.421       0.509       0.551       0.747       0.918       0.943       0.973
+    P3               0.291       0.367       0.405       0.591       0.765       0.799       0.878
+    P4               0.183       0.267       0.306       0.494       0.659       0.688       0.743
+
+ CONDSLO  ON
+    ANTAG            0.066       0.164       0.211       0.451       0.656       0.691       0.764
+    CONSTRAINT      -0.392      -0.288      -0.235       0.033       0.290       0.335       0.418
+
+ PREVSLO  ON
+    ANTAG           -0.459      -0.376      -0.331      -0.089       0.161       0.207       0.294
+    CONSTRAINT      -0.058       0.050       0.103       0.368       0.600       0.643       0.722
+
+ ERRSLO   ON
+    ANTAG           -0.789      -0.670      -0.597      -0.085       0.451       0.547       0.700
+    CONSTRAINT      -0.921      -0.854      -0.816      -0.472       0.045       0.154       0.358
+
+ RT_INV   ON
+    ANTAG           -0.588      -0.520      -0.481      -0.245       0.029       0.084       0.193
+    CONSTRAINT      -0.312      -0.224      -0.176       0.093       0.356       0.403       0.488
+
+ CONDSLO  WITH
+    RUNSLO          -0.563      -0.466      -0.414      -0.107       0.216       0.269       0.386
+    TRIALSLO        -0.746      -0.677      -0.637      -0.390      -0.117      -0.063       0.049
+    PREVSLO         -0.619      -0.526      -0.470      -0.152       0.193       0.256       0.381
+    ERRSLO          -0.956      -0.887      -0.845      -0.470       0.135       0.261       0.503
+
+ RUNSLO   WITH
+    TRIALSLO        -0.333      -0.238      -0.189       0.083       0.346       0.394       0.482
+    PREVSLO         -0.571      -0.482      -0.434      -0.150       0.160       0.218       0.319
+    ERRSLO          -0.525      -0.396      -0.316       0.115       0.527       0.595       0.718
+
+ TRIALSLO WITH
+    PREVSLO         -0.440      -0.354      -0.308      -0.058       0.203       0.250       0.340
+    ERRSLO          -0.745      -0.598      -0.516       0.024       0.584       0.661       0.775
+
+ PREVSLO  WITH
+    ERRSLO          -0.733      -0.577      -0.488       0.072       0.620       0.702       0.834
+
+ ANTAG    WITH
+    CONSTRAINT      -0.194      -0.107      -0.061       0.177       0.409       0.453       0.536
+
+ Means
+    RUNSLO          -0.453      -0.359      -0.312      -0.083       0.143       0.188       0.273
+    TRIALSLO        -0.594      -0.518      -0.482      -0.287      -0.100      -0.066       0.008
+
+ Intercepts
+    MANIP           -0.237      -0.176      -0.146       0.021       0.187       0.217       0.281
+    P1              -0.239      -0.179      -0.146       0.019       0.184       0.215       0.277
+    P2              -0.251      -0.189      -0.159       0.003       0.167       0.199       0.258
+    P3              -0.271      -0.208      -0.177      -0.013       0.153       0.184       0.248
+    P4              -0.271      -0.204      -0.172      -0.008       0.156       0.188       0.249
+    P5              -0.248      -0.188      -0.157       0.008       0.174       0.205       0.268
+    RT_INV         -14.045     -13.338     -13.015     -11.388      -9.849      -9.572      -9.028
+    CONDSLO          1.122       1.247       1.319       1.729       2.242       2.350       2.586
+    PREVSLO          1.620       1.761       1.835       2.278       2.805       2.918       3.141
+    ERRSLO          -0.504      -0.349      -0.268       0.149       0.628       0.733       0.982
+
+ Variances
+    ANTAG            1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    CONSTRAINT       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    RUNSLO           1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    TRIALSLO         1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    MANIP            0.081       0.136       0.165       0.331       0.514       0.550       0.626
+    P1               0.348       0.411       0.444       0.611       0.778       0.808       0.864
+    P2               0.053       0.110       0.157       0.443       0.696       0.741       0.822
+    P3               0.229       0.361       0.414       0.650       0.836       0.865       0.915
+    P4               0.446       0.526       0.566       0.756       0.906       0.929       0.966
+    P5               0.169       0.239       0.272       0.439       0.615       0.650       0.715
+    RT_INV           0.633       0.706       0.743       0.913       0.991       0.996       0.999
+    CONDSLO          0.419       0.504       0.549       0.767       0.931       0.952       0.983
+    PREVSLO          0.489       0.587       0.637       0.848       0.976       0.987       0.997
+    ERRSLO           0.127       0.206       0.258       0.641       0.953       0.976       0.996
+
+
+STD Standardization
+
+                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%
+
+Within Level
+
+ RT_INV   ON
+    BLOCK            0.000       0.007       0.000       0.024       0.000       0.042       0.000
+    COND_BLOCK       0.000       0.027       0.000       0.052       0.000       0.077       0.000
+
+ Residual Variances
+    RT_INV           0.000       0.116       0.000       0.119       0.000       0.121       0.000
+
+Between Level
+
+ ANTAG    BY
+    P5               0.482       0.542       0.572       0.737       0.917       0.954       1.027
+    P1               0.340       0.403       0.436       0.607       0.790       0.825       0.903
+    MANIP            0.586       0.651       0.685       0.855       1.038       1.075       1.155
+
+ CONSTRAI BY
+    P2               0.377       0.456       0.498       0.711       0.926       0.963       1.034
+    P3               0.269       0.342       0.378       0.576       0.796       0.843       0.944
+    P4               0.174       0.252       0.291       0.484       0.690       0.730       0.812
+
+ CONDSLO  ON
+    ANTAG            0.066       0.164       0.211       0.451       0.656       0.691       0.764
+    CONSTRAINT      -0.392      -0.288      -0.235       0.033       0.290       0.335       0.418
+
+ PREVSLO  ON
+    ANTAG           -0.459      -0.376      -0.331      -0.089       0.161       0.207       0.294
+    CONSTRAINT      -0.058       0.050       0.103       0.368       0.600       0.643       0.722
+
+ ERRSLO   ON
+    ANTAG           -0.789      -0.670      -0.597      -0.085       0.451       0.547       0.700
+    CONSTRAINT      -0.921      -0.854      -0.816      -0.472       0.045       0.154       0.358
+
+ RT_INV   ON
+    ANTAG           -0.163      -0.137      -0.124      -0.058       0.007       0.020       0.046
+    CONSTRAINT      -0.078      -0.054      -0.042       0.022       0.089       0.103       0.129
+
+ CONDSLO  WITH
+    RUNSLO          -0.563      -0.466      -0.414      -0.107       0.216       0.269       0.386
+    TRIALSLO        -0.746      -0.677      -0.637      -0.390      -0.117      -0.063       0.049
+    PREVSLO         -0.619      -0.526      -0.470      -0.152       0.193       0.256       0.381
+    ERRSLO          -0.956      -0.887      -0.845      -0.470       0.135       0.261       0.503
+
+ RUNSLO   WITH
+    TRIALSLO        -0.333      -0.238      -0.189       0.083       0.346       0.394       0.482
+    PREVSLO         -0.571      -0.482      -0.434      -0.150       0.160       0.218       0.319
+    ERRSLO          -0.525      -0.396      -0.316       0.115       0.527       0.595       0.718
+
+ TRIALSLO WITH
+    PREVSLO         -0.440      -0.354      -0.308      -0.058       0.203       0.250       0.340
+    ERRSLO          -0.745      -0.598      -0.516       0.024       0.584       0.661       0.775
+
+ PREVSLO  WITH
+    ERRSLO          -0.733      -0.577      -0.488       0.072       0.620       0.702       0.834
+
+ ANTAG    WITH
+    CONSTRAINT      -0.194      -0.107      -0.061       0.177       0.409       0.453       0.536
+
+ Means
+    RUNSLO          -0.453      -0.359      -0.312      -0.083       0.143       0.188       0.273
+    TRIALSLO        -0.594      -0.518      -0.482      -0.287      -0.100      -0.066       0.008
+
+ Intercepts
+    MANIP           -0.252      -0.188      -0.154       0.021       0.197       0.231       0.295
+    P1              -0.240      -0.176      -0.145       0.019       0.180       0.212       0.275
+    P2              -0.242      -0.182      -0.152       0.003       0.160       0.190       0.251
+    P3              -0.273      -0.206      -0.174      -0.013       0.151       0.181       0.247
+    P4              -0.268      -0.202      -0.171      -0.008       0.154       0.187       0.249
+    P5              -0.251      -0.187      -0.157       0.008       0.174       0.204       0.268
+    RT_INV          -2.813      -2.794      -2.784      -2.731      -2.681      -2.671      -2.652
+    CONDSLO          1.122       1.247       1.319       1.729       2.242       2.350       2.586
+    PREVSLO          1.620       1.761       1.835       2.278       2.805       2.918       3.141
+    ERRSLO          -0.504      -0.349      -0.268       0.149       0.628       0.733       0.982
+
+ Variances
+    ANTAG            1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    CONSTRAINT       1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    RUNSLO           1.000       1.000       1.000       1.000       1.000       1.000       1.000
+    TRIALSLO         1.000       1.000       1.000       1.000       1.000       1.000       1.000
+
+ Residual Variances
+    MANIP            0.095       0.153       0.187       0.363       0.559       0.604       0.695
+    P1               0.350       0.400       0.426       0.578       0.776       0.822       0.915
+    P2               0.048       0.107       0.147       0.398       0.637       0.683       0.787
+    P3               0.238       0.352       0.401       0.612       0.842       0.893       1.006
+    P4               0.437       0.501       0.533       0.720       0.957       1.010       1.128
+    P5               0.178       0.242       0.273       0.425       0.601       0.640       0.731
+    RT_INV           0.035       0.038       0.040       0.051       0.067       0.071       0.079
+    CONDSLO          0.419       0.504       0.549       0.767       0.931       0.952       0.983
+    PREVSLO          0.489       0.587       0.637       0.848       0.976       0.987       0.997
+    ERRSLO           0.127       0.206       0.258       0.641       0.953       0.976       0.996
+
+
+TECHNICAL 1 OUTPUT
+
+
+     PARAMETER SPECIFICATION FOR WITHIN
+
+
+           NU
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           NU
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+                    0             0             0
+
+
+           LAMBDA
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ RT_INV             0             0             0             0             0
+ COND               0             0             0             0             0
+ BLOCK              0             0             0             0             0
+ PREV_RT_           0             0             0             0             0
+ PREV_ERR           0             0             0             0             0
+ TRIAL_Z            0             0             0             0             0
+ RUN_TRIA           0             0             0             0             0
+ COND_BLO           0             0             0             0             0
+
+
+           LAMBDA
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+ RT_INV             0             0             0
+ COND               0             0             0
+ BLOCK              0             0             0
+ PREV_RT_           0             0             0
+ PREV_ERR           0             0             0
+ TRIAL_Z            0             0             0
+ RUN_TRIA           0             0             0
+ COND_BLO           0             0             0
+
+
+           THETA
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ RT_INV             0
+ COND               0             0
+ BLOCK              0             0             0
+ PREV_RT_           0             0             0             0
+ PREV_ERR           0             0             0             0             0
+ TRIAL_Z            0             0             0             0             0
+ RUN_TRIA           0             0             0             0             0
+ COND_BLO           0             0             0             0             0
+
+
+           THETA
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+ TRIAL_Z            0
+ RUN_TRIA           0             0
+ COND_BLO           0             0             0
+
+
+           ALPHA
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                    0             0             0             0             0
+
+
+           ALPHA
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+                    0             0             0
+
+
+           BETA
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ RT_INV             0             0             1             0             0
+ COND               0             0             0             0             0
+ BLOCK              0             0             0             0             0
+ PREV_RT_           0             0             0             0             0
+ PREV_ERR           0             0             0             0             0
+ TRIAL_Z            0             0             0             0             0
+ RUN_TRIA           0             0             0             0             0
+ COND_BLO           0             0             0             0             0
+
+
+           BETA
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+ RT_INV             0             0             2
+ COND               0             0             0
+ BLOCK              0             0             0
+ PREV_RT_           0             0             0
+ PREV_ERR           0             0             0
+ TRIAL_Z            0             0             0
+ RUN_TRIA           0             0             0
+ COND_BLO           0             0             0
+
+
+           PSI
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ RT_INV             3
+ COND               0             0
+ BLOCK              0             0             0
+ PREV_RT_           0             0             0             0
+ PREV_ERR           0             0             0             0             0
+ TRIAL_Z            0             0             0             0             0
+ RUN_TRIA           0             0             0             0             0
+ COND_BLO           0             0             0             0             0
+
+
+           PSI
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+ TRIAL_Z            0
+ RUN_TRIA           0             0
+ COND_BLO           0             0             0
+
+
+     PARAMETER SPECIFICATION FOR BETWEEN
+
+
+           NU
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+                    4             5             6             7             8
+
+
+           NU
+              P5            RT_INV
+              ________      ________
+                    9             0
+
+
+           LAMBDA
+              ANTAG         CONSTRAI      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+ MANIP             10             0             0             0             0
+ P1                11             0             0             0             0
+ P2                 0            12             0             0             0
+ P3                 0            13             0             0             0
+ P4                 0            14             0             0             0
+ P5                15             0             0             0             0
+ RT_INV             0             0             0             0             0
+
+
+           LAMBDA
+              RUNSLO        TRIALSLO      RT_INV
+              ________      ________      ________
+ MANIP              0             0             0
+ P1                 0             0             0
+ P2                 0             0             0
+ P3                 0             0             0
+ P4                 0             0             0
+ P5                 0             0             0
+ RT_INV             0             0             0
+
+
+           THETA
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+ MANIP             16
+ P1                 0            17
+ P2                 0             0            18
+ P3                 0             0             0            19
+ P4                 0             0             0             0            20
+ P5                 0             0             0             0             0
+ RT_INV             0             0             0             0             0
+
+
+           THETA
+              P5            RT_INV
+              ________      ________
+ P5                21
+ RT_INV             0             0
+
+
+           ALPHA
+              ANTAG         CONSTRAI      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+                    0             0            22            23            24
+
+
+           ALPHA
+              RUNSLO        TRIALSLO      RT_INV
+              ________      ________      ________
+                   25            26            27
+
+
+           BETA
+              ANTAG         CONSTRAI      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+ ANTAG              0             0             0             0             0
+ CONSTRAI           0             0             0             0             0
+ CONDSLO           28            29             0             0             0
+ PREVSLO           30            31             0             0             0
+ ERRSLO            32            33             0             0             0
+ RUNSLO             0             0             0             0             0
+ TRIALSLO           0             0             0             0             0
+ RT_INV            34            35             0             0             0
+
+
+           BETA
+              RUNSLO        TRIALSLO      RT_INV
+              ________      ________      ________
+ ANTAG              0             0             0
+ CONSTRAI           0             0             0
+ CONDSLO            0             0             0
+ PREVSLO            0             0             0
+ ERRSLO             0             0             0
+ RUNSLO             0             0             0
+ TRIALSLO           0             0             0
+ RT_INV             0             0             0
+
+
+           PSI
+              ANTAG         CONSTRAI      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+ ANTAG              0
+ CONSTRAI          36             0
+ CONDSLO            0             0            37
+ PREVSLO            0             0            38            39
+ ERRSLO             0             0            40            41            42
+ RUNSLO             0             0            43            44            45
+ TRIALSLO           0             0            47            48            49
+ RT_INV             0             0             0             0             0
+
+
+           PSI
+              RUNSLO        TRIALSLO      RT_INV
+              ________      ________      ________
+ RUNSLO            46
+ TRIALSLO          50            51
+ RT_INV             0             0            52
+
+
+     STARTING VALUES FOR WITHIN
+
+
+           NU
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           NU
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+                0.000         0.000         0.000
+
+
+           LAMBDA
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ RT_INV         1.000         0.000         0.000         0.000         0.000
+ COND           0.000         1.000         0.000         0.000         0.000
+ BLOCK          0.000         0.000         1.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000         1.000         0.000
+ PREV_ERR       0.000         0.000         0.000         0.000         1.000
+ TRIAL_Z        0.000         0.000         0.000         0.000         0.000
+ RUN_TRIA       0.000         0.000         0.000         0.000         0.000
+ COND_BLO       0.000         0.000         0.000         0.000         0.000
+
+
+           LAMBDA
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+ RT_INV         0.000         0.000         0.000
+ COND           0.000         0.000         0.000
+ BLOCK          0.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000
+ PREV_ERR       0.000         0.000         0.000
+ TRIAL_Z        1.000         0.000         0.000
+ RUN_TRIA       0.000         1.000         0.000
+ COND_BLO       0.000         0.000         1.000
+
+
+           THETA
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ RT_INV         0.000
+ COND           0.000         0.000
+ BLOCK          0.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000         0.000
+ PREV_ERR       0.000         0.000         0.000         0.000         0.000
+ TRIAL_Z        0.000         0.000         0.000         0.000         0.000
+ RUN_TRIA       0.000         0.000         0.000         0.000         0.000
+ COND_BLO       0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+ TRIAL_Z        0.000
+ RUN_TRIA       0.000         0.000
+ COND_BLO       0.000         0.000         0.000
+
+
+           ALPHA
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+                0.000         0.000         0.000
+
+
+           BETA
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ RT_INV         0.000         0.000         0.000         0.000         0.000
+ COND           0.000         0.000         0.000         0.000         0.000
+ BLOCK          0.000         0.000         0.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000         0.000         0.000
+ PREV_ERR       0.000         0.000         0.000         0.000         0.000
+ TRIAL_Z        0.000         0.000         0.000         0.000         0.000
+ RUN_TRIA       0.000         0.000         0.000         0.000         0.000
+ COND_BLO       0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+ RT_INV         0.000         0.000         0.000
+ COND           0.000         0.000         0.000
+ BLOCK          0.000         0.000         0.000
+ PREV_RT_       0.000         0.000         0.000
+ PREV_ERR       0.000         0.000         0.000
+ TRIAL_Z        0.000         0.000         0.000
+ RUN_TRIA       0.000         0.000         0.000
+ COND_BLO       0.000         0.000         0.000
+
+
+           PSI
+              RT_INV        COND          BLOCK         PREV_RT_      PREV_ERR
+              ________      ________      ________      ________      ________
+ RT_INV         0.113
+ COND           0.000         0.125
+ BLOCK          0.000         0.000         0.125
+ PREV_RT_       0.000         0.000         0.000         0.493
+ PREV_ERR       0.000         0.000         0.000         0.000         0.016
+ TRIAL_Z        0.000         0.000         0.000         0.000         0.000
+ RUN_TRIA       0.000         0.000         0.000         0.000         0.000
+ COND_BLO       0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              TRIAL_Z       RUN_TRIA      COND_BLO
+              ________      ________      ________
+ TRIAL_Z        0.495
+ RUN_TRIA       0.000         0.465
+ COND_BLO       0.000         0.000         0.063
+
+
+     STARTING VALUES FOR BETWEEN
+
+
+           NU
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+                0.016         0.018         0.008        -0.019        -0.010
+
+
+           NU
+              P5            RT_INV
+              ________      ________
+                0.002         0.000
+
+
+           LAMBDA
+              ANTAG         CONSTRAI      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+ MANIP          1.000         0.000         0.000         0.000         0.000
+ P1             1.000         0.000         0.000         0.000         0.000
+ P2             0.000         1.000         0.000         0.000         0.000
+ P3             0.000         1.000         0.000         0.000         0.000
+ P4             0.000         1.000         0.000         0.000         0.000
+ P5             1.000         0.000         0.000         0.000         0.000
+ RT_INV         0.000         0.000         0.000         0.000         0.000
+
+
+           LAMBDA
+              RUNSLO        TRIALSLO      RT_INV
+              ________      ________      ________
+ MANIP          0.000         0.000         0.000
+ P1             0.000         0.000         0.000
+ P2             0.000         0.000         0.000
+ P3             0.000         0.000         0.000
+ P4             0.000         0.000         0.000
+ P5             0.000         0.000         0.000
+ RT_INV         0.000         0.000         1.000
+
+
+           THETA
+              MANIP         P1            P2            P3            P4
+              ________      ________      ________      ________      ________
+ MANIP          0.500
+ P1             0.000         0.443
+ P2             0.000         0.000         0.419
+ P3             0.000         0.000         0.000         0.440
+ P4             0.000         0.000         0.000         0.000         0.450
+ P5             0.000         0.000         0.000         0.000         0.000
+ RT_INV         0.000         0.000         0.000         0.000         0.000
+
+
+           THETA
+              P5            RT_INV
+              ________      ________
+ P5             0.444
+ RT_INV         0.000         0.000
+
+
+           ALPHA
+              ANTAG         CONSTRAI      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+                0.000         0.000         0.000         0.000         0.000
+
+
+           ALPHA
+              RUNSLO        TRIALSLO      RT_INV
+              ________      ________      ________
+                0.000         0.000        -2.642
+
+
+           BETA
+              ANTAG         CONSTRAI      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+ ANTAG          0.000         0.000         0.000         0.000         0.000
+ CONSTRAI       0.000         0.000         0.000         0.000         0.000
+ CONDSLO        0.000         0.000         0.000         0.000         0.000
+ PREVSLO        0.000         0.000         0.000         0.000         0.000
+ ERRSLO         0.000         0.000         0.000         0.000         0.000
+ RUNSLO         0.000         0.000         0.000         0.000         0.000
+ TRIALSLO       0.000         0.000         0.000         0.000         0.000
+ RT_INV         0.000         0.000         0.000         0.000         0.000
+
+
+           BETA
+              RUNSLO        TRIALSLO      RT_INV
+              ________      ________      ________
+ ANTAG          0.000         0.000         0.000
+ CONSTRAI       0.000         0.000         0.000
+ CONDSLO        0.000         0.000         0.000
+ PREVSLO        0.000         0.000         0.000
+ ERRSLO         0.000         0.000         0.000
+ RUNSLO         0.000         0.000         0.000
+ TRIALSLO       0.000         0.000         0.000
+ RT_INV         0.000         0.000         0.000
+
+
+           PSI
+              ANTAG         CONSTRAI      CONDSLO       PREVSLO       ERRSLO
+              ________      ________      ________      ________      ________
+ ANTAG          1.000
+ CONSTRAI       0.000         1.000
+ CONDSLO        0.000         0.000         1.000
+ PREVSLO        0.000         0.000         0.000         1.000
+ ERRSLO         0.000         0.000         0.000         0.000         1.000
+ RUNSLO         0.000         0.000         0.000         0.000         0.000
+ TRIALSLO       0.000         0.000         0.000         0.000         0.000
+ RT_INV         0.000         0.000         0.000         0.000         0.000
+
+
+           PSI
+              RUNSLO        TRIALSLO      RT_INV
+              ________      ________      ________
+ RUNSLO         1.000
+ TRIALSLO       0.000         1.000
+ RT_INV         0.000         0.000         0.113
+
+
+
+     PRIORS FOR ALL PARAMETERS            PRIOR MEAN      PRIOR VARIANCE     PRIOR STD. DEV.
+
+     Parameter 1~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 2~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 3~IG(-1.000,0.000)          infinity            infinity            infinity
+     Parameter 4~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 5~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 6~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 7~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 8~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 9~N(0.000,infinity)           0.0000            infinity            infinity
+     Parameter 10~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 11~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 12~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 13~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 14~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 15~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 16~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 17~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 18~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 19~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 20~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 21~IG(-1.000,0.000)         infinity            infinity            infinity
+     Parameter 22~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 23~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 24~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 25~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 26~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 27~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 28~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 29~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 30~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 31~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 32~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 33~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 34~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 35~N(0.000,infinity)          0.0000            infinity            infinity
+     Parameter 36~IW(0.000,-3)
+     Parameter 37~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 38~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 39~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 40~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 41~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 42~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 43~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 44~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 45~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 46~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 47~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 48~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 49~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 50~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 51~IW(0.000,-6)             infinity            infinity            infinity
+     Parameter 52~IG(-1.000,0.000)         infinity            infinity            infinity
+
+
+TECHNICAL 8 OUTPUT
+
+
+   TECHNICAL 8 OUTPUT FOR BAYES ESTIMATION
+
+     CHAIN    BSEED
+     1        0
+     2        285380
+     3        253358
+     4        93468
+
+                     POTENTIAL       PARAMETER WITH
+     ITERATION    SCALE REDUCTION      HIGHEST PSR
+     100              1.561               32
+     200              1.567               33
+     300              1.343               33
+     400              1.124               33
+     500              1.096               33
+     600              1.093               33
+     700              1.127               32
+     800              1.132               32
+     900              1.136               32
+     1000             1.107               32
+     1100             1.103               32
+     1200             1.061               32
+     1300             1.068               32
+     1400             1.076               32
+     1500             1.067               32
+     1600             1.091               32
+     1700             1.117               32
+     1800             1.123               32
+     1900             1.084               32
+     2000             1.050               32
+     2100             1.032               32
+     2200             1.022               32
+     2300             1.017               24
+     2400             1.013               24
+     2500             1.010               24
+     2600             1.009               33
+     2700             1.015               33
+     2800             1.010               33
+     2900             1.014               33
+     3000             1.016               32
+     3100             1.021               32
+     3200             1.027               32
+     3300             1.030               32
+     3400             1.031               32
+     3500             1.035               32
+     3600             1.030               32
+     3700             1.026               32
+     3800             1.020               32
+     3900             1.019               33
+     4000             1.021               33
+     4100             1.016               33
+     4200             1.014               32
+     4300             1.014               32
+     4400             1.011               32
+     4500             1.015               32
+     4600             1.014               32
+     4700             1.011               32
+     4800             1.010               33
+     4900             1.010               33
+     5000             1.011               33
+     5100             1.012               33
+     5200             1.010               33
+     5300             1.010               24
+     5400             1.010               24
+     5500             1.014               24
+     5600             1.017               24
+     5700             1.019               24
+     5800             1.016               24
+     5900             1.015               24
+     6000             1.016               24
+     6100             1.018               24
+     6200             1.017               24
+     6300             1.015               24
+     6400             1.016               24
+     6500             1.015               24
+     6600             1.013               24
+     6700             1.011               24
+     6800             1.009               24
+     6900             1.008               24
+     7000             1.009               24
+     7100             1.010               32
+     7200             1.010               32
+     7300             1.010               32
+     7400             1.008               32
+     7500             1.011               33
+     7600             1.011               33
+     7700             1.011               33
+     7800             1.011               33
+     7900             1.012               33
+     8000             1.012               33
+     8100             1.011               33
+     8200             1.012               33
+     8300             1.013               33
+     8400             1.014               33
+     8500             1.016               33
+     8600             1.016               33
+     8700             1.013               33
+     8800             1.015               33
+     8900             1.017               33
+     9000             1.016               33
+     9100             1.015               33
+     9200             1.015               33
+     9300             1.013               33
+     9400             1.012               33
+     9500             1.009               33
+     9600             1.008               33
+     9700             1.008               18
+     9800             1.007               18
+     9900             1.008               18
+     10000            1.007               18
+     10100            1.006               18
+     10200            1.007               18
+     10300            1.007               18
+     10400            1.008               18
+     10500            1.008               18
+     10600            1.007               18
+     10700            1.007               18
+     10800            1.007               18
+     10900            1.007               18
+     11000            1.006               18
+     11100            1.006               18
+     11200            1.006               18
+     11300            1.005               18
+     11400            1.006               18
+     11500            1.006               18
+     11600            1.006               18
+     11700            1.006               18
+     11800            1.006               18
+     11900            1.006               18
+     12000            1.006               18
+     12100            1.006               18
+     12200            1.006               18
+     12300            1.005               18
+     12400            1.005               18
+     12500            1.005               18
+     12600            1.004               18
+     12700            1.005               18
+     12800            1.004               18
+     12900            1.004               18
+     13000            1.004               18
+     13100            1.004               29
+     13200            1.003               29
+     13300            1.003               29
+     13400            1.004               18
+     13500            1.003               18
+     13600            1.003               18
+     13700            1.003               18
+     13800            1.003               18
+     13900            1.003               18
+     14000            1.003               24
+     14100            1.003               24
+     14200            1.003               24
+     14300            1.004               24
+     14400            1.004               24
+     14500            1.004               24
+     14600            1.004               24
+     14700            1.005               24
+     14800            1.005               24
+     14900            1.005               24
+     15000            1.005               24
+
+
+PLOT INFORMATION
+
+The following plots are available:
+
+  Bayesian posterior parameter distributions
+  Bayesian posterior parameter trace plots
+  Bayesian autocorrelation plots
+
+     Beginning Time:  15:02:05
+        Ending Time:  15:11:51
+       Elapsed Time:  00:09:46
+
 
 
 MUTHEN & MUTHEN

@@ -76,7 +76,7 @@ tictoc::toc()
 beepr::beep()
 
 
-names(all_chains_descriptives) <- c("flanker", "go_nogo", "recent_probes")
+
 
 
 
@@ -118,13 +118,13 @@ for(s in subj_names){
 }
 
 
-all_chains_descriptives[[t]][["subj"]][[2]][[i]] <- NULL
-length(all_chains_descriptives[[t]][["subj"]][[2]])
-nrow(all_chains_descriptives[[t]][["subj"]][[1]])
-all_chains_descriptives[[t]][["subj"]][[1]] <- all_chains_descriptives[[t]][["subj"]][[1]][1:16000,]
+# all_chains_descriptives[[t]][["subj"]][[2]][[i]] <- NULL
+# length(all_chains_descriptives[[t]][["subj"]][[2]])
+# nrow(all_chains_descriptives[[t]][["subj"]][[1]])
+# all_chains_descriptives[[t]][["subj"]][[1]] <- all_chains_descriptives[[t]][["subj"]][[1]][1:16000,]
 
 
-
+names(all_chains_descriptives) <- c("flanker", "go_nogo", "recent_probes")
 
 for(t in names(all_chains_descriptives)){
   no_ter <- all_chains_descriptives[[t]][["subj"]][[1]] %>% select(!starts_with("t_subj"))  
@@ -143,9 +143,9 @@ for(t in names(all_chains_descriptives)){
              task = t) %>% select(id, task, Parameter, MAP, se, CI_low, CI_high, pd) 
     # summ_flank %>% tibble() %>% print(n = 500)
     summ_flank[which(summ_flank$Parameter == "v_incongruent"),"MAP"] <- summ_flank[which(summ_flank$Parameter == "v_intercept"),"MAP"] + summ_flank[which(summ_flank$Parameter == "v_incongruent"),"MAP"]
-    y <- abs(summ_gng[which(summ_flank$Parameter == "v_intercept"),"MAP"])
+    y <- abs(summ_flank[which(summ_flank$Parameter == "v_intercept"),"MAP"])
     
-    x <- summ_gng[which(summ_flank$Parameter == "v_incongruent"),"MAP"]
+    x <- summ_flank[which(summ_flank$Parameter == "v_incongruent"),"MAP"]
     
     z <- data.frame(v_incongruent = x, v_congruent = y) %>% reshape2::melt() %>% rename(condition = variable, MAP = value)
     ggplot(data = z, aes(x = MAP, color = condition)) + geom_density()
@@ -204,9 +204,13 @@ for(t in names(all_chains_descriptives)){
   
   
 }
-
+beepr::beep()
 
 summs_all <- rbind(summ_flank, summ_gng, summ_rp)
+
+summs_wide <- summs_all %>% mutate(p_task = paste(task, Parameter, sep = "_")) %>% select(-CI_low, -CI_high, -pd, -task, -Parameter, -se) %>% spread(p_task, MAP)
+write.csv(summs_wide, file = "~/github_repos/PD_Inhibition_DDM/Code/brms/summs_wide.csv")
+
 
 summs_all <- summs_all %>% mutate(parameter = ifelse(startsWith(Parameter, "v_"), "v", "a"),
                      Parameter = ifelse(startsWith(Parameter, "v_"), sub("v_", "",Parameter), sub("a_", "",Parameter))) %>% rename(beta_contrast = Parameter)

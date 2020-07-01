@@ -4,8 +4,9 @@ DATA:
 FILE = "flanker_acc_mplus.dat";
  
 VARIABLE:
-NAMES = id correct rt cond block prev_rt prev_error prev_rt_z MPS_agR AGG MISTRUST
-     MPS_alR MANIP PROPER MPS_clR IMPUL MPS_tdR MPS_acR HDWK; 
+NAMES = id correct rt cond block trial block_number trial_z rt_inv run_trial
+     run_trial_z prev_rt prev_rt_inv prev_error exclude prev_rt_z MPS_agR AGG
+     MISTRUST MPS_alR MANIP PROPER MPS_clR IMPUL MPS_tdR MPS_acR HDWK K10; 
  MISSING=.;
  
     WITHIN = cond block prev_rt_z prev_error;

@@ -1,0 +1,47 @@
+TITLE:
+GnG M12 Mplus
+DATA:
+FILE = "gng_m12_mplus.dat";
+ 
+VARIABLE:
+NAMES = id trial_z rt_log_trim_grp block_trial_z; 
+ MISSING=.;
+ 
+    WITHIN = trial_z block_trial_z t_ixn;
+    USEVARIABLES = id rt_log_trim_grp block_trial_z trial_z t_ixn;
+    CLUSTER = id;
+  
+DEFINE:
+
+    t_ixn = block_trial_z*trial_z; !ixn of trials from no-go and overall trial;
+  
+ANALYSIS:
+
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(15000);
+    CHAINS=4;
+    PROCESSORS=4;
+  
+MODEL:
+
+    %WITHIN%
+
+    b_trial | rt_log_trim_grp ON trial_z;
+    b_block_trial |  rt_log_trim_grp ON block_trial_z;
+    rt_log_trim_grp ON t_ixn;
+
+    %BETWEEN%
+    [b_trial b_block_trial]; !slope means
+    b_trial b_block_trial; !slope variances
+
+    !slope correlations
+    b_trial b_block_trial WITH 
+      b_trial b_block_trial;
+
+    [rt_log_trim_grp] (b0); !mean average log RT
+  
+OUTPUT:
+TECH1 TECH8 STANDARDIZED CINTERVAL;
+PLOT:
+TYPE = PLOT2;

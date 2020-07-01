@@ -1,0 +1,45 @@
+TITLE:
+Equivalent model to lmer m5 recent probes
+DATA:
+FILE = "flanker_mplus.dat";
+ 
+VARIABLE:
+NAMES = id rt cond trial trial_z rt_inv; 
+ MISSING=.;
+ 
+    WITHIN = cond trial_z;
+    USEVARIABLES = id rt_log cond trial_z;
+    CLUSTER = id;
+  
+ANALYSIS:
+
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(10000);
+    CHAINS=2;
+    PROCESSORS=4;
+  
+MODEL:
+
+    %WITHIN%
+    rt_log ON cond
+    trialslo | rt_inv ON trial_z;    !random slope of trial
+  
+    %BETWEEN%
+    !means of random slopes
+  
+    [trialslo];
+  
+    !variances of random slopes
+    trialslo;
+    
+    !slope correlations
+    !condslo runslo trialslo prevslo errslo WITH
+    !   condslo runslo trialslo prevslo errslo;
+    
+    [rt_log]; !mean average inverse RT
+  
+OUTPUT:
+TECH1 TECH8 STANDARDIZED CINTERVAL;
+PLOT:
+TYPE = PLOT2;

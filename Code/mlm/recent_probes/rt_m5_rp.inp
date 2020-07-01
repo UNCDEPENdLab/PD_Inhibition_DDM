@@ -1,0 +1,64 @@
+TITLE:
+Equivalent model to lmer m5 recent probes
+DATA:
+FILE = "rp_mplus.dat";
+ 
+VARIABLE:
+NAMES = id rt cond trial_z trial rt_log; 
+ MISSING=.;
+ 
+    WITHIN = trial_z n_fam n_hfam n_rc n_unfam;
+    USEVARIABLES = id rt_log trial_z n_fam n_hfam n_rc n_unfam;
+    CLUSTER = id;
+  
+DEFINE:
+
+  !cond = cond -1; ! 0 = negative_familiar, 1 = negative_highly_familiar, 2= negative_rc, 3 = negative_unfamiliar, 4 = positive 
+  
+  !positive = 0; 
+  !IF (cond == 5) then positive = 1; 
+  n_fam = 0; 
+  IF (cond == 1) then n_fam = 1; 
+  n_hfam = 0; 
+  IF (cond == 2) then n_hfam = 1; 
+  n_rc = 0; 
+  IF (cond == 3) then n_rc = 1; 
+  n_unfam = 0; 
+  IF (cond == 4) then n_unfam = 1; 
+  
+  
+ANALYSIS:
+
+    TYPE=TWOLEVEL RANDOM;
+    ESTIMATOR=BAYES;
+    BITERATIONS=(10000);
+    CHAINS=2;
+    PROCESSORS=4;
+  
+MODEL:
+
+    %WITHIN%
+    rt_log ON n_fam n_hfam n_rc n_unfam;
+    trialslo | rt_log ON trial_z;    !random slope of trial
+  
+    %BETWEEN%
+    !means of random slopes
+  
+    [trialslo];
+  
+    !variances of random slopes
+    trialslo;
+    
+    ! 
+    !rt_log ON trial_z
+    
+    !slope correlations
+    !condslo runslo trialslo prevslo errslo WITH
+    !   condslo runslo trialslo prevslo errslo;
+    
+    [rt_log]; !mean average RT
+  
+OUTPUT:
+TECH1 TECH8 STANDARDIZED CINTERVAL;
+PLOT:
+TYPE = PLOT2;

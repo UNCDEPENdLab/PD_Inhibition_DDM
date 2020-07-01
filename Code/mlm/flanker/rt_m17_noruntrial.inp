@@ -4,7 +4,7 @@ DATA:
 FILE = "flanker_mplus.dat";
  
 VARIABLE:
-NAMES = id rt cond block trial trial_z rt_inv prev_rt prev_error prev_rt_z; 
+NAMES = id rt cond block trial trial_z rt_inv prev_rt prev_rt_z; 
  MISSING=.;
  
     WITHIN = cond block cond_block prev_rt_z prev_error trial_z;
