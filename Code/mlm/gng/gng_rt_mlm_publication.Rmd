@@ -48,30 +48,23 @@ Update: I changed things a decent amount. Oops.
 
 
 ```{r}
-#raw flanker data, all subjects
-gng <- read.csv("~/github_repos/PD_Inhibition_DDM/Data/preprocessed/go_nogo_full_accCode.csv") %>% mutate(bad_subj = if_else(subj_idx == 15, 1, 0)) #flagged 15 as bad as this was the one person who needed to be according to NH's preprocessing; will test how inclusion of 15 alters results
-gng <- mutate(gng, cond= factor(cond, levels = c("OneGo","ThreeGo", "FiveGo", "SevenGo")))
+#raw flanker data, all subjects. With MNH/NTH recoding of since_nogo as block_trial_z
+gng <- read.csv("~/github_repos/PD_Inhibition_DDM/Data/preprocessed/go_nogo_clean_sample_accCode_recode_sincenogo.csv") 
 
-gng <- gng %>% group_by(subj_idx) %>% mutate(
-  
-                                      prev_rt = ifelse(lag(rt_log_trim_grp) == 0, NA, lag(rt_log_trim_grp)),
-                                      
-                                      prev_rt_z = scale(prev_rt),
-                                      prev_error = ifelse(lag(response) == 1, 0, 1),
-                                      id = as.character(subj_idx))
+gng <- mutate(gng, block_trial_z = since_nogo_z)
+
+#set onego to reference 
+ gng <- within(gng, cond <- relevel(cond, ref = "OneGo"))
 
 
 gng_rt <- dplyr::filter(gng, stim == "Go", response == 1) #only analyze GO RTs!
-# gng_rt$cond_id <- with(gng_rt, interaction(cond,id))
-gng_rt <- mutate(gng_rt, block_trial_z = scale(block_trial))
-# View(gng_rt)
 
 
 # test(emtrends(m19, ~trial_z, var = "block_trial_z", at = list(trial_z = c(-1, 1))))
 # quantile(gng_rt$prev_rt, .16, na.rm = TRUE) # to get what is equivalent to -1, 1 in z scores
 # quantile(gng_rt$prev_rt, .84, na.rm = TRUE)
 
-unique(gng_rt$bad_subj)
+
 
 render_aictab <- function(minfo, ...) {
   mc <- match.call(expand.dots = TRUE)
@@ -160,6 +153,9 @@ emmeans(m1_reml, ~cond)
 ```
 
 ```{r}
+
+#grab model-predicted RTs by condition
+
 # flextable(anova(m1) %>% tibble::rownames_to_column("Effect")) %>% autofit() #lmerTest reports Satterthwaite degrees of freedom
 #flextable(car::Anova(m1, type=3)) %>% autofit()
 
@@ -232,6 +228,9 @@ summary(m3)
 
 
 # m1_reml <- update(m1, REML=TRUE)
+
+
+
 
 
 flextable(anova(m3) %>% rownames_to_column("Effect")) %>% autofit() #lmerTest reports Satterthwaite degrees of freedom
