@@ -1,4 +1,5 @@
-setwd("/Users/michael/Data_Analysis/PD_Inhibition_DDM/Code/mlm/gng")
+# setwd("/Users/michael/Data_Analysis/PD_Inhibition_DDM/Code/mlm/gng")
+setwd("~/github_repos/PD_Inhibition_DDM/Code/mlm/gng")
 if (!require(pacman)) { install.packages("pacman"); library(pacman) }
 p_load(car, brms, nlme, lme4, loo, readr, tidyverse, emmeans, cowplot, glmmTMB, bbmle, broom, MplusAutomation)
 
@@ -14,8 +15,8 @@ p_load(car, brms, nlme, lme4, loo, readr, tidyverse, emmeans, cowplot, glmmTMB, 
 # Use trial_z rather than trial (for scaling purposes)
 # Will likely add in prev_rt in more complex analyses
 
-#basedir <- "~/github_repos/PD_Inhibition_DDM"
-basedir <- "~/Data_Analysis/PD_Inhibition_DDM"
+basedir <- "~/github_repos/PD_Inhibition_DDM"
+# basedir <- "~/Data_Analysis/PD_Inhibition_DDM"
 
 #NH add from GNG RT analyses
 gng <- read.csv(file.path(basedir, "Data/preprocessed/go_nogo_full_accCode.csv")) %>% mutate(bad_subj = if_else(subj_idx == 15, 1, 0)) #flagged 15 as bad as this was the one person who needed to be according to NH's preprocessing; will test how inclusion of 15 alters results
@@ -25,8 +26,7 @@ gng <- gng %>% group_by(subj_idx) %>% mutate(
   prev_rt = ifelse(lag(rt_log_trim_grp) == 0, NA, lag(rt_log_trim_grp)),
   prev_rt_z = scale(prev_rt),
   prev_error = ifelse(lag(response) == 1, 0, 1),
-  id = as.character(subj_idx)
-)
+  id = as.character(subj_idx)) %>% ungroup() %>% select(-stim_cond, -trial, -block_trial, -bad_subj)
 
 gng_split <- split(gng, gng$subj_idx)
 
@@ -37,21 +37,21 @@ for (sub in 1:length(gng_split)) {
   i <- 1
   while (i < nrow(thisdf)) {
     #cat("i: ", i, "\n")
-    stim_cond <- thisdf$stim_cond[i]
-    if (stim_cond == "Go_OneGo") {
-      jmax <- 0
-    } else if (stim_cond == "Go_ThreeGo") {
-      jmax <- 2
-    } else if (stim_cond == "Go_FiveGo") {
-      jmax <- 4
-    } else if (stim_cond == "Go_SevenGo") {
-      jmax <- 6
-    } else { i <- i + 1; next } #skip no go
+    cond <- thisdf$cond[i]
+    if (cond == "OneGo") {
+      jmax <- 1
+    } else if (cond == "ThreeGo") {
+      jmax <- 3
+    } else if (cond == "FiveGo") {
+      jmax <- 5
+    } else if (cond == "SevenGo") {
+      jmax <- 7
+    } #else { i <- i + 1; next } #skip no go
     
     for (j in 0:jmax) {
       thisdf$since_nogo[i+j] <- j
     }
-    i <- i + jmax + 2 #skip forward, + 1 for row on last go (since j is 0-based offset), +1 again for skipping no go
+    i <- i + jmax + 1 #skip forward, + 1 for row on last go (since j is 0-based offset), 
     
   }
   
@@ -60,10 +60,7 @@ for (sub in 1:length(gng_split)) {
 }
 
 gng <- do.call(rbind, gng_split)
-
-# gng_rt <- dplyr::filter(gng, stim == "Go", response == 1) #only analyze GO RTs!
-gng$cond_id <- with(gng, interaction(cond,id))
-gng <- mutate(gng, block_trial_z = as.vector(scale(block_trial))) #%>% filter(response == 1, stim == "Go")
+gng <- mutate(gng, since_nogo_z = as.vector(scale(since_nogo))) #%>% filter(response == 1, stim == "Go")
 
 # gng <- mutate(gng, block_trial_z = as.vector(scale(block_trial))) 
 
@@ -88,8 +85,14 @@ stai <- sas7bdat::read.sas7bdat(file.path(basedir, "Data/SAS Originals/stai.sas7
 self_reps <- inner_join(mpq, snap, by = "subject")
 self_reps <- left_join(self_reps, k10, by = "subject")
 self_reps <- left_join(self_reps, stai, by = "subject")
-#mpluscmd <- "/Users/natehall/Desktop/Mplus/mplus"
-mpluscmd <- "/Applications/Mplus/mplus"
+mpluscmd <- "/Users/natehall/Desktop/Mplus/mplus"
+# mpluscmd <- "/Applications/Mplus/mplus"
+
+
+# save gng for MLM and HDDM analyses --------------------------------------
+
+write.csv(gng, file = "~/github_repos/PD_Inhibition_DDM/Data/preprocessed/go_nogo_clean_sample_accCode_recode_sincenogo.csv")
+
 
 # RT analyses
 # block trial*trial and prev_rtXblock_trial effects on RT. homogonous covariance structure estimated per subject and variance estimated per cond. Random intercept and slope of trial and block_trial estmimated for each subject. Random slope of block trial estimated per condition within subject.
@@ -115,7 +118,7 @@ tofactor <- self_reps %>% select(subject, MPS_agR, AGG, MISTRUST, MPS_alR, MANIP
   mutate_at(vars(-subject), list(~as.vector(scale(.)))) %>% 
   dplyr::rename(id=subject)
 
-ggcorrplot::ggcorrplot(cor(tofactor %>% select(-id), use="pairwise")) #looks right
+# ggcorrplot::ggcorrplot(cor(tofactor %>% select(-id), use="pairwise")) #looks right
 
 for_msem <- gng %>% mutate(id = subj_idx) %>% inner_join(tofactor, by="id") %>% ungroup() %>%  
   select(id, response, cond, stim, trial_z, rt_log_trim_grp, block_trial_z,
@@ -126,9 +129,9 @@ for_msem <- gng %>% mutate(id = subj_idx) %>% inner_join(tofactor, by="id") %>% 
                               ifelse(cond == "FiveGo", 2,3))),
          stim = ifelse(stim == "Go", 0,1))
 
-head(for_msem)
+for_msem
 
-for_msem_rt <- for_msem %>% dplyr::filter(stim == 0 & response == 1) #only analyze GO RTs!
+for_msem_rt <- for_msem %>% dplyr::filter(stim == 0 & response == 1) #only analyze correct GO RTs!
 lattice::histogram(~rt_log_trim_grp, for_msem_rt) #looks normal to me
 xtabs(~id, for_msem_rt) #all similar
 
@@ -330,8 +333,8 @@ rt_with_mod_gng2 <- mplusObject(
     b_trial b_block_trial; !slope variances
 
     !slope correlations
-    b_trial b_block_trial WITH 
-      b_trial b_block_trial;
+    !b_trial b_block_trial WITH 
+    !  b_trial b_block_trial;
 
     [rt_log_trim_grp] (b0); !mean average log RT
     
@@ -389,76 +392,69 @@ flextable(mout$results$parameters$stdyx.standardized %>%
 ) %>% autofit()# %>% save_as_docx(path = "~/Desktop/flanker_rt_traits.docx")
 
 
-# try dropping ixn? -------------------------------------------------------
-
+# include cross-level moderation of personality on ixn by including person means ----------------------------------------------
 
 rt_with_mod_gng3 <- mplusObject(
-  TITLE = "Antagonism, Disinhibition moderates gng random slopes and fixed effects interaction",
+  TITLE = "Antagonism, Disinhibition moderates trial, block_trial, and ixn at within-person level",
   DEFINE = "
-    !t_ixn = block_trial_z*trial_z; !ixn of trials from no-go and overall trial;
+    t_ixn = block_trial_z*trial_z; !ixn of trials from no-go and overall trial;
     p1=MEAN(MISTRUST MPS_alR);
     p2=MEAN(PROPER MPS_tdR);
     p3=MEAN(MPS_clR IMPUL);
     p4=MEAN(MPS_acR HDWK);
     p5=MEAN(MPS_agR AGG);
+    CENTER trial_z block_trial_z t_ixn (GRANDMEAN); !make intercepts easy to understand
   ",
   
   VARIABLE = "
-    WITHIN = trial_z block_trial_z;
+    WITHIN = trial_z block_trial_z t_ixn;
     USEVARIABLES = id rt_log_trim_grp block_trial_z trial_z 
-      MANIP p1 p2 p3 p4 p5;
-      !t_ixn;
+      MANIP p1 p2 p3 p4 p5 t_ixn;
     BETWEEN = MANIP p1 p2 p3 p4 p5;
-    
     CLUSTER = id;
   ",
   ANALYSIS = "
     TYPE=TWOLEVEL RANDOM;
     ESTIMATOR=BAYES;
-    BITERATIONS=(15000);
-    BCONVERGENCE=.02;
-    CHAINS=2;
-    PROCESSORS=2;
+    BITERATIONS=(30000);
+    CHAINS=4;
+    PROCESSORS=4;
   ",
-  
   
   MODEL = "
     %WITHIN%
-    
-    b_trial | rt_log_trim_grp ON trial_z; 
-    b_block_trial |  rt_log_trim_grp ON block_trial_z; 
-      
-    
+
+    b_trial | rt_log_trim_grp ON trial_z;
+    b_block_trial |  rt_log_trim_grp ON block_trial_z;
+    b_t_ixn | rt_log_trim_grp ON t_ixn;
+
     %BETWEEN%
-    [b_trial b_block_trial]; !slope means
-    b_trial b_block_trial; !slope variances
-    
-        !slope correlations
-    b_trial b_block_trial  WITH
-       b_trial b_block_trial;
-    
+    [b_trial b_block_trial b_t_ixn]; !slope means
+    b_trial b_block_trial b_t_ixn; !slope variances
+
+    !slope correlations
+    !b_trial b_block_trial WITH 
+    !  b_trial b_block_trial;
+
     [rt_log_trim_grp] (b0); !mean average log RT
-    
     
     !TRAIT MODEL
         
     antag BY 
       p5* ! MPS_agR AGG
-      p1        ! MISTRUST MPS_alR
+      p1  ! MISTRUST MPS_alR
       MANIP;
     antag@1;
 
     disinhib BY
-      p2*  !PROPER MPS_tdR
+      p2* !PROPER MPS_tdR
       p3  !MPS_clR IMPUL
-      p4 !MPS_acR HDWK;
-      p1; 
+      p4  !MPS_acR HDWK
+      p1; !cross-load
     disinhib@1;
 
     antag WITH disinhib;
     
-    !disinhib BY p1; !modification index cross-loading for fit
-
     !TRAIT MODERATION
     
     ! trait moderates flanker performance
@@ -468,23 +464,24 @@ rt_with_mod_gng3 <- mplusObject(
     b_trial ON antag (t_bA)
       disinhib (t_bD);
     
-    !t_ixn ON antag (ixn_bA) 
-    !  disinhib (ixn_bD);
+    !this would only make sense if we had meaningful between-person variation in
+    !the interaction and were decomposing person emans of the interaction for analysis.
+    !or, we could add a random slope of the interaction and model that here b_ixn ON ...
+    !but as written, this doesn't make sense.
     
-    !N.B. Leaving out the association of antag with rt_inv 
-    !omits a hugely important relationship.
-    !Thus, allow antag as a predictor of average (person) RT
-    
+    b_t_ixn ON antag (ixn_bA) 
+      disinhib (ixn_bD);
+
+    !average RT on traits    
     rt_log_trim_grp ON antag (bA) 
       disinhib (bD);
-    
   ",
   PLOT = "TYPE = PLOT2;",
   OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
-  rdata = for_msem
+  rdata = for_msem_rt
 )
-mout <- mplusModeler(rt_with_mod_gng3,
-                     modelout="rt_with_mod_gng3.inp", run=TRUE, Mplus_command = mpluscmd, hashfilename = FALSE)
+mout <- mplusModeler(rt_with_mod_gng3, modelout="rt_with_mod_gng3.inp", 
+                     run=TRUE, Mplus_command = mpluscmd, hashfilename = FALSE)
 
 
 flextable(mout$results$parameters$stdyx.standardized %>% 
@@ -495,6 +492,112 @@ flextable(mout$results$parameters$stdyx.standardized %>%
 ) %>% autofit()# %>% save_as_docx(path = "~/Desktop/flanker_rt_traits.docx")
 
 
+# try dropping ixn? -------------------------------------------------------
+
+# 
+# rt_with_mod_gng3 <- mplusObject(
+#   TITLE = "Antagonism, Disinhibition moderates gng random slopes and fixed effects interaction",
+#   DEFINE = "
+#     !t_ixn = block_trial_z*trial_z; !ixn of trials from no-go and overall trial;
+#     p1=MEAN(MISTRUST MPS_alR);
+#     p2=MEAN(PROPER MPS_tdR);
+#     p3=MEAN(MPS_clR IMPUL);
+#     p4=MEAN(MPS_acR HDWK);
+#     p5=MEAN(MPS_agR AGG);
+#   ",
+#   
+#   VARIABLE = "
+#     WITHIN = trial_z block_trial_z;
+#     USEVARIABLES = id rt_log_trim_grp block_trial_z trial_z 
+#       MANIP p1 p2 p3 p4 p5;
+#       !t_ixn;
+#     BETWEEN = MANIP p1 p2 p3 p4 p5;
+#     
+#     CLUSTER = id;
+#   ",
+#   ANALYSIS = "
+#     TYPE=TWOLEVEL RANDOM;
+#     ESTIMATOR=BAYES;
+#     BITERATIONS=(15000);
+#     BCONVERGENCE=.02;
+#     CHAINS=2;
+#     PROCESSORS=2;
+#   ",
+#   
+#   
+#   MODEL = "
+#     %WITHIN%
+#     
+#     b_trial | rt_log_trim_grp ON trial_z; 
+#     b_block_trial |  rt_log_trim_grp ON block_trial_z; 
+#       
+#     
+#     %BETWEEN%
+#     [b_trial b_block_trial]; !slope means
+#     b_trial b_block_trial; !slope variances
+#     
+#         !slope correlations
+#     b_trial b_block_trial  WITH
+#        b_trial b_block_trial;
+#     
+#     [rt_log_trim_grp] (b0); !mean average log RT
+#     
+#     
+#     !TRAIT MODEL
+#         
+#     antag BY 
+#       p5* ! MPS_agR AGG
+#       p1        ! MISTRUST MPS_alR
+#       MANIP;
+#     antag@1;
+# 
+#     disinhib BY
+#       p2*  !PROPER MPS_tdR
+#       p3  !MPS_clR IMPUL
+#       p4 !MPS_acR HDWK;
+#       p1; 
+#     disinhib@1;
+# 
+#     antag WITH disinhib;
+#     
+#     !disinhib BY p1; !modification index cross-loading for fit
+# 
+#     !TRAIT MODERATION
+#     
+#     ! trait moderates flanker performance
+#     b_block_trial ON antag (b_bA)
+#       disinhib (b_bD);
+#     
+#     b_trial ON antag (t_bA)
+#       disinhib (t_bD);
+#     
+#     !t_ixn ON antag (ixn_bA) 
+#     !  disinhib (ixn_bD);
+#     
+#     !N.B. Leaving out the association of antag with rt_inv 
+#     !omits a hugely important relationship.
+#     !Thus, allow antag as a predictor of average (person) RT
+#     
+#     rt_log_trim_grp ON antag (bA) 
+#       disinhib (bD);
+#     
+#   ",
+#   PLOT = "TYPE = PLOT2;",
+#   OUTPUT = "TECH1 TECH8 STANDARDIZED CINTERVAL;",
+#   rdata = for_msem
+# )
+# mout <- mplusModeler(rt_with_mod_gng3,
+#                      modelout="rt_with_mod_gng3.inp", run=TRUE, Mplus_command = mpluscmd, hashfilename = FALSE)
+# 
+# 
+# flextable(mout$results$parameters$stdyx.standardized %>% 
+#             filter(!paramHeader %in% c("Variances")) %>%
+#             select(-sig, -posterior_sd) %>%
+#             mutate(pval=2*pval, #convert to 2-tailed
+#                    pval=if_else(pval < .05, as.character(paste0(pval, "*")), as.character(pval))) 
+# ) %>% autofit()# %>% save_as_docx(path = "~/Desktop/flanker_rt_traits.docx")
+# 
+
 
 
 # ACCURACY ANALYSES -------------------------------------------------------
@@ -504,6 +607,8 @@ flextable(mout$results$parameters$stdyx.standardized %>%
 # fixed: stimulus, condition, trial, trialxstimulus
 # random: stimulus
 
+for_msem
+# m19 <- lmer(response ~ stim*trial + condition + (1 + stim | id) 
 
 acc_with_mod_gng <- mplusObject(
   TITLE = "Antagonism, Disinhibition GNG ACC",
@@ -517,14 +622,11 @@ acc_with_mod_gng <- mplusObject(
   ",
   
   VARIABLE = "
-    ! WITHIN = stim; !if my understanding is correct, this will only specify an effect at the within-level
+    WITHIN = stim cond trial_z ts_ixn; 
     USEVARIABLES = id response stim cond trial_z 
       MANIP p1 p2 p3 p4 p5
       ts_ixn;
-    BETWEEN = MANIP p1 p2 p3 p4 p5
-      cond trial_z
-      ts_ixn;
-    
+    BETWEEN = MANIP p1 p2 p3 p4 p5;
     CLUSTER = id;
   ",
   ANALYSIS = "
@@ -542,15 +644,18 @@ acc_with_mod_gng <- mplusObject(
     
     b_stim | response ON stim; 
     b_cond | response ON cond;
-    b_trial | response ON trial_z
-    b_ts_ixn | response ON ts_ixn
+    b_trial | response ON trial_z;
+    b_ts_ixn | response ON ts_ixn;
     
     %BETWEEN%
     [b_stim b_cond b_trial b_ts_ixn]; !slope means
     b_stim b_cond b_trial b_ts_ixn; !slope variances
     
+    b_stim b_cond b_trial b_ts_ixn WITH b_stim b_cond b_trial b_ts_ixn; !correlation of random slopes with one another.
+    
+    
         
-    [response] (b0); !mean average ACC
+    [response]; !mean average ACC
     
     
     !TRAIT MODEL
@@ -575,22 +680,16 @@ acc_with_mod_gng <- mplusObject(
     !TRAIT MODERATION
     
     ! trait moderates flanker performance
-    b_stim ON antag (b_bA)
-      disinhib (b_bD);
-    
-    
-    ts_ixn ON antag (ixn_bA) 
-      disinhib (ixn_bD);
-    
-    cond ON antag  
-      disinhib; 
+    b_stim ON antag disinhib;
+    b_cond ON antag disinhib; 
+    b_trial ON antag disinhib;
+    b_ts_ixn ON antag disinhib;
     
     !N.B. Leaving out the association of antag with rt_inv 
     !omits a hugely important relationship.
     !Thus, allow antag as a predictor of average (person) RT
     
-    response ON antag (bA) 
-      disinhib (bD);
+    response ON antag disinhib;
     
   ",
   PLOT = "TYPE = PLOT2;",
@@ -606,7 +705,7 @@ flextable(mout$results$parameters$stdyx.standardized %>%
             select(-sig, -posterior_sd) %>%
             mutate(pval=2*pval, #convert to 2-tailed
                    pval=if_else(pval < .05, as.character(paste0(pval, "*")), as.character(pval))) 
-) %>% autofit()# %>% save_as_docx(path = "~/Desktop/flanker_rt_traits.docx")
+) %>% autofit() #%>% save_as_docx(path = "~/Desktop/gng_rt_traits.docx")
 
 
 
